@@ -113,31 +113,73 @@ function nw_parse_name(s::String)
 end
 
 
-
-
 """
+	fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
+
+Read `fastafile` and stores sequences in nodes of `tree` with corresponding label.  
+Implemented sequence types are `:nucleotide` and `:binary`.
 """
-function fasta2tree!(tree::Tree, fastafile::String ; seqtype="nucleotide")
+function fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
 	for (name,seq) in FastaReader(fastafile)
 		key, flag = tree_findlabel(name, tree)
 		if !flag
-			@warn "Sequence labeled $name could not be found in tree."
+			@warn "Sequence $name could not be found in tree."
 		else
-			numseq = seq2num(seq, seqtype)
-			tree.nodes[key].data.sequence = numseq
-			if seqtype == "nucleotide"
-				tree.nodes[key].data.q = 5
-			elseif seqtype == "AA"
-				tree.nodes[key].data.q = 21
-			end
+			# storeseq!(tree, key, seq, seqtype)
+			storeseq!(tree.nodes[key], seq, seqtype)
 		end
 	end		
+end
+
+## This should be implemented
+## Lacks a good node_find_label function 
+# """
+# 	fasta2tree!(root::TreeNode, fastafile::String ; seqtype=:nucleotide)
+
+# Read `fastafile` and stores sequences in nodes of `root` with corresponding label.  
+# Implemented sequence types are `:nucleotide` and `:binary`.
+# """
+# function fasta2tree!(root::TreeNode, fastafile::String ; seqtype=:nucleotide)
+# 	for (name,seq) in FastaReader(fastafile)
+# 		key, flag = tree_findlabel(name, tree)
+# 		if !flag
+# 			@warn "Sequence $name could not be found in tree."
+# 		else
+# 			# storeseq!(tree, key, seq, seqtype)
+# 			storeseq!(tree.node[key], seq, seqtype)
+# 		end
+# 	end		
+# end
+
+"""
+	storeseq!(node::TreeNode, seq, seqtype)
+
+Store sequence `seq` at node `node`. 
+"""
+function storeseq!(node::TreeNode, seq, seqtype)
+	if seqtype==:nucleotide
+		numseq = seq2num(seq, seqtype)
+		node.data.sequence = numseq
+		node.data.q = 5
+	elseif seqtype==:binary
+		if isa(seq, String)
+			node.data.sequence = map(x->parse(Int64, x), collect(seq))
+		elseif isa(seq, Array{Int64})
+			node.data.sequence = seq
+		else
+			error("Unrecognized format for sequence `seq`.")
+		end
+		node.data.q = 2
+	else
+		println("Accepted sequence types are `:binary` and `:nucleotide`.")
+		error("Unknown seq-type.")
+	end
 end
 
 """
 """
 function seq2num(seq::String, seqtype)
-	if seqtype == "nucleotide"
+	if seqtype == :nucleotide
 		mapping = "ACGT-NWSMKRY"
 		numseq = zeros(Int64, length(seq))
 		for (i,c) in enumerate(seq)

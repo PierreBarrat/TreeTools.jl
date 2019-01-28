@@ -1,4 +1,4 @@
-export print_tree
+export print_tree, hamming
 
 """
 """
@@ -20,7 +20,8 @@ function print_tree(node::TreeNode; indent = 0, indent_size = 10)
                 (i<=(indent_size*(indent-1))+1) ? print(" ") : print("-")
         end
         # Current node label
-        println(node.label)
+        print(node.label)
+        ismissing(node.data.tau) ? println() : println(":$(node.data.tau)")
         # Bottom vertical connection for non leaf
         if !node.isleaf
                 for i in 1:(indent_size*(indent))
@@ -33,4 +34,16 @@ function print_tree(node::TreeNode; indent = 0, indent_size = 10)
         node.isleaf || print_tree(node.child[2], indent = indent+1,  indent_size = indent_size); 
 
         return nothing
+end
+
+"""
+        hamming(x,y)
+"""
+function hamming(x,y)
+        if typeof(x) != typeof(y)
+                @warn "Computing hamming distance between different types."
+        elseif length(x) != length(y)
+                error("Computing hamming distance between objects of different lengths")
+        end
+        return sum(x .!= y)
 end

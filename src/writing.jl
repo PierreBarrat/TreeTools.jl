@@ -11,7 +11,7 @@ end
 """
 """
 function write_newick(file::String, root::TreeNode)
-	out = write_newick!(out, root)
+	out = write_newick!("", root)
 	out *= ';'
 	f = open(file, "w")
 	write(f, out)

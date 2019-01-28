@@ -1,4 +1,4 @@
-export lca, node_depth, node_divtime
+export lca, node_depth, node_divtime, tree_cladeid_leaves
 
 """
 	lca(i_node::TreeNode, j_node::TreeNode)
@@ -68,4 +68,16 @@ function node_divtime(i_node, j_node)
 	return tau
 end
 
+"""
+"""
+function tree_cladeid_leaves(tree, rootkey)
+	cladekeys = Array{keytype(fieldtype(Tree, :nodes)), 1}(undef, 0)
+	for c in tree.nodes[rootkey].child
+		append!(cladekeys, tree_cladeid_leaves(tree, node_findkey_safe(c, tree) ))
+	end
+	if tree.nodes[rootkey].isleaf
+		push!(cladekeys, rootkey)
+	end
+	return cladekeys
+end
 

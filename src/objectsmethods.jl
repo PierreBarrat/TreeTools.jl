@@ -1,84 +1,130 @@
-export node2tree, tree_findlabel
+export node2tree, tree_findlabel, prunenode!, graftnode!, node_findlabel, node_findkey, node_findkey_safe
 
 
 """
 	prunenode!(node::TreeNode)
 
-Prune `node` by detaching it from its ancestor. Said ancestor is removed from the tree. 
+Prune `node` by detaching it from its ancestor, and return `node`. Said ancestor is removed from the tree since it only has one child.  `node` is set to root. 
+No leaf or root status can change on the main tree in this operation. 
 """
 function prunenode!(node::TreeNode)
+	if node.isroot
+		@warn "Trying to prune root: no op."
+		return node
+	end
 	anc = node.anc
-	extractnode!(anc)
+	for (i,c) in enumerate(anc.child)
+		if c == node
+			splice!(anc.child, i)
+			break
+		end
+	end
+	_extractnode!(anc)
 	node.anc = nothing
+	node.isroot = true
+	return node
 end
 
 """
-	extractnode!(node::TreeNode)
+	_extractnode!(node::TreeNode)
 
-Extract a node with only one child from the tree. `node.child[1]` and `node.and` are connected. 
+Extract a node with only one child from the tree. `node.child[1]` and `node.anc` are connected. 
 """
-function extractnode!(node::TreeNode)
+function _extractnode!(node::TreeNode)
 	if length(node.child) > 1
-		error("Cannot extract node with more than 2 children")
+		error("Cannot extract node with more than 1 children")
 	elseif length(node.child) == 0
 		error("Cannot extract a node without children. Those need to be pruned.")
 	end
 	#
 	anc = node.anc
-	child = node.child[1]
-	# 
-	for (i,c) in anc.child
+	child = splice!(node.child, 1)
+	# Linking `anc` and `child`
+	for (i,c) in enumerate(anc.child)
 		if c == node
 			anc.child[i] = child
 			break
 		end
 	end
 	child.anc = anc
+	# Handling times
+	child.data.tau += node.data.tau
+	child.data.n_ntmut += node.data.n_ntmut
+	return nothing
 end
 
 """
-	graftnode!(rootstock::TreeNode, graft::TreeNode)
+	_prunenode!(node::TreeNode)
 
-Graft `graft` to `rootstock`. `rootstock` should have strictly less than 2 children for this to work. `graft` should not have any ancestor. 
+Prune `node` by detaching it from its ancestor, and return `node`. Said ancestor is **NOT** removed from the tree.  `node` is set to root. 
+No leaf or root status can change on the main tree in this operation. 
 """
-function graftnode!(rootstock::TreeNode, graft::TreeNode)
+function _prunenode!(node::TreeNode)
+	anc = node.anc
+	for (i,c) in enumerate(anc.child)
+		if c == node
+			splice!(anc.child, i)
+			break
+		end
+	end
+	node.anc = nothing
+	node.isroot = true
+	return node
+end
+
+
+"""
+	_graftnode!(rootstock::TreeNode, graft::TreeNode)
+
+Graft `graft` to `rootstock`. `rootstock` should have strictly less than 2 children for this to work. `graft` should not have any ancestor.  
+This function does not guarantee that the tree will stay binary, since one can graft on a `rootstock` without children. 
+"""
+function _graftnode!(rootstock::TreeNode, graft::TreeNode)
 	if graft.anc != nothing
-		error("Cannot graft an already rooted node. (graft label: $(graft.label))")
+		error("Can only graft a node without ancestors (graft label: $(graft.label)).")
 	end
 	if length(rootstock.child) > 1
 		error("Grafting on node with more than 1 child. Tree will no longer be binary.")
 	end
+
 	graft.anc = rootstock
 	push!(rootstock.child, graft)
+	rootstock.isleaf = false
+	graft.isroot = false
+	return nothing
 end
 
 """
-	graftnode!(ancestor::TreeNode, child::TreeNode, insert::TreeNode, tau::Float64)
+	graftnode!(ancestor::TreeNode, child::TreeNode, graft::TreeNode, tau::Float64)
 
-Insert node `insert` in the branch between `ancestor` and `child`. Time of the insertion `tau` is measured from `ancestor`.  
-At the end of the insertion, `insert` only has one child `child`. 
+Graft `graft` in the branch between `ancestor` and `child`, at position `tau`. A new node `rootstock` is introduced at this position.  
+Keywords: 
+- `insert_label = ""`: Label of the inserted `rootstock` node. 
 """
-function graftnode!(ancestor::TreeNode, child::TreeNode, insert::TreeNode, tau::Float64)
+function graftnode!(ancestor::TreeNode, child::TreeNode, graft::TreeNode, tau::Float64 ; insert_label = "")
+	# Safety checks
 	if child.anc != ancestor
-		error("Attempting to insert node between two not-directly related nodes.")
+		error("Can only graft a node on a (ancestor --> child) branch.")
+	end
+	if graft.anc != nothing || !graft.isroot
+		error("Can only graft a node without ancestor. $(graft.label) is not root.")
 	end
 	if tau > child.data.tau
-		error("Attempting to insert a node at a time longer than existing branch.")
-	# Pruning and re-grafting `child`
-	child.anc = insert
-	child.data.tau = child.data.tau - tau
-	insert.child = [child]
-	# Grafting `insert`
-	insert.anc = ancestor;
-	insert.data.tau = tau
-	for (i,c) in enumerate(ancestor.child)
-		if c == child
-			ancestor.child[i] = insert
-		end
+		error("Cannot graft at a position longer than the branch length.")
 	end
-
-	insert.isleaf = false
-	insert.isroot = false
+	# Prune child
+	child = _prunenode!(child)
+	# Create rootstock
+	rootstock = TreeNode(label = insert_label)
+	rootstock.data.tau = tau
+	# Graft rootstock on ancestor
+	_graftnode!(ancestor, rootstock)
+	# Graft child on rootstock
+	_graftnode!(rootstock, child)
+	child.data.tau = child.data.tau - tau
+	# Graft graft on rootstock
+	_graftnode!(rootstock, graft)
+	return nothing
 end
 
 """
@@ -93,6 +139,7 @@ function node2tree(root::TreeNode)
 	node2tree_addnode!(tree, root, key, leafkey)
 	return tree
 end
+
 """
 	node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64 ; addchildren = true)
 
@@ -133,3 +180,77 @@ function tree_findlabel(label::String, tree::Tree)
 	return 0, false
 end
 
+
+"""
+	node_findlabel(label::String, root::TreeNode ; subtree = true)
+
+Find label in tree defined by `root`. If `subtree`, only the children of `root` are searched. Otherwise, the whole tree is searched.  
+
+# Note
+`subtree = false` is not yet implemented.
+"""
+function node_findlabel(label::String, root::TreeNode ; subtree = true)
+	found, node = _node_findlabel(label, root)
+	if !found
+		@warn "Label $(label) was not found."
+	end
+	return node
+end
+
+"""
+"""
+function _node_findlabel(label::String, root::TreeNode)
+	if root.label == label
+		return true, root
+	end
+	for c in root.child
+		found, out = _node_findlabel(label, c)
+		if found
+			return found, out
+		end
+	end
+	return false, nothing
+end
+
+"""
+	node_findkey(node, tree)
+
+Find key corresponding to `node` in `tree`.  
+Return value is `nothing` if `node` is not found. --> not type stable. 
+"""
+function node_findkey(node, tree)
+	for i in keys(tree.nodes)
+		if node == tree.nodes[i]
+			return i
+		end
+	end
+	return nothing
+end
+
+"""
+	node_findkey_safe(node,  tree)
+
+Type safe implementation of `node_findkey`. If nothing is found, an error is raised.
+"""
+function node_findkey_safe(node,tree)
+	a = node_findkey(node,tree)
+	if a == nothing
+		error("Node $(node.label) was not found in tree.")
+	end
+	return a
+end
+
+"""
+	node_findkey(node, tree)
+
+Find key corresponding to `node` in `tree`.  
+Return value is `nothing` if `node` is not found. --> not type stable. 
+"""
+function node_findkey(node, tree)
+	for i in keys(tree.nodes)
+		if node == tree.nodes[i]
+			return i
+		end
+	end
+	return nothing
+end
