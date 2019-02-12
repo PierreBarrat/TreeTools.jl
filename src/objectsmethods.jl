@@ -1,6 +1,10 @@
-export node2tree, tree_findlabel, prunenode!, graftnode!, node_findlabel, node_findkey, node_findkey_safe
+export node2tree, tree_findlabel, prunenode!, graftnode!, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe
+export lca, node_depth, node_divtime, node_clade, node_leavesclade, tree_clade, tree_leavesclade
+export node_ancestor_list
 
-
+###############################################################################################################
+#################################### Grafting, pruning ... ####################################################
+###############################################################################################################
 """
 	prunenode!(node::TreeNode)
 
@@ -127,6 +131,10 @@ function graftnode!(ancestor::TreeNode, child::TreeNode, graft::TreeNode, tau::F
 	return nothing
 end
 
+###############################################################################################################
+################################# Trees from nodes, finding labels, ... #######################################
+###############################################################################################################
+
 """
 	node2tree(root::TreeNode)
 
@@ -228,6 +236,24 @@ function node_findkey(node, tree)
 end
 
 """
+	node_find_leafkey(node, tree)
+
+Find leafkey corresponding to `node` in `tree`.  
+Return value is `nothing` if `node` is not found. --> not type stable. 
+"""
+function node_find_leafkey(node, tree)
+	if !node.isleaf
+		return nothing
+	end
+	for i in keys(tree.leaves)
+		if node == tree.leaves[i]
+			return i
+		end
+	end
+	return nothing
+end
+
+"""
 	node_findkey_safe(node,  tree)
 
 Type safe implementation of `node_findkey`. If nothing is found, an error is raised.
@@ -240,17 +266,142 @@ function node_findkey_safe(node,tree)
 	return a
 end
 
-"""
-	node_findkey(node, tree)
 
-Find key corresponding to `node` in `tree`.  
-Return value is `nothing` if `node` is not found. --> not type stable. 
+###############################################################################################################
+################################################### Clades ####################################################
+###############################################################################################################
+
 """
-function node_findkey(node, tree)
-	for i in keys(tree.nodes)
-		if node == tree.nodes[i]
-			return i
+	node_clade(root::TreeNode)
+
+Find and return clade corresponding to all descendants of `root`. 
+"""
+function node_clade(root::TreeNode)
+	if root.isleaf
+		return [root]
+	end
+	clade = [root]
+	for c in root.child
+		append!(clade, node_clade(c))
+	end
+	return clade
+end
+
+"""
+	node_leavesclade(root::TreeNode)
+
+Find and return clade corresponding to all descendants of `root` that are leaves. 
+"""
+function node_leavesclade(root::TreeNode)
+	cl = node_clade(root)
+	out = []
+	map(x->x.isleaf && push!(out, x), cl)
+	return out
+end
+
+"""
+	tree_clade(tree::Tree, key)
+
+Find and return keys of clade corresponding to all descendants of `tree.nodes[key]`.
+"""
+function tree_clade(tree::Tree, key)
+	cl = node_clade(tree.nodes[key])
+	out = map(x->node_findkey(x, tree), cl)
+	return out
+end
+
+"""
+	tree_leavesclade(tree::Tree, key)
+
+Find and return leaves keys of clade corresponding to all leaves descendants of `tree.nodes[key]`.
+"""
+function tree_leavesclade(tree::Tree, key)
+	cl = node_leavesclade(tree.nodes[key])
+	return map(x->node_find_leafkey(x, tree), cl)
+end
+
+"""
+"""
+function node_ancestor_list(node)
+	list = [node.label]
+	a = node
+	while !a.isroot
+		push!(list, a.anc.label)
+		a = a.anc
+	end
+	return list
+end
+
+###############################################################################################################
+######################################## LCA, divtime, ... ####################################################
+###############################################################################################################
+"""
+	lca(i_node::TreeNode, j_node::TreeNode)
+
+Find and return lowest common ancestor of `i_node` and `j_node`.  
+Idea is to go up in the tree in an asymmetric way on the side of the deeper node, until both are at equal distance from root. Then, problem is solved by going up in a symmetric way. (https://stackoverflow.com/questions/1484473/how-to-find-the-lowest-common-ancestor-of-two-nodes-in-any-binary-tree/6183069#6183069)
+"""
+function lca(i_node::TreeNode, j_node::TreeNode)
+
+	if i_node.isroot 
+		return i_node
+	elseif j_node.isroot
+		return j_node
+	end
+
+	ii_node = i_node
+	jj_node = j_node
+
+	di = node_depth(ii_node)
+	dj = node_depth(jj_node)
+	while di != dj
+		if di > dj
+			ii_node = ii_node.anc
+			di -=1
+		else
+			jj_node = jj_node.anc
+			dj -=1
 		end
 	end
-	return nothing
+	while ii_node != jj_node
+		ii_node = ii_node.anc
+		jj_node = jj_node.anc
+	end
+	return ii_node
+end
+
+"""
+	node_depth(node::TreeNode)
+
+Distance from `node` to root. 
+"""
+function node_depth(node::TreeNode)
+	d = 0
+	_node = node
+	while !_node.isroot
+		_node = _node.anc
+		d += 1
+	end 
+	return d
+end
+
+"""
+	node_divtime(i_node, j_node)
+
+Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.data.tau` values. 
+"""
+function node_divtime(i_node::TreeNode, j_node::TreeNode)
+	a_node = lca(i_node, j_node)
+	tau = 0
+	ii_node = i_node
+	jj_node = j_node
+	while ii_node != a_node
+		tau += ii_node.data.tau
+		ii_node = ii_node.anc
+	end
+	while jj_node != a_node
+		tau += jj_node.data.tau
+		jj_node = jj_node.anc
+	end
+	return tau
 end

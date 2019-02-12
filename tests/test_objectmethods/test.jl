@@ -35,3 +35,15 @@ end
 	@test_throws ErrorException graftnode!(root, root.child[1], A, 5.)
 	@test_throws ErrorException graftnode!(root.child[2], root.child[1], A, 2.)	
 end
+
+# Testing clades
+@testset "Clades" begin
+	root_1 = read_newick("tree1.nwk")
+	tree1 = node2tree(root_1)
+	cl1 = node_clade(root_1.child[1])
+	cl1_ = tree_clade(tree1, node_findkey(root_1.child[1], tree1))
+	@test mapreduce(x->cl1[x] == tree1.nodes[cl1_[x]], *, 1:3)
+	cl1 = node_leavesclade(root_1.child[1])
+	cl1_ = tree_leavesclade(tree1, node_findkey(root_1.child[1], tree1))
+	@test mapreduce(x->cl1[x] == tree1.leaves[cl1_[x]], *, 1:2)
+end
