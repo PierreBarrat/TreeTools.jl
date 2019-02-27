@@ -1,4 +1,5 @@
 export TreeNode, NodeData, Tree
+export have_equal_children
 
 import Base: ==
 
@@ -12,7 +13,7 @@ import Base: ==
 mutable struct NodeData
 	q::Int64
 	sequence::Array{Int64,1}
-	n_ntmut::Union{Missing, Int64}
+	n_ntmut::Union{Missing, Int64} 
 	tau::Union{Missing, Float64} # Time to ancestor
 end
 function NodeData(; q = 0., sequence = Array{Int64,1}(undef, 0), ntmut_n = missing, tau = missing)
@@ -60,22 +61,52 @@ end
 Equality between **subtrees** defined by `x` and `y`. This avoids having to recursively check ancestry. 
 """
 function ==(x::TreeNode, y::TreeNode)
-	# out = (isempty(x.child) && isempty(y.child)) || (x.child[1] == y.child[1] && x.child[1] == y.child[1]) || (x.child[1] == y.child[2] && x.child[2] == y.child[1])
-	if isempty(x.child)
-		out = isempty(y.child)
-	elseif isempty(y.child)
-		out = isempty(x.child)
-	else
-		if length(x.child) != 2 || length(y.child) != 2
-			println("Node $(x.label): $(length(x.child)) children\n Node $(y.label): $(length(y.child)) children")
-			error("Tree is not binary")
-		end
-		out = (x.child[1] == y.child[1] && x.child[1] == y.child[1]) || (x.child[1] == y.child[2] && x.child[2] == y.child[1])
+	if x.label != y.label
+		return false
 	end
+	out = true
 	out *= x.isleaf == y.isleaf
 	out *= x.isroot == y.isroot
-	out *= x.label == y.label
 	out *= x.data == y.data
+	# out *= have_equal_children(x,y)
+	return out
+end
+
+"""
+	have_equal_children(x::TreeNode, y::TreeNode)
+
+Check whether `x` and `y` have the same children, independent on order. `==` is used to compare children.
+"""
+function have_equal_children(x::TreeNode, y::TreeNode)
+	out = true
+	# Is x.child included in y.child?
+	for cx in x.child
+		flag = false
+		for cy in y.child
+			if cx == cy
+				flag = true
+				break
+			end
+		end
+		out *= flag
+		if !out
+			return false
+		end
+	end
+	# And the other way around
+	for cy in x.child
+		flag = false
+		for cx in y.child
+			if cx == cy
+				flag = true
+				break
+			end
+		end
+		out *= flag
+		if !out
+			return false
+		end
+	end
 	return out
 end
 
@@ -94,10 +125,12 @@ mutable struct Tree
 	root::Union{Nothing, TreeNode}
 	nodes::Dict{Int64, TreeNode}
 	leaves::Dict{Int64, TreeNode}
+	lleaves::Dict{fieldtype(TreeNode, :label), TreeNode}
 end
 function Tree(;
 	root = TreeNode(),
 	nodes = Dict{Int64, TreeNode}(),
-	leaves = Dict{Int64, TreeNode}())
-	return Tree(root, nodes, leaves)
+	leaves = Dict{Int64, TreeNode}(),
+	lleaves = Dict{fieldtype(TreeNode,:label), TreeNode}())
+	return Tree(root, nodes, leaves, lleaves)
 end

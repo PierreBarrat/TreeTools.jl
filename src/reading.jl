@@ -125,7 +125,6 @@ function fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
 		if !flag
 			@warn "Sequence $name could not be found in tree."
 		else
-			# storeseq!(tree, key, seq, seqtype)
 			storeseq!(tree.nodes[key], seq, seqtype)
 		end
 	end		

@@ -37,6 +37,12 @@ function print_tree(node::TreeNode; indent = 0, indent_size = 10)
 end
 
 """
+"""
+function print_tree(tree::Tree; indent = 0, indent_size = 10)
+        print_tree(tree.root, indent=indent, indent_size=indent_size)
+end
+
+"""
         hamming(x,y)
 """
 function hamming(x,y)

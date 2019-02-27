@@ -1,6 +1,6 @@
-export node2tree, tree_findlabel, prunenode!, graftnode!, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe
-export lca, node_depth, node_divtime, node_clade, node_leavesclade, tree_clade, tree_leavesclade
-export node_ancestor_list
+export node2tree, tree_findlabel, prunenode!, graftnode!, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
+export node_clade, node_leavesclade, tree_clade, tree_leavesclade, isclade
+export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
 ###############################################################################################################
 #################################### Grafting, pruning ... ####################################################
@@ -151,8 +151,9 @@ end
 """
 	node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64 ; addchildren = true)
 
-Add existing `node::TreeNode` to `tree::Tree` using `key`. Recursively add children of `node` if `addchildren` is true.  
-Return new value of `key` to add further children to `tree`. 
+Add existing `node::TreeNode` to `tree::Tree` using `key`. Recursively add children of `node` if `addchildren` is true. 
+Return new value of `key` to add further children to `tree`.  
+If `node` is a leaf node, also add it to `tree.leaves` with key `leafkey`. Return new value of `leafkey`. 
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64, leafkey::Int64; addchildren = true)
 	if in(key, keys(tree.nodes)) || in(leafkey, keys(tree.leaves))
@@ -161,6 +162,7 @@ function node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64, leafkey::Int
 		tree.nodes[key] = node
 		if node.isleaf
 			tree.leaves[leafkey] = node
+			tree.lleaves[node.label] = node
 		end
 		if addchildren
 			ckey = key + 1
@@ -267,6 +269,17 @@ function node_findkey_safe(node,tree)
 end
 
 
+"""
+	share_labels(tree1, tree2)
+
+Check if `tree1` and `tree2` share the same labels for leaf nodes. 
+"""
+function share_labels(tree1, tree2)
+	l1 = Set(l for l in keys(tree1.lleaves))
+	l2 = Set(l for l in keys(tree2.lleaves))
+	return l1 ==  l2
+end
+
 ###############################################################################################################
 ################################################### Clades ####################################################
 ###############################################################################################################
@@ -332,6 +345,34 @@ function node_ancestor_list(node)
 	return list
 end
 
+"""
+	isclade(nodelist)
+
+Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.  
+"""
+function isclade(nodelist; verbose=false)
+	if !mapreduce(x->x.isleaf, *, nodelist, init=true)
+		# verbose && println("F")
+		return false
+	end
+	claderoot = lca(nodelist)
+	clade = node_leavesclade(claderoot)
+	# Now, checking if `clade` is the same as `nodelist` 
+	for c in clade
+		flag = false
+		for n in nodelist
+			if n==c
+				flag = true
+				break
+			end
+		end
+		if !flag
+			return false
+		end
+	end
+	return true
+end
+
 ###############################################################################################################
 ######################################## LCA, divtime, ... ####################################################
 ###############################################################################################################
@@ -368,6 +409,39 @@ function lca(i_node::TreeNode, j_node::TreeNode)
 		jj_node = jj_node.anc
 	end
 	return ii_node
+end
+
+"""
+	lca(nodelist)
+
+Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable collection of `TreeNode` objects. 
+"""
+function lca(nodelist)
+	ca = nodelist[1]
+	for node in nodelist
+		if !isancestor(ca, node)
+			ca = lca(ca, node)
+		end
+	end
+	return ca
+end
+
+"""
+	isancestor(a:::TreeNode, node::TreeNode)
+
+Check if `a` is an ancestor of `node`.
+"""
+function isancestor(a::TreeNode, node::TreeNode)
+	if a==node
+		return true
+	else
+		for c in a.child
+			if isancestor(c, node)
+				return true
+			end
+		end
+	end
+	return false
 end
 
 """
