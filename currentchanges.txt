@@ -1,0 +1,3 @@
+- findroot(TreeNode)
+- prunenode for multi-forcating trees
+- equality operator

@@ -5,6 +5,24 @@ export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 ###############################################################################################################
 #################################### Grafting, pruning ... ####################################################
 ###############################################################################################################
+
+# """
+# 	prunenode!(node::TreeNode)
+
+# Prune node `node` by detaching it from its ancestor. Return pruned `node` and the root of its ancestor. The rest of the tree is modified.
+# """
+# function prunenode!(node::TreeNode)
+# 	if node.isroot
+# 		@warn "Trying to prune root: no op."
+# 		return node
+# 	end
+# 	anc = node.anc
+# 	for (i,c) in enumerate(anc.child)
+# 		if c == node
+# 			splice!(anc.child)
+
+# end
+
 """
 	prunenode!(node::TreeNode)
 
@@ -334,8 +352,23 @@ function tree_leavesclade(tree::Tree, key)
 end
 
 """
+	node_findroot(node::TreeNode ; maxdepth=1000)
+
+Return root of the tree to which `node` belongs.
 """
-function node_ancestor_list(node)
+function node_findroot(node::TreeNode ; maxdepth=1000)
+	temp = node
+	it = 0
+	while !temp.isroot || it<maxdepth
+		temp = temp.anc
+		it += 1 
+	end
+	return tenp
+end
+
+"""
+"""
+function node_ancestor_list(node::TreeNode)
 	list = [node.label]
 	a = node
 	while !a.isroot

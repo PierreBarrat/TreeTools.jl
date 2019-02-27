@@ -68,6 +68,12 @@ function ==(x::TreeNode, y::TreeNode)
 	out *= x.isleaf == y.isleaf
 	out *= x.isroot == y.isroot
 	out *= x.data == y.data
+	if !out
+		return false
+	end
+	xleaves = Set(n.label for n in node_leavesclade(x))
+	yleaves = Set(n.label for n in node_leavesclade(y))
+	out *= xleaves == yleaves 
 	# out *= have_equal_children(x,y)
 	return out
 end

@@ -10,32 +10,6 @@ root_2 = read_newick("tree1_reordered.nwk")
 	@test root_1 == root_2
 end
 
-## Testing pruning
-root_1 = read_newick("tree1.nwk")
-root = deepcopy(root_1)
-@testset "Pruning" begin
-	global A = prunenode!(root.child[1].child[1])
-	root_ref = read_newick("test_objectmethods/tree1_Apruned.nwk")
-    @test root == root_ref
-end 
-
-
-# Testing grafting
-@testset "Grafting" begin
-    graftnode!(root, root.child[1], A, 2., insert_label = "AB")
-    @test root == root_1
-
-	global A = prunenode!(root.child[2].child[2])
-	graftnode!(root, root.child[1], A, 1., insert_label = "Insert")
-	root_ref = read_newick("test_objectmethods/tree1_Agrafted.nwk")
-	@test root == root_ref
-
-	global root = deepcopy(root_1)
-	global A = prunenode!(root.child[1].child[1])
-	@test_throws ErrorException graftnode!(root, root.child[1], A, 5.)
-	@test_throws ErrorException graftnode!(root.child[2], root.child[1], A, 2.)	
-end
-
 # Testing ancestors
 @testset "Ancestors" begin
     root_1 = read_newick("tree1.nwk")
@@ -58,4 +32,30 @@ end
 	cl1 = node_leavesclade(root_1.child[1])
 	cl1_ = tree_leavesclade(tree1, node_findkey(root_1.child[1], tree1))
 	@test mapreduce(x->cl1[x] == tree1.leaves[cl1_[x]], *, 1:2)
+end
+
+
+## Testing pruning
+root_1 = read_newick("tree1.nwk")
+root = deepcopy(root_1)
+@testset "Pruning" begin
+	global A = prunenode!(root.child[1].child[1])
+	root_ref = read_newick("test_objectmethods/tree1_Apruned.nwk")
+    @test root == root_ref
+end 
+
+# Testing grafting
+@testset "Grafting" begin
+    graftnode!(root, root.child[1], A, 2., insert_label = "AB")
+    @test root == root_1
+
+	global A = prunenode!(root.child[2].child[2])
+	graftnode!(root, root.child[1], A, 1., insert_label = "Insert")
+	root_ref = read_newick("test_objectmethods/tree1_Agrafted.nwk")
+	@test root == root_ref
+
+	global root = deepcopy(root_1)
+	global A = prunenode!(root.child[1].child[1])
+	@test_throws ErrorException graftnode!(root, root.child[1], A, 5.)
+	@test_throws ErrorException graftnode!(root.child[2], root.child[1], A, 2.)	
 end
