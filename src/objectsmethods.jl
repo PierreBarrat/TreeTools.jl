@@ -1,153 +1,7 @@
-export node2tree, tree_findlabel, prunenode!, graftnode!, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
-export node_clade, node_leavesclade, tree_clade, tree_leavesclade, isclade
+export node2tree, tree_findlabel, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
+export node_clade, node_leavesclade, tree_clade, tree_leavesclade, isclade, node_findroot
 export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
-###############################################################################################################
-#################################### Grafting, pruning ... ####################################################
-###############################################################################################################
-
-# """
-# 	prunenode!(node::TreeNode)
-
-# Prune node `node` by detaching it from its ancestor. Return pruned `node` and the root of its ancestor. The rest of the tree is modified.
-# """
-# function prunenode!(node::TreeNode)
-# 	if node.isroot
-# 		@warn "Trying to prune root: no op."
-# 		return node
-# 	end
-# 	anc = node.anc
-# 	for (i,c) in enumerate(anc.child)
-# 		if c == node
-# 			splice!(anc.child)
-
-# end
-
-"""
-	prunenode!(node::TreeNode)
-
-Prune `node` by detaching it from its ancestor, and return `node`. Said ancestor is removed from the tree since it only has one child.  `node` is set to root. 
-No leaf or root status can change on the main tree in this operation. 
-"""
-function prunenode!(node::TreeNode)
-	if node.isroot
-		@warn "Trying to prune root: no op."
-		return node
-	end
-	anc = node.anc
-	for (i,c) in enumerate(anc.child)
-		if c == node
-			splice!(anc.child, i)
-			break
-		end
-	end
-	_extractnode!(anc)
-	node.anc = nothing
-	node.isroot = true
-	return node
-end
-
-"""
-	_extractnode!(node::TreeNode)
-
-Extract a node with only one child from the tree. `node.child[1]` and `node.anc` are connected. 
-"""
-function _extractnode!(node::TreeNode)
-	if length(node.child) > 1
-		error("Cannot extract node with more than 1 children")
-	elseif length(node.child) == 0
-		error("Cannot extract a node without children. Those need to be pruned.")
-	end
-	#
-	anc = node.anc
-	child = splice!(node.child, 1)
-	# Linking `anc` and `child`
-	for (i,c) in enumerate(anc.child)
-		if c == node
-			anc.child[i] = child
-			break
-		end
-	end
-	child.anc = anc
-	# Handling times
-	child.data.tau += node.data.tau
-	child.data.n_ntmut += node.data.n_ntmut
-	return nothing
-end
-
-"""
-	_prunenode!(node::TreeNode)
-
-Prune `node` by detaching it from its ancestor, and return `node`. Said ancestor is **NOT** removed from the tree.  `node` is set to root. 
-No leaf or root status can change on the main tree in this operation. 
-"""
-function _prunenode!(node::TreeNode)
-	anc = node.anc
-	for (i,c) in enumerate(anc.child)
-		if c == node
-			splice!(anc.child, i)
-			break
-		end
-	end
-	node.anc = nothing
-	node.isroot = true
-	return node
-end
-
-
-"""
-	_graftnode!(rootstock::TreeNode, graft::TreeNode)
-
-Graft `graft` to `rootstock`. `rootstock` should have strictly less than 2 children for this to work. `graft` should not have any ancestor.  
-This function does not guarantee that the tree will stay binary, since one can graft on a `rootstock` without children. 
-"""
-function _graftnode!(rootstock::TreeNode, graft::TreeNode)
-	if graft.anc != nothing
-		error("Can only graft a node without ancestors (graft label: $(graft.label)).")
-	end
-	if length(rootstock.child) > 1
-		error("Grafting on node with more than 1 child. Tree will no longer be binary.")
-	end
-
-	graft.anc = rootstock
-	push!(rootstock.child, graft)
-	rootstock.isleaf = false
-	graft.isroot = false
-	return nothing
-end
-
-"""
-	graftnode!(ancestor::TreeNode, child::TreeNode, graft::TreeNode, tau::Float64)
-
-Graft `graft` in the branch between `ancestor` and `child`, at position `tau`. A new node `rootstock` is introduced at this position.  
-Keywords: 
-- `insert_label = ""`: Label of the inserted `rootstock` node. 
-"""
-function graftnode!(ancestor::TreeNode, child::TreeNode, graft::TreeNode, tau::Float64 ; insert_label = "")
-	# Safety checks
-	if child.anc != ancestor
-		error("Can only graft a node on a (ancestor --> child) branch.")
-	end
-	if graft.anc != nothing || !graft.isroot
-		error("Can only graft a node without ancestor. $(graft.label) is not root.")
-	end
-	if tau > child.data.tau
-		error("Cannot graft at a position longer than the branch length.")
-	end
-	# Prune child
-	child = _prunenode!(child)
-	# Create rootstock
-	rootstock = TreeNode(label = insert_label)
-	rootstock.data.tau = tau
-	# Graft rootstock on ancestor
-	_graftnode!(ancestor, rootstock)
-	# Graft child on rootstock
-	_graftnode!(rootstock, child)
-	child.data.tau = child.data.tau - tau
-	# Graft graft on rootstock
-	_graftnode!(rootstock, graft)
-	return nothing
-end
 
 ###############################################################################################################
 ################################# Trees from nodes, finding labels, ... #######################################
@@ -325,7 +179,7 @@ Find and return clade corresponding to all descendants of `root` that are leaves
 """
 function node_leavesclade(root::TreeNode)
 	cl = node_clade(root)
-	out = []
+	out = Array{TreeNode, 1}(undef, 0)
 	map(x->x.isleaf && push!(out, x), cl)
 	return out
 end
@@ -359,11 +213,14 @@ Return root of the tree to which `node` belongs.
 function node_findroot(node::TreeNode ; maxdepth=1000)
 	temp = node
 	it = 0
-	while !temp.isroot || it<maxdepth
+	while !temp.isroot || it>maxdepth
 		temp = temp.anc
 		it += 1 
 	end
-	return tenp
+	if it>maxdepth
+		@error "Could not find root after $maxdepth iterations."
+	end
+	return temp
 end
 
 """
@@ -383,7 +240,7 @@ end
 
 Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.  
 """
-function isclade(nodelist; verbose=false)
+function isclade(nodelist)
 	if !mapreduce(x->x.isleaf, *, nodelist, init=true)
 		# verbose && println("F")
 		return false
@@ -450,7 +307,13 @@ end
 Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable collection of `TreeNode` objects. 
 """
 function lca(nodelist)
-	ca = nodelist[1]
+	# ca = nodelist[1]
+	# Getting any element to start with
+	global ca
+	for x in nodelist
+		ca = x
+		break
+	end
 	for node in nodelist
 		if !isancestor(ca, node)
 			ca = lca(ca, node)

@@ -3,6 +3,7 @@ module TreeTools
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")
+include("prunegraft.jl")
 include("datamethods.jl")
 include("reading.jl")
 include("writing.jl")

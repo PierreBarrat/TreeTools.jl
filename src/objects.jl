@@ -3,6 +3,13 @@ export have_equal_children
 
 import Base: ==
 
+
+mutable struct Mutation{T}
+	i::Int64
+	a::T
+	b::T
+end
+
 """
 	mutable struct NodeData
 
@@ -13,17 +20,17 @@ import Base: ==
 mutable struct NodeData
 	q::Int64
 	sequence::Array{Int64,1}
-	n_ntmut::Union{Missing, Int64} 
+	mutations::Array{Mutation,1}
 	tau::Union{Missing, Float64} # Time to ancestor
 end
-function NodeData(; q = 0., sequence = Array{Int64,1}(undef, 0), ntmut_n = missing, tau = missing)
-	return NodeData(q, sequence, ntmut_n, tau)
+function NodeData(; q = 0., sequence = Array{Int64,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing)
+	return NodeData(q, sequence, mutations, tau)
 end
 function ==(x::NodeData, y::NodeData)
 	out = x.q == y.q
 	out *= x.sequence == y.sequence
-	out *= x.n_ntmut === y.n_ntmut # `===` operates on `missing` returning a bool
-	out *= x.tau === y.tau
+	out *= x.mutations == y.mutations
+	out *= x.tau === y.tau  # `===` operates on `missing` returning a bool
 	return out
 end
 
@@ -59,6 +66,12 @@ end
 	==(x::TreeNode, y::TreeNode)
 
 Equality between **subtrees** defined by `x` and `y`. This avoids having to recursively check ancestry. 
+What this operator compares: 
+- Equality of labels
+- Equality of data
+- Root / leaf status
+- Labels of all the leaves of clades rooted at `x` and `y`
+
 """
 function ==(x::TreeNode, y::TreeNode)
 	if x.label != y.label

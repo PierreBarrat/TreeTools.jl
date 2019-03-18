@@ -1,4 +1,4 @@
-export write_newick, write_fasta
+export write_newick, write_fasta, write_newick!
 
 
 """
@@ -37,6 +37,12 @@ function write_newick!(s::String, root::TreeNode)
 		s *= string(root.data.tau)
 	end
 	return s
+end
+
+"""
+"""
+function write_newick(root::TreeNode)
+	write_newick!("", root)
 end
 
 """
