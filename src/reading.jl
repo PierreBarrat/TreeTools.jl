@@ -179,7 +179,7 @@ end
 """
 function seq2num(seq::String, seqtype)
 	if seqtype == :nucleotide
-		mapping = "ACGT-NWSMKRY"
+		mapping = "ACGT-NWSMKRYBDHV"
 		numseq = zeros(Int64, length(seq))
 		for (i,c) in enumerate(seq)
 			num = findall(x->x==c, mapping)
@@ -192,3 +192,6 @@ function seq2num(seq::String, seqtype)
 	end
 	return numseq
 end	
+
+
+

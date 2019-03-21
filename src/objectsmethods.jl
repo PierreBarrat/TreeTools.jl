@@ -1,4 +1,5 @@
 export node2tree, tree_findlabel, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
+export compute_mutations!, make_mutdict!
 export node_clade, node_leavesclade, tree_clade, tree_leavesclade, isclade, node_findroot
 export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
@@ -150,6 +151,59 @@ function share_labels(tree1, tree2)
 	l1 = Set(l for l in keys(tree1.lleaves))
 	l2 = Set(l for l in keys(tree2.lleaves))
 	return l1 ==  l2
+end
+
+###############################################################################################################
+################################################### Mutations ####################################################
+###############################################################################################################
+
+"""
+	compute_mutations(tree::Tree)
+
+Compute mutation on each branch of `tree`. Each node of `tree` must have a sequence. 
+"""
+function compute_mutations!(tree::Tree)
+	for n in values(tree.nodes)
+		if !n.isroot
+			if 	isempty(n.data.sequence) || isempty(n.anc.data.sequence)
+				error("Node $(n.label) or its ancestor does not have a sequence.")
+			elseif length(n.data.sequence) != length(n.anc.data.sequence)
+				error("Node $(n.label) and its ancestor do not have sequences of the same length")
+			else
+				for i in 1:length(n.data.sequence)
+					if n.data.sequence[i] != n.anc.data.sequence[i]
+						push!(n.data.mutations, Mutation(i, n.anc.data.sequence[i], n.data.sequence[i]))
+					end
+				end
+			end
+		end
+	end
+end
+
+"""
+	make_mutdict(tree:Tree)
+
+Make a dictionary of mutations that appear in `tree`, mapping each mutation to the number of times it appears. 
+"""
+function make_mutdict!(tree::Tree)
+	compute_mutations!(tree)
+	mutdict = Dict{Tuple{Int64,Int64,Int64}, Int64}()
+	make_mutdict!(mutdict, tree.root)
+	return mutdict
+end
+
+"""
+"""
+function make_mutdict!(mutdict, node)
+	for m in node.data.mutations
+		key = map(f->getfield(m, f), fieldnames(Mutation))
+		mutdict[key] = get(mutdict, key, 0) + 1 
+	end
+	if !node.isleaf
+		for c in node.child
+			make_mutdict!(mutdict, c)
+		end
+	end
 end
 
 ###############################################################################################################

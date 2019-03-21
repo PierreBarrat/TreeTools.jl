@@ -1,13 +1,19 @@
-export TreeNode, NodeData, Tree
+export TreeNode, NodeData, Tree, Mutation
 export have_equal_children
 
 import Base: ==
 
 
-mutable struct Mutation{T}
+mutable struct Mutation
 	i::Int64
-	a::T
-	b::T
+	old::Int64
+	new::Int64
+end
+function Mutation(x::Tuple{Int64,Int64,Int64})
+	return Mutation(x[1],x[2],x[3])
+end
+function ==(x::Mutation, y::Mutation)
+	mapreduce(f->getfield(x,f)==getfield(y,f), *, fieldnames(Mutation), init=true)
 end
 
 """
