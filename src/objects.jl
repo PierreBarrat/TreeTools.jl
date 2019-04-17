@@ -149,13 +149,15 @@ end
 mutable struct Tree
 	root::Union{Nothing, TreeNode}
 	nodes::Dict{Int64, TreeNode}
+	lnodes::Dict{String, TreeNode}
 	leaves::Dict{Int64, TreeNode}
 	lleaves::Dict{fieldtype(TreeNode, :label), TreeNode}
 end
 function Tree(;
 	root = TreeNode(),
 	nodes = Dict{Int64, TreeNode}(),
+	lnodes = Dict{String, TreeNode}(),
 	leaves = Dict{Int64, TreeNode}(),
 	lleaves = Dict{fieldtype(TreeNode,:label), TreeNode}())
-	return Tree(root, nodes, leaves, lleaves)
+	return Tree(root, nodes, lnodes, leaves, lleaves)
 end

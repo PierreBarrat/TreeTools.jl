@@ -75,7 +75,7 @@ end
 """
 """
 function num2seq(numseq::Array{Int64,1})
-	mapping = "ACGT-"
+	mapping = "ACGT-NWSMKRYBDHV"
 	seq = ""
 	for a in numseq
 		seq *= mapping[a]

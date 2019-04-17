@@ -19,6 +19,13 @@ function showinfo(tree::Tree)
     end
 end
 
+function showinfo(node::TreeNode)
+    println("Node $(node.label): ") 
+    println("Ancestor: $(node.anc.label), tau = $(node.data.tau)")
+    println("$(length(node.child)) children: $([x.label for x in node.child])")
+    println("Brothers: $([x.label for x in node.anc.child])")
+end
+
 """
 """
 function print_tree(node::TreeNode; indent = 0, indent_size = 10)

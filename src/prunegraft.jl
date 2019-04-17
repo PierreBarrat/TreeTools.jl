@@ -1,4 +1,4 @@
-export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!
+export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, prunenodes, remove_internal_singletons!
 
 
 """
@@ -17,6 +17,9 @@ function prunenode!(node::TreeNode)
 			splice!(anc.child,i)
 			break
 		end
+	end
+	if isempty(anc.child)
+		anc.isleaf = true
 	end
 	node.anc = nothing
 	node.isroot = true
@@ -45,6 +48,44 @@ function prunenode(node::TreeNode)
 	node_.isroot = true
 	return node_
 end
+
+"""
+	prunenodes(tree, labellist)
+
+Prune nodes corresponding to labels in `labellist`. 
+"""
+function prunenodes(tree, labellist)
+	out = deepcopy(tree)
+	for l in labellist
+		prunenode_!(out.lnodes[l])
+	end
+	out = node2tree(out.root)
+end
+
+"""
+"""
+function prunenode_!(node)
+	if length(node.anc.child) == 1
+		prunenode_!(node.anc)
+	else
+		prunenode!(node)
+	end
+end
+
+"""
+"""
+function remove_internal_singletons!(tree)
+	root = tree.root
+	for n in values(tree.nodes)
+		if !n.isleaf && !n.isroot
+			if length(n.child) == 1
+				delete_node!(n)
+			end
+		end
+	end
+	tree = node2tree(root)
+end
+
 
 """
 	graftnode!(r, n)
@@ -95,7 +136,7 @@ end
 
 Delete internal node with null branch length.
 - If `node` needs not be deleted, call `delete_null_branches!` on its children
-- If it needs to be, call `delete_null_branches!` on `node.anc.child`
+- If need be, call `delete_null_branches!` on `node.anc.child`
 """
 function delete_null_branches!(node; threshold = 1e-10)
 	if !node.isleaf

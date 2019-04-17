@@ -1,7 +1,14 @@
-export parse_newick!, nw_parse_children, nw_parse_name, read_newick
+export parse_newick!, nw_parse_children, nw_parse_name, read_newick, read_tree
 export fasta2tree!, seq2num
 
 using FastaIO
+
+
+"""
+"""
+function read_tree(nw_file::String)
+	return node2tree(read_newick(nw_file))
+end
 
 """
 """
@@ -186,7 +193,8 @@ function seq2num(seq::String, seqtype)
 			if isempty(num)
 				@warn "String $seq could not be matched to nucleotides -- position ($i, $c)"
 			else
-				numseq[i] = findall(x->x==c, mapping)[1]<5 ? findall(x->x==c, mapping)[1] : 5
+				numseq[i] = findall(x->x==c, mapping)[1]
+				# numseq[i] = findall(x->x==c, mapping)[1]<5 ? findall(x->x==c, mapping)[1] : 5
 			end
 		end
 	end
