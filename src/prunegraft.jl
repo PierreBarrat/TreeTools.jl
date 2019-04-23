@@ -106,7 +106,7 @@ end
 """
 	delete_node(node)
 
-Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`.  
+Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`. 
 """
 function delete_node!(node)
 	if node.isroot
@@ -139,15 +139,15 @@ Delete internal node with null branch length.
 - If need be, call `delete_null_branches!` on `node.anc.child`
 """
 function delete_null_branches!(node; threshold = 1e-10)
-	if !node.isleaf
-		if !ismissing(node.data.tau) && node.data.tau < threshold
+	if !node.isleaf 	
+		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
 			nr = delete_node!(node)
 			for c in nr.child
-				delete_null_branches!(c)
+				delete_null_branches!(c, threshold=threshold)
 			end
 		else
 			for c in node.child
-				delete_null_branches!(c)
+				delete_null_branches!(c,threshold=threshold)
 			end
 		end
 	end

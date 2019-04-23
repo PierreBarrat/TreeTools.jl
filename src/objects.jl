@@ -73,7 +73,7 @@ end
 
 Equality between **subtrees** defined by `x` and `y`. This avoids having to recursively check ancestry. 
 What this operator compares: 
-- Equality of labels
+- Equality of labels. If labels are empty, then compare: 
 - Equality of data
 - Root / leaf status
 - Labels of all the leaves of clades rooted at `x` and `y`
@@ -84,16 +84,18 @@ function ==(x::TreeNode, y::TreeNode)
 		return false
 	end
 	out = true
-	out *= x.isleaf == y.isleaf
-	out *= x.isroot == y.isroot
-	out *= x.data == y.data
-	if !out
-		return false
+	if x.label == ""
+		out *= x.isleaf == y.isleaf
+		out *= x.isroot == y.isroot
+		out *= x.data == y.data
+		if !out
+			return false
+		end
+		xleaves = Set(n.label for n in node_leavesclade(x))
+		yleaves = Set(n.label for n in node_leavesclade(y))
+		out *= xleaves == yleaves 
+		# out *= have_equal_children(x,y)
 	end
-	xleaves = Set(n.label for n in node_leavesclade(x))
-	yleaves = Set(n.label for n in node_leavesclade(y))
-	out *= xleaves == yleaves 
-	# out *= have_equal_children(x,y)
 	return out
 end
 
