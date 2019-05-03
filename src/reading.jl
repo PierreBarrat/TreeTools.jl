@@ -201,5 +201,21 @@ function seq2num(seq::String, seqtype)
 	return numseq
 end	
 
+"""
+"""
+function seq2num(c::Char, seqtype)
+	if seqtype == :nucleotide
+		mapping = "ACGT-NWSMKRYBDHV"
+		num = findall(x->x==c, mapping)
+		if isempty(num)
+			@warn "String $seq could not be matched to nucleotides -- position ($i, $c)"
+		else
+			numseq = findall(x->x==c, mapping)[1]
+		end
+	end
+	return numseq
+end	
+
+
 
 
