@@ -1,5 +1,6 @@
-export write_newick, write_fasta, write_newick!
+export write_newick, write_fasta, write_newick!, write_branchlength
 
+using JSON
 
 """
 """
@@ -24,7 +25,8 @@ end
 function write_newick!(s::String, root::TreeNode)
 	if !isempty(root.child)
 		s *= '('
-		for c in root.child
+		temp = sort(root.child, by=x->length(node_leavesclade(x)))
+		for c in temp
 			s = write_newick!(s, c)
 			s *= ','
 		end
@@ -82,3 +84,34 @@ function num2seq(numseq::Array{Int64,1})
 	end
 	return seq
 end	
+
+"""
+	write_branchlength(tree::Tree, msaname::String, treename::String)
+
+Create a JSON file storing branch lengths of all branches in `tree`. This is intended for reading with auspice.  
+"""
+function write_branchlength(jsonfile::String, tree::Tree, jsontemplate::String)
+
+end
+
+
+"""
+	write_branchlength(tree::Tree, msaname::String, treename::String)
+
+Create a JSON file storing branch lengths of all branches in `tree`. This is intended for reading with auspice.  
+"""
+function write_branchlength(jsonfile::String, tree::Tree, msaname::String, treename::String ; order = keys(tree.lnodes))
+	out = Dict()
+	node = Dict();
+	for k in order
+		n = tree.lnodes[k]
+		node[n.label] = Dict("branch_length"=>n.data.tau)
+	end
+	out["nodes"] = node
+	out["input_tree"] = treename
+	out["alignment"] = msaname
+	open(jsonfile, "w") do f 
+		JSON.print(f, out)
+	end
+end
+

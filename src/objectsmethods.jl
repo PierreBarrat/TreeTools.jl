@@ -203,29 +203,31 @@ end
 
 Make a dictionary of mutations that appear in `tree`, mapping each mutation to the number of times it appears. 
 """
-function make_mutdict!(tree::Tree)
+function make_mutdict!(tree::Tree; gaps=false)
 	compute_mutations!(tree)
 	mutdict = Dict{Tuple{Int64,Int64,Int64}, Int64}()
 	mutloc = Dict{Tuple{Int64,Int64,Int64}, Array{String,1}}()
-	make_mutdict!(mutdict, mutloc, tree.root)
+	make_mutdict!(mutdict, mutloc, tree.root, gaps)
 	return mutdict, mutloc
 end
 
 """
 """
-function make_mutdict!(mutdict, mutloc, node)
+function make_mutdict!(mutdict, mutloc, node, gaps::Bool)
 	for m in node.data.mutations
 		key = map(f->getfield(m, f), fieldnames(Mutation))
-		mutdict[key] = get(mutdict, key, 0) + 1 
-		if length(get(mutloc,key,[])) == 0
-			mutloc[key] = [node.label]
-		else
-			push!(mutloc[key], node.label)
+		if !gaps || key[2]<5 || key[3]<5
+			mutdict[key] = get(mutdict, key, 0) + 1 
+			if length(get(mutloc,key,[])) == 0
+				mutloc[key] = [node.label]
+			else
+				push!(mutloc[key], node.label)
+			end
 		end
 	end
 	if !node.isleaf
 		for c in node.child
-			make_mutdict!(mutdict, mutloc, c)
+			make_mutdict!(mutdict, mutloc, c, gaps)
 		end
 	end
 end
