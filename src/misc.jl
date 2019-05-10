@@ -90,23 +90,23 @@ end
 function check_tree(tree)
     labellist = Dict{String, Int64}()
     for n in values(tree.nodes)
-    	if !n.isleaf && length(n.child)==0
-    		@warn "Node $(n.label) is non-leaf and has no child."
-    	elseif !n.isroot && n.anc == nothing
-    		@warn "Node $(n.label) is non-root and has no ancestor."
-    	elseif length(n.child) == 1
-    		@warn "Node $(n.label) has only one child."
-    	end
+        if !n.isleaf && length(n.child)==0
+        	@warn "Node $(n.label) is non-leaf and has no child."
+        elseif !n.isroot && n.anc == nothing
+        	@warn "Node $(n.label) is non-root and has no ancestor."
+        elseif length(n.child) == 1
+        	@warn "Node $(n.label) has only one child."
+        end
         for c in n.child
-    	    if c.anc != n
+            if c.anc != n
                 @warn "One chilf of $(n.label) does not satisfy `c.anc == n`."
-	    end
-	end
-	if get(labellist, n.label, 0) == 0
-		labellist[n.label] = 1
-	else
-		labellist[n.label] += 1
-		@warn "Label $(n.label) already exists!"
-	end
+            end
+        end
+        if get(labellist, n.label, 0) == 0
+            labellist[n.label] = 1
+        else
+            labellist[n.label] += 1
+            @warn "Label $(n.label) already exists!"
+        end
     end
 end

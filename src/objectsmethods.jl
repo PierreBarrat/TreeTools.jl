@@ -1,6 +1,6 @@
 export node2tree, tree_findlabel, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
 export compute_mutations!, make_mutdict!, make_mutdict
-export node_clade, node_leavesclade, tree_clade, tree_leavesclade, isclade, node_findroot
+export node_clade, node_leavesclade, node_leavesclade_labels, tree_clade, tree_leavesclade, isclade, node_findroot
 export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
 
@@ -258,10 +258,30 @@ end
 Find and return clade corresponding to all descendants of `root` that are leaves. 
 """
 function node_leavesclade(root::TreeNode)
-	cl = node_clade(root)
-	out = Array{TreeNode, 1}(undef, 0)
-	map(x->x.isleaf && push!(out, x), cl)
-	return out
+	if root.isleaf
+		return [root]
+	end
+	clade = Array{TreeNode,1}(undef, 0)
+	for c in root.child
+		append!(clade, node_leavesclade(c))
+	end
+	return clade
+end
+
+"""
+	node_leavesclade_labels(root::TreeNode)
+
+Find and return labels of nodes in clade corresponding to all descendants of `root` that are leaves. 
+"""
+function node_leavesclade_labels(root::TreeNode)
+	if root.isleaf
+		return [root.label]
+	end
+	clade = Array{String}(undef,0)
+	for c in root.child
+		append!(clade, node_leavesclade_labels(c))
+	end
+	return clade
 end
 
 """
@@ -321,26 +341,29 @@ end
 Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.  
 """
 function isclade(nodelist)
+	out = true
 	if !mapreduce(x->x.isleaf, *, nodelist, init=true)
 		# verbose && println("F")
-		return false
-	end
-	claderoot = lca(nodelist)
-	clade = node_leavesclade(claderoot)
-	# Now, checking if `clade` is the same as `nodelist` 
-	for c in clade
-		flag = false
-		for n in nodelist
-			if n==c
-				flag = true
+		out = false
+	else
+		claderoot = lca(nodelist)
+		clade = node_leavesclade_labels(claderoot)
+		# Now, checking if `clade` is the same as `nodelist` 
+		for c in clade
+			flag = false
+			for n in nodelist
+				if n.label==c
+					flag = true
+					break
+				end
+			end
+			if !flag
+				out = false
 				break
 			end
 		end
-		if !flag
-			return false
-		end
 	end
-	return true
+	return out
 end
 
 ###############################################################################################################
@@ -411,13 +434,12 @@ function isancestor(a::TreeNode, node::TreeNode)
 	if a==node
 		return true
 	else
-		for c in a.child
-			if isancestor(c, node)
-				return true
-			end
+		if node.isroot
+			return false
+		else
+			return isancestor(a, node.anc)
 		end
 	end
-	return false
 end
 
 """

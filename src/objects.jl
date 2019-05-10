@@ -80,23 +80,24 @@ What this operator compares:
 
 """
 function ==(x::TreeNode, y::TreeNode)
-	if x.label != y.label
-		return false
-	end
-	out = true
-	if x.label == ""
-		out *= x.isleaf == y.isleaf
-		out *= x.isroot == y.isroot
-		out *= x.data == y.data
-		if !out
-			return false
-		end
-		xleaves = Set(n.label for n in node_leavesclade(x))
-		yleaves = Set(n.label for n in node_leavesclade(y))
-		out *= xleaves == yleaves 
-		# out *= have_equal_children(x,y)
-	end
-	return out
+	return x.label == y.label
+	# if x.label != y.label
+	# 	return false
+	# end
+	# out = true
+	# if x.label == ""
+	# 	out *= x.isleaf == y.isleaf
+	# 	out *= x.isroot == y.isroot
+	# 	out *= x.data == y.data
+	# 	if !out
+	# 		return false
+	# 	end
+	# 	xleaves = Set(n.label for n in node_leavesclade(x))
+	# 	yleaves = Set(n.label for n in node_leavesclade(y))
+	# 	out *= xleaves == yleaves 
+	# 	# out *= have_equal_children(x,y)
+	# end
+	# return out
 end
 
 """
