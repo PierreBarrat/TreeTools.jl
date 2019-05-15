@@ -1,4 +1,4 @@
-export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, prunenodes, remove_internal_singletons!
+export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, prunenodes, remove_internal_singletons
 
 
 """
@@ -74,7 +74,7 @@ end
 
 """
 """
-function remove_internal_singletons!(tree)
+function remove_internal_singletons(tree)
 	root = tree.root
 	for n in values(tree.nodes)
 		if !n.isleaf && !n.isroot
@@ -83,7 +83,7 @@ function remove_internal_singletons!(tree)
 			end
 		end
 	end
-	tree = node2tree(root)
+	return node2tree(root)
 end
 
 

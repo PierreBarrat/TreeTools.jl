@@ -94,7 +94,7 @@ function check_tree(tree)
         	@warn "Node $(n.label) is non-leaf and has no child."
         elseif !n.isroot && n.anc == nothing
         	@warn "Node $(n.label) is non-root and has no ancestor."
-        elseif length(n.child) == 1
+        elseif !n.isroot && length(n.child) == 1
         	@warn "Node $(n.label) has only one child."
         end
         for c in n.child
