@@ -412,11 +412,7 @@ Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable c
 function lca(nodelist)
 	# ca = nodelist[1]
 	# Getting any element to start with
-	global ca
-	for x in nodelist
-		ca = x
-		break
-	end
+	ca = first(nodelist)
 	for node in nodelist
 		if !isancestor(ca, node)
 			ca = lca(ca, node)
