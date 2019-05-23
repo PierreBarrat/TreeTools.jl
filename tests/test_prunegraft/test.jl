@@ -8,7 +8,7 @@ global root_1 = read_newick("tree1.nwk")
     @test root == root_ref
     # Pruning with copy
 	root = deepcopy(root_1)
-	global A2 = prunenode(root.child[1].child[1])
+	global A2 = prunenode(root.child[1].child[1])[1]
 	@test root == root_1 && A == A2	
 end 
 

@@ -37,6 +37,7 @@ function prunenode(node::TreeNode)
 		return node
 	end
 	node_ = deepcopy(node)
+	r = node_findroot(node_)
 	anc = node_.anc
 	for (i,c) in enumerate(anc.child)
 		if c == node_
@@ -46,7 +47,29 @@ function prunenode(node::TreeNode)
 	end
 	node_.anc = nothing
 	node_.isroot = true
-	return node_
+	return node_, r
+end
+
+"""
+	prunenode(t::Tree, label::String)
+
+Prune node `t.lnodes[label]` from `t`. Return pruned copy of `t`.
+"""
+function prunenode(t::Tree, label::String)
+	tt = deepcopy(t)
+	n = tt.lnodes[label]
+	tt = node2tree(prunenode!(n)[2])
+	return tt
+end
+
+"""
+"""
+function prunenode(t::Tree, labels)
+	tt = deepcopy(t)
+	for l in labels
+		tt = prunenode(tt, l)
+	end
+	return tt
 end
 
 """
