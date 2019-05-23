@@ -28,7 +28,7 @@ end
 
 """
 """
-function make_mutdict(tree, labellist)
+function make_mutdict!(tree, labellist)
 	compute_mutations!(tree)
 	mutdict = Dict{Tuple{Int64,Int64,Int64}, Int64}()
 	for l in labellist

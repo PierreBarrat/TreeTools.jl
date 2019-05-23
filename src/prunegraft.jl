@@ -131,7 +131,7 @@ end
 
 Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`. 
 """
-function delete_node!(node)
+function delete_node!(node ; ptau=false)
 	if node.isroot
 		@error "Cannot delete root node"
 		error()
@@ -147,7 +147,7 @@ function delete_node!(node)
 		end
 		for c in child_list
 			nc = prunenode!(c)[1]
-			graftnode!(node.anc, nc, tau = (base_tau + nc.data.tau))
+			graftnode!(node.anc, nc, tau = (base_tau*ptau + nc.data.tau))
 		end
 		prunenode!(node)
 	end
