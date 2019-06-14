@@ -29,7 +29,7 @@ end
 """
 	prunenode(node::TreeNode)
 
-Prune node `node` by detaching it from its ancestor. Return pruned `node`. The tree defined by `node` is copied before the operation, and therefore not modified. 
+Prune node `node` by detaching it from its ancestor. Return pruned `node` and previous root `r`. The tree defined by `node` is copied before the operation, and therefore not modified. 
 """
 function prunenode(node::TreeNode)
 	if node.isroot
