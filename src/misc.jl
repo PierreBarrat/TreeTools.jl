@@ -131,9 +131,11 @@ end
 - Every non-leaf node should have at least one child
 - Every non-root node should have exactly one ancestor
 - If n.child[...] == c, c.anc == n is true
+- Tree has only one root
 """
 function check_tree(tree)
     labellist = Dict{String, Int64}()
+    nroot = 0
     for n in values(tree.nodes)
         if !n.isleaf && length(n.child)==0
         	@warn "Node $(n.label) is non-leaf and has no child."
@@ -153,5 +155,13 @@ function check_tree(tree)
             labellist[n.label] += 1
             @warn "Label $(n.label) already exists!"
         end
+        if n.isroot
+            nroot += 1
+        end
+    end
+    if nroot > 1
+        @warn "Tree has multiple roots"
+    elseif nroot ==0
+        @warn "Tree has no root"
     end
 end

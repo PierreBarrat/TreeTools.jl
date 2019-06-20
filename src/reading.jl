@@ -128,11 +128,8 @@ Implemented sequence types are `:nucleotide` and `:binary`.
 """
 function fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
 	for (name,seq) in FastaReader(fastafile)
-		key, flag = tree_findlabel(name, tree)
-		if !flag
-			@warn "Sequence $name could not be found in tree."
-		else
-			storeseq!(tree.nodes[key], seq, seqtype)
+		if haskey(tree.lnodes, name)
+			storeseq!(tree.lnodes[name], seq, seqtype)
 		end
 	end		
 end

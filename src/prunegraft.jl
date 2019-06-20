@@ -1,4 +1,4 @@
-export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, prunenodes, remove_internal_singletons
+export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, prunenodes, remove_internal_singletons, prunesubtree!
 
 
 """
@@ -34,7 +34,8 @@ Prune node `node` by detaching it from its ancestor. Return pruned `node` and pr
 function prunenode(node::TreeNode)
 	if node.isroot
 		@warn "Trying to prune root: no op."
-		return node
+		node_ = deepcopy(node)
+		return node_, node_
 	end
 	node_ = deepcopy(node)
 	r = node_findroot(node_)
@@ -51,36 +52,24 @@ function prunenode(node::TreeNode)
 end
 
 """
-	prunenode(t::Tree, label::String)
+	prunenode(t::Tree, label::Vararg{String})
 
-Prune node `t.lnodes[label]` from `t`. Return pruned copy of `t`.
+Prune node `t.lnodes[label]` from `t` for all `label`. Return pruned copy of `t`.
 """
-function prunenode(t::Tree, label::String)
-	tt = deepcopy(t)
-	n = tt.lnodes[label]
-	tt = node2tree(prunenode!(n)[2])
-	return tt
+function prunenode(t::Tree, label::Vararg{String} ; propagate=true)
+	return prunenode(t, collect(label), propagate=propagate)
 end
 
-"""
-"""
-function prunenode(t::Tree, labels)
-	tt = deepcopy(t)
-	for l in labels
-		tt = prunenode(tt, l)
-	end
-	return tt
-end
 
 """
-	prunenodes(tree, labellist)
+	prunenodes(tree, labels)
 
-Prune nodes corresponding to labels in `labellist`. 
+Prune nodes corresponding to labels in `labels`. 
 """
-function prunenodes(tree, labellist)
+function prunenode(tree, labels ; propagate=true)
 	out = deepcopy(tree)
-	for l in labellist
-		prunenode_!(out.lnodes[l])
+	for l in labels
+		propagate ? prunenode_!(out.lnodes[l]) : prunenode!(out.lnodes[l])
 	end
 	out = node2tree(out.root)
 end
@@ -93,6 +82,24 @@ function prunenode_!(node)
 	else
 		prunenode!(node)
 	end
+end
+
+"""
+	prunesubtree!(tree, labellist)
+
+Prune and return subtree corresponding to the MRCA of labels in `labellist`, as well as its previous direct ancestor. 
+# Warning
+`TreeNode` objects contained in `tree` are modified, but `tree` is *not* re-indexed after the pruning. It is therefore necessary to call `node2tree(tree.root)` after this.
+"""
+function prunesubtree!(tree, labellist)
+	r = lca([tree.lnodes[x] for x in labellist])
+	a = r.anc
+	if !r.isroot
+		subtree = node2tree(prunenode!(r)[1])
+	else
+		@warn "Trying to prune root"
+	end
+	return subtree, a
 end
 
 """
@@ -175,3 +182,46 @@ function delete_null_branches!(node; threshold = 1e-10)
 		end
 	end
 end
+
+
+"""
+	reroot!(node::TreeNode ; newroot::Union{TreeNode,Nothing}=nothing)
+- If `node.isroot`, 
+- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc, node)`. 
+- Else, call `reroot!(node.anc, node)`, then change the ancestor of `node` to be `newroot`. 
+"""
+function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
+	# Breaking cases
+	if node.anc == nothing || node.isroot
+		if !(node.anc == nothing && node.isroot) 
+			@warn "There was a proble with input tree: previous root node has an ancestor."
+		elseif newroot != nothing
+			i = findfirst(c->c.label==newroot.label, node.child)
+			splice!(node.child, i)
+			node.anc = newroot
+			node.data.tau = newroot.data.tau
+			node.isroot = false
+		end
+	else # Recursion
+		if newroot == nothing
+			if node.isleaf
+				@warn "Rooting on a leaf node..."
+			end
+			node.isroot = true
+			reroot!(node.anc, newroot=node)
+			push!(node.child, node.anc)
+			node.anc = nothing
+			node.data.tau = missing
+		else
+			i = findfirst(c->c.label==newroot.label, node.child)
+			splice!(node.child, i)
+			reroot!(node.anc, newroot=node)
+			push!(node.child, node.anc)
+			node.anc = newroot
+			node.data.tau = newroot.data.tau
+		end
+
+	end
+end
+
+
