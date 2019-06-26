@@ -162,7 +162,7 @@ function delete_node!(node ; ptau=false)
 end
 
 """
-	delete_null_branches!(node)
+	delete_null_branches!(node ; threshold = 1e-10)
 
 Delete internal node with null branch length.
 - If `node` needs not be deleted, call `delete_null_branches!` on its children

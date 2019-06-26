@@ -7,6 +7,7 @@ export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 ################################# Trees from nodes, finding labels, ... #######################################
 ###############################################################################################################
 
+
 """
 	node2tree(root::TreeNode)
 
@@ -46,6 +47,32 @@ function node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64, leafkey::Int
 		end
 	end
 	return ckey, cleafkey
+end
+
+"""
+	name_nodes!(t::Tree)
+
+Give a label to label-less nodes in `t`. 
+"""
+function name_nodes!(t::Tree)
+	name_nodes!(t.root, collect(keys(t.lnodes)))
+end
+function name_nodes!(r::TreeNode, labels ; i = 0)
+	ii = i
+	if r.isleaf && isempty(r.label)
+		@warn "Label-less leaf node!"
+	end
+	if isempty(r.label)
+		while in("NODE_$ii", labels)
+			ii += 1
+		end
+		r.label = "NODE_$ii"
+		ii += 1
+		for c in r.child
+			ii = name_nodes!(c, labels, i = ii)
+		end
+	end
+	return ii
 end
 
 

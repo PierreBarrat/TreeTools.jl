@@ -30,7 +30,7 @@ end
 """
 function print_tree(node::TreeNode ; vindent=2, hindent=5, hoffset=0)
     hspace = ""
-    for i in 1:vindent
+    for i in 1:hindent
         hspace *= "-"
     end
     offset = ""
