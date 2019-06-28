@@ -1,4 +1,4 @@
-export print_tree, hamming, check_tree, showinfo
+export print_tree, hamming, check_tree, nodeinfo
 
 function showinfo(tree::Tree)
     i = 1
@@ -19,7 +19,7 @@ function showinfo(tree::Tree)
     end
 end
 
-function showinfo(node::TreeNode)
+function nodeinfo(node::TreeNode)
     println("Node $(node.label): ") 
     println("Ancestor: $(node.anc.label), tau = $(node.data.tau)")
     println("$(length(node.child)) children: $([x.label for x in node.child])")

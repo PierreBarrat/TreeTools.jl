@@ -44,7 +44,7 @@ end
 """
 """
 function write_newick(root::TreeNode)
-	write_newick!("", root)
+	return write_newick!("", root)*";"
 end
 
 """

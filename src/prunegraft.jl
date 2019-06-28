@@ -1,4 +1,4 @@
-export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, prunenodes, remove_internal_singletons, prunesubtree!
+export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, remove_internal_singletons, prunesubtree!
 
 
 """
