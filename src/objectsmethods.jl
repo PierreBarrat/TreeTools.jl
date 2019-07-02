@@ -201,6 +201,23 @@ function node_clade(root::TreeNode)
 	return clade
 end
 
+
+"""
+	node_clade_labels(root::TreeNode)
+
+Find and return labels of nodes in clade corresponding to all descendants of `root`. 
+"""
+function node_clade_labels(root::TreeNode)
+	if root.isleaf
+		return [root.label]
+	end
+	clade = [root.label]
+	for c in root.child
+		append!(clade, node_clade(c))
+	end
+	return clade
+end
+
 """
 	node_leavesclade(root::TreeNode)
 
