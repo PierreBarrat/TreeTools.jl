@@ -83,17 +83,19 @@ function nw_parse_children(s::String)
 	parcount = 0
 	l_children = []
 	current = ""
-	for c in "$(s),"
+	cstart = 1
+	cend = 1
+	for (i,c) in enumerate("$(s),")
 		if c == ',' && parcount == 0
-			push!(l_children, current)
-			current = ""
+			cend = i-1
+			push!(l_children, s[cstart:cend])
+			cstart = i+1
 		else
 			if c == '('
 				parcount +=1
 			elseif c == ')'
 				parcount -=1
 			end
-			current = string(current, c)
 		end
 	end
 	return l_children

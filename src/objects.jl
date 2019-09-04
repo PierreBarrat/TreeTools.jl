@@ -28,15 +28,17 @@ mutable struct NodeData
 	sequence::Array{Int64,1}
 	mutations::Array{Mutation,1}
 	tau::Union{Missing, Float64} # Time to ancestor
+	nseg::Int64 # number of segments travelling along upper branch
 end
-function NodeData(; q = 0., sequence = Array{Int64,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing)
-	return NodeData(q, sequence, mutations, tau)
+function NodeData(; q = 0., sequence = Array{Int64,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing, nseg=1)
+	return NodeData(q, sequence, mutations, tau, nseg)
 end
 function ==(x::NodeData, y::NodeData)
 	out = x.q == y.q
 	out *= x.sequence == y.sequence
 	out *= x.mutations == y.mutations
 	out *= x.tau === y.tau  # `===` operates on `missing` returning a bool
+	out *= x.nseg === y.nseg
 	return out
 end
 
