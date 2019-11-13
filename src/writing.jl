@@ -68,7 +68,8 @@ end
 """
 function write_fasta!(s::String, root::TreeNode, internal::Bool)
 	if internal || root.isleaf
-		s = s * ">$(root.label)\n$(num2seq(root.data.sequence))\n"
+		# s = s * ">$(root.label)\n$(num2seq(root.data.sequence))\n"
+		s = s * ">$(root.label)\n$(prod(root.data.sequence))\n"
 	end
 	for c in root.child
 		s = write_fasta!(s, c, internal)

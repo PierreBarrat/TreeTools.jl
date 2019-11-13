@@ -6,10 +6,10 @@ import Base: ==
 
 mutable struct Mutation
 	i::Int64
-	old::Int64
-	new::Int64
+	old
+	new
 end
-function Mutation(x::Tuple{Int64,Int64,Int64})
+function Mutation(x::Tuple{Int64,Any,Any})
 	return Mutation(x[1],x[2],x[3])
 end
 function ==(x::Mutation, y::Mutation)
@@ -25,12 +25,12 @@ end
 """
 mutable struct NodeData
 	q::Int64
-	sequence::Array{Int64,1}
+	sequence::Array{Char,1}
 	mutations::Array{Mutation,1}
 	tau::Union{Missing, Float64} # Time to ancestor
 	nseg::Int64 # number of segments travelling along upper branch
 end
-function NodeData(; q = 0., sequence = Array{Int64,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing, nseg=1)
+function NodeData(; q = 0., sequence = Array{Char,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing, nseg=1)
 	return NodeData(q, sequence, mutations, tau, nseg)
 end
 function ==(x::NodeData, y::NodeData)
@@ -73,33 +73,10 @@ end
 """
 	==(x::TreeNode, y::TreeNode)
 
-Equality between **subtrees** defined by `x` and `y`. This avoids having to recursively check ancestry. 
-What this operator compares: 
-- Equality of labels. If labels are empty, then compare: 
-- Equality of data
-- Root / leaf status
-- Labels of all the leaves of clades rooted at `x` and `y`
-
+Equality of labels between `x` and `y`. Checking for other properties of nodes turns out to be quite complicated. 
 """
 function ==(x::TreeNode, y::TreeNode)
 	return x.label == y.label
-	# if x.label != y.label
-	# 	return false
-	# end
-	# out = true
-	# if x.label == ""
-	# 	out *= x.isleaf == y.isleaf
-	# 	out *= x.isroot == y.isroot
-	# 	out *= x.data == y.data
-	# 	if !out
-	# 		return false
-	# 	end
-	# 	xleaves = Set(n.label for n in node_leavesclade(x))
-	# 	yleaves = Set(n.label for n in node_leavesclade(y))
-	# 	out *= xleaves == yleaves 
-	# 	# out *= have_equal_children(x,y)
-	# end
-	# return out
 end
 
 """

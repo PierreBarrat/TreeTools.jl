@@ -131,30 +131,12 @@ Implemented sequence types are `:nucleotide` and `:binary`.
 function fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
 	for (name,seq) in FastaReader(fastafile)
 		if haskey(tree.lnodes, name)
-			storeseq!(tree.lnodes[name], seq, seqtype)
+			# storeseq!(tree.lnodes[name], seq, seqtype)
+			tree.lnodes[name].data.sequence = [c for c in seq]
 		end
 	end		
 end
 
-## This should be implemented
-## Lacks a good node_find_label function 
-# """
-# 	fasta2tree!(root::TreeNode, fastafile::String ; seqtype=:nucleotide)
-
-# Read `fastafile` and stores sequences in nodes of `root` with corresponding label.  
-# Implemented sequence types are `:nucleotide` and `:binary`.
-# """
-# function fasta2tree!(root::TreeNode, fastafile::String ; seqtype=:nucleotide)
-# 	for (name,seq) in FastaReader(fastafile)
-# 		key, flag = tree_findlabel(name, tree)
-# 		if !flag
-# 			@warn "Sequence $name could not be found in tree."
-# 		else
-# 			# storeseq!(tree, key, seq, seqtype)
-# 			storeseq!(tree.node[key], seq, seqtype)
-# 		end
-# 	end		
-# end
 
 """
 	storeseq!(node::TreeNode, seq, seqtype)
