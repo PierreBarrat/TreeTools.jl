@@ -19,16 +19,23 @@ function showinfo(tree::Tree)
     end
 end
 
-function nodeinfo(node::TreeNode)
+"""
+    nodeinfo(node::TreeNode)
+
+Print information about `node`. 
+"""
+function nodeinfo(node)
     println("Node $(node.label): ") 
     println("Ancestor: $(node.anc.label), tau = $(node.data.tau)")
     println("$(length(node.child)) children: $([x.label for x in node.child])")
     println("Brothers: $([x.label for x in node.anc.child])")
 end
 
+
 """
+    print_tree(node::TreeNode; vindent=2, hindent=5, hoffset=0)
 """
-function print_tree(node::TreeNode ; vindent=2, hindent=5, hoffset=0)
+function print_tree(node; vindent=2, hindent=5, hoffset=0)
     hspace = ""
     for i in 1:hindent
         hspace *= "-"

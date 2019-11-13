@@ -14,7 +14,7 @@ export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 Create a `Tree` object from `root`. Keys are integers. 
 """
 function node2tree(root::TreeNode)
-	tree = Tree(root = root)
+	tree = Tree(root)
 	key = 1
 	leafkey = 1
 	node2tree_addnode!(tree, root, key, leafkey)
@@ -420,7 +420,7 @@ function node_depth(node::TreeNode)
 end
 
 """
-	node_divtime(i_node, j_node)
+	node_divtime(i_node::TreeNode, j_node::TreeNode)
 
 Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.data.tau` values. 
 """

@@ -1,11 +1,11 @@
 export compute_mutations!, make_mutdict!, make_mutdict
 
 """
-	compute_mutations(tree::Tree)
+	compute_mutations(tree::Tree{EvoData})
 
 Compute mutation on each branch of `tree`. Each node of `tree` must have a sequence. 
 """
-function compute_mutations!(tree::Tree)
+function compute_mutations!(tree::Tree{EvoData})
 	for n in values(tree.nodes)
 		if !n.isroot
 			if 	isempty(n.data.sequence) || isempty(n.anc.data.sequence)
@@ -28,7 +28,7 @@ end
 
 """
 """
-function make_mutdict!(tree, labellist)
+function make_mutdict!(tree::Tree{EvoData}, labellist)
 	compute_mutations!(tree)
 	mutdict = Dict{Tuple{Int64,Int64,Int64}, Int64}()
 	for l in labellist
@@ -41,11 +41,11 @@ function make_mutdict!(tree, labellist)
 end
 
 """
-	make_mutdict!(tree:Tree)
+	make_mutdict!(tree:Tree{EvoData})
 
 Make a dictionary of mutations that appear in `tree`, mapping each mutation to the number of times it appears. 
 """
-function make_mutdict!(tree::Tree; gaps=false)
+function make_mutdict!(tree::Tree{EvoData}; gaps=false)
 	compute_mutations!(tree)
 	mutdict = Dict{Tuple{Int64,Int64,Int64}, Int64}()
 	mutloc = Dict{Tuple{Int64,Int64,Int64}, Array{String,1}}()
@@ -55,7 +55,7 @@ end
 
 """
 """
-function make_mutdict!(mutdict, mutloc, node, gaps::Bool)
+function make_mutdict!(mutdict, mutloc, node::TreeNode{EvoData}, gaps::Bool)
 	for m in node.data.mutations
 		key = map(f->getfield(m, f), fieldnames(Mutation))
 		if !gaps || key[2]<5 || key[3]<5

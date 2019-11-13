@@ -5,14 +5,23 @@ using FastaIO
 
 
 """
+	read_tree(nw_file::String; DataType=EvoData)
+
+Read Newick file `nw_file` and create a `Tree{DataType}` object from it.    
+`DataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `DataType()` must exist and return a valid instance of `DataType`. This defaults to `EvoData`.
 """
-function read_tree(nw_file::String)
-	return node2tree(read_newick(nw_file))
+function read_tree(nw_file::String; DataType=EvoData)
+	return node2tree(read_newick(nw_file; DataType=DataType))
 end
 
 """
+	read_newick(nw_file::String; DataType=EvoData)
+
+Read Newick file `nw_file` and create a graph of `TreeNode{DataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{DataType}` object.   
+`DataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `DataType()` must exist and return a valid instance of `DataType`. This defaults to `EvoData`.   
 """
-function read_newick(nw_file::String)
+function read_newick(nw_file::String; DataType=EvoData)
+	@assert DataType <: TreeNodeData
 	f = open(nw_file)
 	nw = readlines(f)
 	close(f)
@@ -27,7 +36,7 @@ function read_newick(nw_file::String)
 	end
 	nw = nw[1:end-1]
 
-	root = TreeNode()
+	root = TreeNode(DataType())
 	parse_newick!(nw, root)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
 
@@ -123,12 +132,12 @@ end
 
 
 """
-	fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
+	fasta2tree!(tree::Tree{EvoData}, fastafile::String ; seqtype=:nucleotide)
 
 Read `fastafile` and stores sequences in nodes of `tree` with corresponding label.  
 Implemented sequence types are `:nucleotide` and `:binary`.
 """
-function fasta2tree!(tree::Tree, fastafile::String ; seqtype=:nucleotide)
+function fasta2tree!(tree::Tree{EvoData}, fastafile::String ; seqtype=:nucleotide)
 	for (name,seq) in FastaReader(fastafile)
 		if haskey(tree.lnodes, name)
 			# storeseq!(tree.lnodes[name], seq, seqtype)
@@ -139,11 +148,11 @@ end
 
 
 """
-	storeseq!(node::TreeNode, seq, seqtype)
+	storeseq!(node::TreeNode{EvoData}, seq, seqtype)
 
 Store sequence `seq` at node `node`. 
 """
-function storeseq!(node::TreeNode, seq, seqtype)
+function storeseq!(node::TreeNode{EvoData}, seq, seqtype)
 	if seqtype==:nucleotide
 		numseq = seq2num(seq, seqtype)
 		node.data.sequence = numseq

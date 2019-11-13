@@ -1,4 +1,5 @@
-export TreeNode, NodeData, Tree, Mutation
+export TreeNode, Tree, Mutation
+export EvoData, LBIData
 export have_equal_children
 
 import Base: ==
@@ -17,23 +18,32 @@ function ==(x::Mutation, y::Mutation)
 end
 
 """
-	mutable struct NodeData
+	abstract type TreeNodeData
 
-- `q`: number of states for sites 
-- sequence
-- number of mutations to ancestor
+Abstract supertype for all data attached to `TreeNode` objects. The *only* requirement is a field `.tau::Union{Missing, <:Real}` containing the time to the ancestor. 
 """
-mutable struct NodeData
+abstract type TreeNodeData end
+
+
+"""
+	mutable struct EvoData <: TreeNodeData
+
+Notable fields
+- `q`: number of states for sites 
+- `sequence::Array{Char,1}`
+- `mutations::Array{Mutation,1}
+"""
+mutable struct EvoData <: TreeNodeData
 	q::Int64
 	sequence::Array{Char,1}
 	mutations::Array{Mutation,1}
 	tau::Union{Missing, Float64} # Time to ancestor
 	nseg::Int64 # number of segments travelling along upper branch
 end
-function NodeData(; q = 0., sequence = Array{Char,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing, nseg=1)
-	return NodeData(q, sequence, mutations, tau, nseg)
+function EvoData(; q = 0., sequence = Array{Char,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing, nseg=1)
+	return EvoData(q, sequence, mutations, tau, nseg)
 end
-function ==(x::NodeData, y::NodeData)
+function ==(x::EvoData, y::EvoData)
 	out = x.q == y.q
 	out *= x.sequence == y.sequence
 	out *= x.mutations == y.mutations
@@ -42,9 +52,30 @@ function ==(x::NodeData, y::NodeData)
 	return out
 end
 
+"""
+	mutable struct LBIData <: TreeNodeData
+
+Data used to compute the Local Branching Index. 
+"""
+mutable struct LBIData <: TreeNodeData
+	tau::Union{Nothing, Float64}
+	message_down::Float64
+	message_up::Float64
+	LBI::Float64
+	date
+	alive::Bool
+end
+function LBIData(; tau=0.,
+				message_down=0.,
+				message_up=0.,
+				LBI=0.,
+				date=0.,
+				alive=false)
+	return LBIData(tau, message_down, message_up, alive)
+end
 
 """
-	mutable struct TreeNode
+	mutable struct TreeNode{T <: TreeNodeData}
 
 Structural information on the tree, *i.e.* topology and branch length. 
 - `anc::Union{Nothing,TreeNode}`: Ancestor
@@ -52,24 +83,26 @@ Structural information on the tree, *i.e.* topology and branch length.
 - `tau::Float64`: Time to ancestor
 - `isleaf::Bool`
 - `isroot::Bool`
+- `data::T`
 """
-mutable struct TreeNode
-	anc::Union{Nothing,TreeNode}
+mutable struct TreeNode{T <: TreeNodeData}
+	anc::Union{Nothing,TreeNode{T}}
 	child::Array{TreeNode,1}
 	isleaf::Bool
 	isroot::Bool
 	label::String
-	data::NodeData
+	data::T
 end
-function TreeNode(;
+function TreeNode(data::T where T<:TreeNodeData;
 	anc = nothing, 
 	child = Array{TreeNode,1}(undef, 0),
 	isleaf = true,
 	isroot = true,
-	label = "",
-	data = NodeData())
+	label = "")
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
+TreeNode() = TreeNode(EvoData())
+
 """
 	==(x::TreeNode, y::TreeNode)
 
@@ -118,28 +151,20 @@ function have_equal_children(x::TreeNode, y::TreeNode)
 end
 
 """
-	mutable struct NodeInfo
-
-Name and other information about the node. 
+	mutable struct Tree{T <: TreeNodeData}
 """
-mutable struct NodeInfo 
-	name::String
+mutable struct Tree{T <: TreeNodeData}
+	root::Union{Nothing, TreeNode{T}}
+	nodes::Dict{Int64, TreeNode{T}}
+	lnodes::Dict{String, TreeNode{T}}
+	leaves::Dict{Int64, TreeNode{T}}
+	lleaves::Dict{fieldtype(TreeNode{T}, :label), TreeNode{T}}
 end
-
-"""
-"""
-mutable struct Tree
-	root::Union{Nothing, TreeNode}
-	nodes::Dict{Int64, TreeNode}
-	lnodes::Dict{String, TreeNode}
-	leaves::Dict{Int64, TreeNode}
-	lleaves::Dict{fieldtype(TreeNode, :label), TreeNode}
-end
-function Tree(;
-	root = TreeNode(),
-	nodes = Dict{Int64, TreeNode}(),
-	lnodes = Dict{String, TreeNode}(),
-	leaves = Dict{Int64, TreeNode}(),
-	lleaves = Dict{fieldtype(TreeNode,:label), TreeNode}())
+function Tree(root::TreeNode{T};
+	nodes = Dict{Int64, TreeNode{T}}(),
+	lnodes = Dict{String, TreeNode{T}}(),
+	leaves = Dict{Int64, TreeNode{T}}(),
+	lleaves = Dict{fieldtype(TreeNode{T},:label), TreeNode{T}}()) where T
 	return Tree(root, nodes, lnodes, leaves, lleaves)
 end
+Tree() = Tree(TreeNode())

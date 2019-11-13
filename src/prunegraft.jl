@@ -118,11 +118,11 @@ end
 
 
 """
-	graftnode!(r, n)
+	graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
 
 Graft `n` on `r`. 
 """
-function graftnode!(r, n ; tau=n.data.tau)
+function graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
 	if !n.isroot || n.anc != nothing
 		@error "Trying to graft non-root node."
 	end
@@ -134,11 +134,11 @@ function graftnode!(r, n ; tau=n.data.tau)
 end
 
 """
-	delete_node(node)
+	delete_node!(node::TreeNode; ptau=false)
 
-Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`. 
+Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  If `ptau`, branch length above `node` is added to the regrafted branch. Otherwise, the regrafted branch's length is unchanged. 
 """
-function delete_node!(node ; ptau=false)
+function delete_node!(node::TreeNode; ptau=false)
 	if node.isroot
 		@error "Cannot delete root node"
 		error()
@@ -194,7 +194,7 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 	# Breaking cases
 	if node.anc == nothing || node.isroot
 		if !(node.anc == nothing && node.isroot) 
-			@warn "There was a proble with input tree: previous root node has an ancestor."
+			@warn "There was a problem with input tree: previous root node has an ancestor."
 		elseif newroot != nothing
 			i = findfirst(c->c.label==newroot.label, node.child)
 			splice!(node.child, i)
@@ -220,7 +220,6 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 			node.anc = newroot
 			node.data.tau = newroot.data.tau
 		end
-
 	end
 end
 
