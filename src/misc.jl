@@ -34,6 +34,7 @@ end
 
 """
     print_tree(node::TreeNode; vindent=2, hindent=5, hoffset=0)
+    print_tree(t::Tree; vindent=2, hindent=5, hoffset=0)
 """
 function print_tree(node; vindent=2, hindent=5, hoffset=0)
     hspace = ""
@@ -56,51 +57,13 @@ function print_tree(node; vindent=2, hindent=5, hoffset=0)
         end
     end
 end
+print_tree(t::Tree; vindent=2, hindent=5, hoffset=0) = print_tree(t.root; vindent=2, hindent=5, hoffset=0)
 
-# """
-# """
-# function print_tree(node::TreeNode; indent = 0, indent_size = 10)
 
-#     ## Printing top child
-#     node.isleaf || print_tree(node.child[1], indent = indent+1, indent_size = indent_size)
 
-#     ## Current node
-#     # Top vertical connection for non leaf
-#     if !node.isleaf
-#             for i in 1:(indent_size*(indent))
-#                     print(" ")
-#             end
-#             println("|")
-#     end     
-#     # Indent and horizontal connection
-#     for i in 1:(indent_size*indent)
-#             (i<=(indent_size*(indent-1))+1) ? print(" ") : print("-")
-#     end
-#     # Current node label
-#     print(node.label)
-#     ismissing(node.data.tau) ? println() : println(":$(node.data.tau)")
-#     # Bottom vertical connection for non leaf
-#     if !node.isleaf
-#             for i in 1:(indent_size*(indent))
-#                     print(" ")
-#             end
-#             println("|")
-#     end     
-
-#     ## Printing bottom child
-#     node.isleaf || print_tree(node.child[2], indent = indent+1,  indent_size = indent_size)
-
-#     return nothing
-# end
-
-# """
-# """
-# function print_tree(tree::Tree; indent = 0, indent_size = 10)
-#     print_tree(tree.root, indent=indent, indent_size=indent_size)
-# end
 
 """
-        hamming(x,y)
+    hamming(x,y)
 """
 function hamming(x,y)
     if typeof(x) != typeof(y)
@@ -134,13 +97,14 @@ end
 
 
 """
+    check_tree(t::Tree)
 
 - Every non-leaf node should have at least one child
 - Every non-root node should have exactly one ancestor
 - If n.child[...] == c, c.anc == n is true
 - Tree has only one root
 """
-function check_tree(tree)
+function check_tree(tree::Tree)
     labellist = Dict{String, Int64}()
     nroot = 0
     for n in values(tree.nodes)
@@ -170,5 +134,20 @@ function check_tree(tree)
         @warn "Tree has multiple roots"
     elseif nroot ==0
         @warn "Tree has no root"
+    end
+end
+# check_tree(t::Tree) = check_tree(t.root)
+
+
+"""
+    get_node_dates!(t::Tree{LBIData}, dat)
+
+Get dates of nodes of `t` using data `dat`. Iterating through `dat` should give elements of format `(name, date)` where `name` is a label of a node. 
+"""
+function get_node_dates!(t::Tree{LBIData}, dat)
+    for (n,d) in dat
+        if haskey(t.lnodes, n)
+            t.lnodes[n].data.date = d
+        end
     end
 end

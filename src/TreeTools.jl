@@ -1,5 +1,6 @@
 module TreeTools
 
+using Dates
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")
@@ -9,6 +10,7 @@ include("datamethods.jl")
 include("reading.jl")
 include("writing.jl")
 include("misc.jl")
+include("lbi.jl")
 
 end
 

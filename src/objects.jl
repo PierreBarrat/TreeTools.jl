@@ -58,10 +58,10 @@ end
 Data used to compute the Local Branching Index. 
 """
 mutable struct LBIData <: TreeNodeData
-	tau::Union{Nothing, Float64}
+	tau::Float64
 	message_down::Float64
 	message_up::Float64
-	LBI::Float64
+	lbi::Float64
 	date
 	alive::Bool
 end
@@ -70,8 +70,8 @@ function LBIData(; tau=0.,
 				message_up=0.,
 				LBI=0.,
 				date=0.,
-				alive=false)
-	return LBIData(tau, message_down, message_up, alive)
+				alive=true)
+	return LBIData(tau, message_down, message_up, LBI, date, alive)
 end
 
 """
@@ -87,18 +87,18 @@ Structural information on the tree, *i.e.* topology and branch length.
 """
 mutable struct TreeNode{T <: TreeNodeData}
 	anc::Union{Nothing,TreeNode{T}}
-	child::Array{TreeNode,1}
+	child::Array{TreeNode{T},1}
 	isleaf::Bool
 	isroot::Bool
 	label::String
 	data::T
 end
-function TreeNode(data::T where T<:TreeNodeData;
+function TreeNode(data::T;
 	anc = nothing, 
-	child = Array{TreeNode,1}(undef, 0),
+	child = Array{TreeNode{T},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
-	label = "")
+	label = "") where T
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
 TreeNode() = TreeNode(EvoData())

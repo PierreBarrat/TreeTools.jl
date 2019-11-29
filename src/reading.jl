@@ -3,6 +3,10 @@ export fasta2tree!, seq2num
 
 using FastaIO
 
+let n::Int64=0
+	global increment_n() = (n+=1)
+	global reset_n() = (n=0)
+end
 
 """
 	read_tree(nw_file::String; DataType=EvoData)
@@ -11,7 +15,10 @@ Read Newick file `nw_file` and create a `Tree{DataType}` object from it.
 `DataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `DataType()` must exist and return a valid instance of `DataType`. This defaults to `EvoData`.
 """
 function read_tree(nw_file::String; DataType=EvoData)
-	return node2tree(read_newick(nw_file; DataType=DataType))
+	# println("Checking Tree")
+	tree = node2tree(read_newick(nw_file; DataType=DataType))
+	check_tree(tree)
+	return tree
 end
 
 """
@@ -36,8 +43,9 @@ function read_newick(nw_file::String; DataType=EvoData)
 	end
 	nw = nw[1:end-1]
 
+	reset_n()
 	root = TreeNode(DataType())
-	parse_newick!(nw, root)
+	parse_newick!(nw, root, DataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
 
 	return root
@@ -48,13 +56,17 @@ end
 
 Parse the tree contained in Newick string `nw`, rooting it at `root`. 
 """
-function parse_newick!(nw::String, root::TreeNode)
+function parse_newick!(nw::String, root::TreeNode, DataType)
 
 	# Setting isroot to false. Special case of the root is handled in main calling function
 	root.isroot = false
 	# Getting label of the node, after last parenthesis
 	parts = map(x->String(x), split(nw, ")")) 
-	root.label, root.data.tau = nw_parse_name(String(parts[end]))
+	lab, tau = nw_parse_name(String(parts[end]))
+	if lab == ""
+		lab = "NODE_$(increment_n())"
+	end
+	root.label, root.data.tau = (DataType == LBIData && ismissing(tau) ? (lab,0.) : (lab,tau))
 
 	if length(parts) == 1 # Is a leaf. Subtree is empty
 		root.isleaf = true
@@ -70,8 +82,8 @@ function parse_newick!(nw::String, root::TreeNode)
 		l_children = nw_parse_children(children) # List of children (array of strings)
 
 		for sc in l_children
-			nc = TreeNode()
-			parse_newick!(sc, nc) # Will set everything right for subtree corresponding to nc
+			nc = TreeNode(DataType())
+			parse_newick!(sc, nc, DataType) # Will set everything right for subtree corresponding to nc
 			nc.anc = root
 			push!(root.child, nc)
 		end
