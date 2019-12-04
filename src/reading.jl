@@ -9,26 +9,26 @@ let n::Int64=0
 end
 
 """
-	read_tree(nw_file::String; DataType=EvoData)
+	read_tree(nw_file::String; NodeDataType=EvoData)
 
-Read Newick file `nw_file` and create a `Tree{DataType}` object from it.    
-`DataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `DataType()` must exist and return a valid instance of `DataType`. This defaults to `EvoData`.
+Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.    
+`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
 """
-function read_tree(nw_file::String; DataType=EvoData)
+function read_tree(nw_file::String; NodeDataType=EvoData)
 	# println("Checking Tree")
-	@time tree = node2tree(read_newick(nw_file; DataType=DataType))
+	@time tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType))
 	check_tree(tree)
 	return tree
 end
 
 """
-	read_newick(nw_file::String; DataType=EvoData)
+	read_newick(nw_file::String; NodeDataType=EvoData)
 
-Read Newick file `nw_file` and create a graph of `TreeNode{DataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{DataType}` object.   
-`DataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `DataType()` must exist and return a valid instance of `DataType`. This defaults to `EvoData`.   
+Read Newick file `nw_file` and create a graph of `TreeNode{NodeDataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{NodeDataType}` object.   
+`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.   
 """
-function read_newick(nw_file::String; DataType=EvoData)
-	@assert DataType <: TreeNodeData
+function read_newick(nw_file::String; NodeDataType=EvoData)
+	@assert NodeDataType <: TreeNodeData
 	f = open(nw_file)
 	nw = readlines(f)
 	close(f)
@@ -44,8 +44,8 @@ function read_newick(nw_file::String; DataType=EvoData)
 	nw = nw[1:end-1]
 
 	reset_n()
-	root = TreeNode(DataType())
-	parse_newick!(nw, root, DataType)
+	root = TreeNode(NodeDataType())
+	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
 	close(f)
 
@@ -57,7 +57,7 @@ end
 
 Parse the tree contained in Newick string `nw`, rooting it at `root`. 
 """
-function parse_newick!(nw::String, root::TreeNode, DataType)
+function parse_newick!(nw::String, root::TreeNode, NodeDataType)
 
 	# Setting isroot to false. Special case of the root is handled in main calling function
 	root.isroot = false
@@ -67,7 +67,7 @@ function parse_newick!(nw::String, root::TreeNode, DataType)
 	if lab == ""
 		lab = "NODE_$(increment_n())"
 	end
-	root.label, root.data.tau = (DataType == LBIData && ismissing(tau) ? (lab,0.) : (lab,tau))
+	root.label, root.data.tau = (NodeDataType == LBIData && ismissing(tau) ? (lab,0.) : (lab,tau))
 
 	if length(parts) == 1 # Is a leaf. Subtree is empty
 		root.isleaf = true
@@ -83,8 +83,8 @@ function parse_newick!(nw::String, root::TreeNode, DataType)
 		l_children = nw_parse_children(children) # List of children (array of strings)
 
 		for sc in l_children
-			nc = TreeNode(DataType())
-			parse_newick!(sc, nc, DataType) # Will set everything right for subtree corresponding to nc
+			nc = TreeNode(NodeDataType())
+			parse_newick!(sc, nc, NodeDataType) # Will set everything right for subtree corresponding to nc
 			nc.anc = root
 			push!(root.child, nc)
 		end
