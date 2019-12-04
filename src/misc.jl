@@ -20,6 +20,22 @@ function showinfo(tree::Tree)
 end
 
 """
+"""
+function show(io::IO, tree::Tree)
+    if length(tree.nodes) > 100
+        println("Not displaying tree")
+    else
+        print_tree(tree)
+    end
+end
+function show(io::IO, n::TreeNode)
+    println("### TreeNode:")
+    println("Label $n.label")
+    println("Ancestor $n.anc.label")
+    println("Number of children $(length(n.child))")
+end
+
+"""
     nodeinfo(node::TreeNode)
 
 Print information about `node`. 

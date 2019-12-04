@@ -332,6 +332,48 @@ function isclade(nodelist)
 	return out
 end
 
+"""
+	find_clades(tree, label_list)
+
+Find the set of clades for which leaves are exactly `label_list`. 
+"""
+function find_clades(tree, label_list)	
+	r = lca([tree.lleaves[l] for l in label_list])
+	cr = node_leavesclade_labels(r)
+	if issetequal(cr, label_list) # `label_list` is the clade of `r`
+		return [label_list]
+	else # Go up from ll[1] and get the biggest possible clade
+		ll = copy(label_list)
+		return find_clades_!(ll, tree)
+	end
+end
+function find_clades_!(list, tree)
+	cl = []
+	while !isempty(list)
+		tmp = []
+		r = tree.lleaves[list[1]]
+		rflag = true
+		idx = [1]
+		while rflag # Go up from r as long as we can
+			r = r.anc
+			cr = node_leavesclade_labels(r)
+			if !issubset(cr, list)
+				rflag = false
+			else
+				idx = findall(x->in(x,cr),list) # Which elements of list are in cr
+			end
+		end
+		push!(cl, list[idx])
+		deleteat!(list, idx)
+	end
+	return cl
+end
+
+
+function find_clades!(r, nlist)
+
+end
+
 ###############################################################################################################
 ######################################## LCA, divtime, ... ####################################################
 ###############################################################################################################

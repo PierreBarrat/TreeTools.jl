@@ -16,7 +16,7 @@ Read Newick file `nw_file` and create a `Tree{DataType}` object from it.
 """
 function read_tree(nw_file::String; DataType=EvoData)
 	# println("Checking Tree")
-	tree = node2tree(read_newick(nw_file; DataType=DataType))
+	@time tree = node2tree(read_newick(nw_file; DataType=DataType))
 	check_tree(tree)
 	return tree
 end
@@ -47,6 +47,7 @@ function read_newick(nw_file::String; DataType=EvoData)
 	root = TreeNode(DataType())
 	parse_newick!(nw, root, DataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
+	close(f)
 
 	return root
 end
