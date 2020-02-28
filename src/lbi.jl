@@ -22,7 +22,15 @@ function lbi!(r::TreeNode{LBIData}, τ::Float64 ; normalize=true)
 	return nothing
 end
 lbi!(r::TreeNode{LBIData}, τ; normalize=true) = lbi!(r, convert(Float64, τ), normalize=true)
-lbi!(t::Tree{LBIData}, τ; normalize=true) = lbi!(t.root, τ, normalize=normalize)
+function lbi!(t::Tree{LBIData}, τ; normalize=true) 
+	if length(findall(x->x.data.alive, t.lleaves)) < 1
+		@warn "Cannot compute LBI for tree with dead leaves."
+		return true
+	end
+	lbi!(t.root, τ, normalize=normalize)
+	return false
+end
+lbi!(t::Tree{EvoData}, τ; normalize=true) = error("Cannot compute LBI for type Tree{EvoData}. Read the tree with keyword `LBIData`.")
 
 """
 	set_to_zero!(n::TreeNode{LBIData})
@@ -106,7 +114,7 @@ end
 normalize_lbi!(t::Tree) = normalize_lbi!(t.root)
 function normalize_lbi!(n::TreeNode{LBIData}, max_lbi::Float64)
 	if max_lbi == 0.
-		@error "Maximum LBI is 0"
+		@error "Maximum LBI is 0, cannot normalize."
 	end
 	for c in n.child
 		normalize_lbi!(c, max_lbi)

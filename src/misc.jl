@@ -1,4 +1,5 @@
-export print_tree, hamming, check_tree, nodeinfo
+import Base.show 
+export print_tree, check_tree, nodeinfo, show
 
 function showinfo(tree::Tree)
     i = 1
@@ -22,18 +23,19 @@ end
 """
 """
 function show(io::IO, tree::Tree)
-    if length(tree.nodes) > 100
-        println("Not displaying tree")
-    else
+    if length(tree.nodes) < 30
         print_tree(tree)
     end
 end
+show(t::Tree) = show(stdout, t)
 function show(io::IO, n::TreeNode)
-    println("### TreeNode:")
-    println("Label $n.label")
-    println("Ancestor $n.anc.label")
-    println("Number of children $(length(n.child))")
+    # println("### TreeNode:")
+    # println("Label $(n.label)")
+    # println("Ancestor $n.anc.label")
+    # println("Number of children $(length(n.child))")
+    nodeinfo(n)
 end
+show(n::TreeNode) = show(stdout, n)
 
 """
     nodeinfo(node::TreeNode)
@@ -42,9 +44,9 @@ Print information about `node`.
 """
 function nodeinfo(node)
     println("Node $(node.label): ") 
-    println("Ancestor: $(node.anc.label), tau = $(node.data.tau)")
+    node.isroot ? println("Ancestor : none (root)") : println("Ancestor: $(node.anc.label), tau = $(node.data.tau)")
     println("$(length(node.child)) children: $([x.label for x in node.child])")
-    println("Brothers: $([x.label for x in node.anc.child])")
+    # println("Brothers: $([x.label for x in node.anc.child])")
 end
 
 

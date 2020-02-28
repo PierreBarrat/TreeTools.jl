@@ -103,13 +103,19 @@ function prunesubtree!(tree, labellist)
 end
 
 """
+	remove_internal_singletons!(tree)
+
+Remove nodes with one child. Return a new tree. Root node is left as is.
+
+## Warning
+The `TreeNode` constituting `tree` are modified in the process. This means `tree` will be be modifier as well in an uncontrolled manner.  
 """
-function remove_internal_singletons(tree)
+function remove_internal_singletons!(tree)
 	root = tree.root
 	for n in values(tree.nodes)
 		if !n.isleaf && !n.isroot
 			if length(n.child) == 1
-				delete_node!(n)
+				delete_node!(n, ptau=true)
 			end
 		end
 	end

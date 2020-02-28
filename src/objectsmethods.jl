@@ -13,7 +13,7 @@ export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
 Create a `Tree` object from `root`. Keys are integers. 
 """
-function node2tree(root::TreeNode)
+function node2tree(root::TreeNode{T} where T)
 	tree = Tree(root)
 	key = 1
 	leafkey = 1

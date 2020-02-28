@@ -73,3 +73,21 @@ function make_mutdict!(mutdict, mutloc, node::TreeNode{EvoData}, gaps::Bool)
 		end
 	end
 end
+
+"""
+	find_mut_root(n::TreeTools.TreeNode, i::Int64, val)
+	
+Find most recent ancestor of `n` that bears the mutation `i`-->`val`. Return its label. 
+"""
+function find_mut_root(n::TreeTools.TreeNode, i::Int64, val)
+	if n.isroot
+		return n.label
+	end
+	for m in  n.data.mutations
+		if m.i == i && m.new == val
+			return n.label
+		end
+	end
+	# 
+	return find_mut_root(n.anc, i, val)
+end
