@@ -1,0 +1,9 @@
+name = "TreeTools"
+uuid = "62f0eae3-8c0e-4032-a621-7756092209e5"
+authors = ["PierreBarrat <p.barrat@live.fr>"]
+version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+FastaIO = "a0c94c4b-ebed-5953-b5fc-82fe598ac79f"
+JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"

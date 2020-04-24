@@ -1,5 +1,8 @@
 module TreeTools
 
+
+using FastaIO
+using JSON
 using Dates
 ## Includes
 include("objects.jl")

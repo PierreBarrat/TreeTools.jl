@@ -1,8 +1,6 @@
 export parse_newick!, nw_parse_children, nw_parse_name, read_newick, read_tree
 export fasta2tree!, seq2num
 
-using FastaIO
-
 let n::Int64=0
 	global increment_n() = (n+=1)
 	global reset_n() = (n=0)
