@@ -23,7 +23,7 @@ end
 """
 """
 function show(io::IO, tree::Tree)
-    if length(tree.nodes) < 30
+    if length(tree.nodes) < 40
         print_tree(tree)
     end
 end
