@@ -42,11 +42,13 @@ function read_newick(nw_file::String; NodeDataType=EvoData)
 	nw = nw[1:end-1]
 
 	reset_n()
+	root = parse_newick(nw, NodeDataType=NodeDataType)
+	return root
+end
+function parse_newick(nw::String; NodeDataType=EvoData)
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
-	close(f)
-
 	return root
 end
 

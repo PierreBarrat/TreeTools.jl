@@ -24,7 +24,7 @@ end
 lbi!(r::TreeNode{LBIData}, τ; normalize=true) = lbi!(r, convert(Float64, τ), normalize=true)
 function lbi!(t::Tree{LBIData}, τ; normalize=true) 
 	if length(findall(x->x.data.alive, t.lleaves)) < 1
-		@warn "Cannot compute LBI for tree with dead leaves."
+		# @warn "Cannot compute LBI for tree with dead leaves."
 		return true
 	end
 	lbi!(t.root, τ, normalize=normalize)
