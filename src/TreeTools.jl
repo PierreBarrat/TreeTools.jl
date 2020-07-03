@@ -14,6 +14,8 @@ include("reading.jl")
 include("writing.jl")
 include("misc.jl")
 include("lbi.jl")
+include("splits.jl") # Implementation of branches as splits of the leaf nodes. Allows one to check if a branch in one tree is also in another. 
+
 
 end
 
