@@ -1,4 +1,4 @@
-export parse_newick!, nw_parse_children, nw_parse_name, read_newick, read_tree
+export read_tree, parse_tree
 export fasta2tree!, seq2num
 
 let n::Int64=0
@@ -14,7 +14,21 @@ Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
 """
 function read_tree(nw_file::String; NodeDataType=EvoData)
 	# println("Checking Tree")
-	@time tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType))
+	tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType))
+	check_tree(tree)
+	return tree
+end
+
+"""
+	parse_tree(nw::String; NodeDataType=EvoData)
+
+Parse newick string into a tree.
+"""
+function parse_tree(nw::String; NodeDataType=EvoData)
+	root = TreeNode(NodeDataType())
+	parse_newick!(nw, root, NodeDataType)
+	root.isroot = true 
+	tree = node2tree(root)
 	check_tree(tree)
 	return tree
 end
@@ -45,6 +59,12 @@ function read_newick(nw_file::String; NodeDataType=EvoData)
 	root = parse_newick(nw, NodeDataType=NodeDataType)
 	return root
 end
+
+"""
+	parse_newick(nw::String; NodeDataType=EvoData)
+
+Parse newick string into a `TreeNode`.
+"""
 function parse_newick(nw::String; NodeDataType=EvoData)
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)

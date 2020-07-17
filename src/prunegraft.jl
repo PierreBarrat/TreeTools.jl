@@ -170,13 +170,16 @@ end
 """
 	delete_null_branches!(node ; threshold = 1e-10)
 
-Delete internal node with null branch length.
+Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree.
 - If `node` needs not be deleted, call `delete_null_branches!` on its children
 - If need be, call `delete_null_branches!` on `node.anc.child`
 """
-function delete_null_branches!(node; threshold = 1e-10)
+function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	if !node.isleaf 	
 		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
+			for c in node.child
+				c.data.tau += node.data.tau
+			end
 			nr = delete_node!(node)
 			for c in nr.child
 				delete_null_branches!(c, threshold=threshold)
@@ -188,6 +191,12 @@ function delete_null_branches!(node; threshold = 1e-10)
 		end
 	end
 end
+"""
+	delete_null_branches!(tree; threshold=1e-10)
+
+Call `delete_null_branches!` on `tree.root`.
+"""
+delete_null_branches!(tree::Tree; threshold=1e-10) = delete_null_branches!(tree.root, threshold=threshold)
 
 
 """
