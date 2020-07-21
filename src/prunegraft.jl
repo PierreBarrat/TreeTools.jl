@@ -91,7 +91,10 @@ Prune and return subtree corresponding to the MRCA of labels in `labellist`, as 
 # Warning
 `TreeNode` objects contained in `tree` are modified, but `tree` is *not* re-indexed after the pruning. It is therefore necessary to call `node2tree(tree.root)` after this.
 """
-function prunesubtree!(tree, labellist)
+function prunesubtree!(tree, labellist; clade_only=true)
+	if clade_only && !isclade(labellist, tree)
+		error("Can't prune non-clade $labellist")
+	end	
 	r = lca([tree.lnodes[x] for x in labellist])
 	a = r.anc
 	if !r.isroot
@@ -108,7 +111,7 @@ end
 Remove nodes with one child. Return a new tree. Root node is left as is.
 
 ## Warning
-The `TreeNode` constituting `tree` are modified in the process. This means `tree` will be be modifier as well in an uncontrolled manner.  
+The `TreeNode` constituting `tree` are modified in the process. This means `tree` will be be modified as well in an uncontrolled manner.  
 """
 function remove_internal_singletons!(tree)
 	root = tree.root
@@ -190,13 +193,14 @@ function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 			end
 		end
 	end
+	return node
 end
 """
 	delete_null_branches!(tree; threshold=1e-10)
 
 Call `delete_null_branches!` on `tree.root`.
 """
-delete_null_branches!(tree::Tree; threshold=1e-10) = delete_null_branches!(tree.root, threshold=threshold)
+delete_null_branches!(tree::Tree; threshold=1e-10) = node2tree(delete_null_branches!(tree.root, threshold=threshold))
 
 
 """

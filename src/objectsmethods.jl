@@ -331,6 +331,7 @@ function isclade(nodelist)
 	end
 	return out
 end
+isclade(nodelist::AbstractArray{<:AbstractString}, t::Tree) = isclade([t.lnodes[n] for n in nodelist])
 
 """
 	find_clades(tree, label_list)
