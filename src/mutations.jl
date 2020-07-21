@@ -6,7 +6,7 @@ export compute_mutations!, make_mutdict!, make_mutdict
 Compute mutation on each branch of `tree`. Each node of `tree` must have a sequence. 
 """
 function compute_mutations!(tree::Tree{EvoData})
-	for n in values(tree.nodes)
+	for n in values(tree.lnodes)
 		if !n.isroot
 			if 	isempty(n.data.sequence) || isempty(n.anc.data.sequence)
 				error("Node $(n.label) or its ancestor does not have a sequence.")

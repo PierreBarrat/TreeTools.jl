@@ -115,7 +115,7 @@ The `TreeNode` constituting `tree` are modified in the process. This means `tree
 """
 function remove_internal_singletons!(tree)
 	root = tree.root
-	for n in values(tree.nodes)
+	for n in values(tree.lnodes)
 		if !n.isleaf && !n.isroot
 			if length(n.child) == 1
 				delete_node!(n, ptau=true)

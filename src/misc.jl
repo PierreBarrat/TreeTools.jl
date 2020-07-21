@@ -3,7 +3,7 @@ export print_tree, check_tree, nodeinfo, show
 
 function showinfo(tree::Tree)
     i = 1
-    for n in values(tree.nodes)
+    for n in values(tree.lnodes)
         println("Node $i: $(n.label)")
         n.isroot ? println("Root") : println("Ancestor: $(n.anc.label)")
         if n.isleaf 
@@ -23,7 +23,7 @@ end
 """
 """
 function show(io::IO, tree::Tree)
-    if length(tree.nodes) < 40
+    if length(tree.lnodes) < 40
         print_tree(tree)
     end
 end
@@ -125,7 +125,7 @@ end
 function check_tree(tree::Tree)
     labellist = Dict{String, Int64}()
     nroot = 0
-    for n in values(tree.nodes)
+    for n in values(tree.lnodes)
         if !n.isleaf && length(n.child)==0
         	@warn "Node $(n.label) is non-leaf and has no child."
         elseif !n.isroot && n.anc == nothing

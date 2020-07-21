@@ -15,38 +15,30 @@ Create a `Tree` object from `root`. Keys are integers.
 """
 function node2tree(root::TreeNode{T} where T)
 	tree = Tree(root)
-	key = 1
-	leafkey = 1
-	node2tree_addnode!(tree, root, key, leafkey)
+	node2tree_addnode!(tree, root)
 	return tree
 end
 
 """
-	node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64 ; addchildren = true)
+	function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
 
-Add existing `node::TreeNode` to `tree::Tree` using `key`. Recursively add children of `node` if `addchildren` is true. 
-Return new value of `key` to add further children to `tree`.  
-If `node` is a leaf node, also add it to `tree.leaves` with key `leafkey`. Return new value of `leafkey`. 
+Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true. 
+If `node` is a leaf node, also add it to `tree.lleaves`.
 """
-function node2tree_addnode!(tree::Tree, node::TreeNode, key::Int64, leafkey::Int64; addchildren = true)
-	if in(key, keys(tree.nodes)) || in(leafkey, keys(tree.leaves))
+function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
+	if in(node.label, keys(tree.lnodes)) || in(node.label, keys(tree.lleaves))
 		error("Trying to add node to an already existing key.")
 	else
-		tree.nodes[key] = node
 		tree.lnodes[node.label] = node
 		if node.isleaf
-			tree.leaves[leafkey] = node
 			tree.lleaves[node.label] = node
 		end
 		if addchildren
-			ckey = key + 1
-			node.isleaf ? cleafkey = leafkey + 1 : cleafkey = leafkey
 			for c in node.child
-				ckey, cleafkey = node2tree_addnode!(tree, c, ckey, cleafkey)
+				node2tree_addnode!(tree, c, addchildren=true)
 			end
 		end
 	end
-	return ckey, cleafkey
 end
 
 """
@@ -75,24 +67,8 @@ function name_nodes!(r::TreeNode, labels ; i = 0)
 	return ii
 end
 
-
 """
-	tree_findlabel(label::String, tree::Tree)
-
-Find a sequence with label `label` in `tree`, and return a `(key, flag)` tuple. `key` is the key of the found sequence in `tree.nodes`. Defaults to `0` if no match is found. `flag` is `true` if a match is found, `false` otherwise. 
-"""
-function tree_findlabel(label::String, tree::Tree)
-	for k in keys(tree.nodes)
-		if tree.nodes[k].label == label
-			return k, true
-		end
-	end
-	return 0, false
-end
-
-
-"""
-	node_findlabel(label::String, root::TreeNode ; subtree = true)
+       node_findlabel(label::String, root::TreeNode ; subtree = true)
 
 Find label in tree defined by `root`. If `subtree`, only the children of `root` are searched. Otherwise, the whole tree is searched.  
 
@@ -100,74 +76,27 @@ Find label in tree defined by `root`. If `subtree`, only the children of `root` 
 `subtree = false` is not yet implemented.
 """
 function node_findlabel(label::String, root::TreeNode ; subtree = true)
-	found, node = _node_findlabel(label, root)
-	if !found
-		@warn "Label $(label) was not found."
-	end
-	return node
+       found, node = _node_findlabel(label, root)
+       if !found
+               @warn "Label $(label) was not found."
+       end
+       return node
 end
 
 """
 """
 function _node_findlabel(label::String, root::TreeNode)
-	if root.label == label
-		return true, root
-	end
-	for c in root.child
-		found, out = _node_findlabel(label, c)
-		if found
-			return found, out
-		end
-	end
-	return false, nothing
+       if root.label == label
+               return true, root
+       end
+       for c in root.child
+               found, out = _node_findlabel(label, c)
+               if found
+                       return found, out
+               end
+       end
+       return false, nothing
 end
-
-"""
-	node_findkey(node, tree)
-
-Find key corresponding to `node` in `tree`.  
-Return value is `nothing` if `node` is not found. --> not type stable. 
-"""
-function node_findkey(node, tree)
-	for i in keys(tree.nodes)
-		if node == tree.nodes[i]
-			return i
-		end
-	end
-	return nothing
-end
-
-"""
-	node_find_leafkey(node, tree)
-
-Find leafkey corresponding to `node` in `tree`.  
-Return value is `nothing` if `node` is not found. --> not type stable. 
-"""
-function node_find_leafkey(node, tree)
-	if !node.isleaf
-		return nothing
-	end
-	for i in keys(tree.leaves)
-		if node == tree.leaves[i]
-			return i
-		end
-	end
-	return nothing
-end
-
-"""
-	node_findkey_safe(node,  tree)
-
-Type safe implementation of `node_findkey`. If nothing is found, an error is raised.
-"""
-function node_findkey_safe(node,tree)
-	a = node_findkey(node,tree)
-	if a == nothing
-		error("Node $(node.label) was not found in tree.")
-	end
-	return a
-end
-
 
 """
 	share_labels(tree1, tree2)
@@ -251,23 +180,23 @@ function node_leavesclade_labels(root::TreeNode)
 end
 
 """
-	tree_clade(tree::Tree, key)
+	tree_clade(tree::Tree, label)
 
-Find and return keys of clade corresponding to all descendants of `tree.nodes[key]`.
+Find and return labels of clade corresponding to all descendants of `tree.lnodes[label]`.
 """
-function tree_clade(tree::Tree, key)
-	cl = node_clade(tree.nodes[key])
+function tree_clade(tree::Tree, label)
+	cl = node_clade(tree.lnodes[label])
 	out = map(x->node_findkey(x, tree), cl)
 	return out
 end
 
 """
-	tree_leavesclade(tree::Tree, key)
+	tree_leavesclade(tree::Tree, label)
 
-Find and return leaves keys of clade corresponding to all leaves descendants of `tree.nodes[key]`.
+Find and return leaves labels of clade corresponding to all leaves descendants of `tree.lnodes[label]`.
 """
-function tree_leavesclade(tree::Tree, key)
-	cl = node_leavesclade(tree.nodes[key])
+function tree_leavesclade(tree::Tree, label)
+	cl = node_leavesclade(tree.lnodes[label])
 	return map(x->node_find_leafkey(x, tree), cl)
 end
 
