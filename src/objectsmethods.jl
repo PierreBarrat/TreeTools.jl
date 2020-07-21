@@ -142,7 +142,7 @@ function node_clade_labels(root::TreeNode)
 	end
 	clade = [root.label]
 	for c in root.child
-		append!(clade, node_clade(c))
+		append!(clade, node_clade_labels(c))
 	end
 	return clade
 end
