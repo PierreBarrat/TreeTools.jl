@@ -105,24 +105,26 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	end
 	for x in todel delete!(tree.lnodes, x) end
 	for x in labellist delete!(tree.lleaves, x) end
-	
+	remove_internal_singletons!(tree, ptau=true)
 	return subtree, a
 end
 
 """
-	remove_internal_singletons!(tree)
+	remove_internal_singletons!(tree; ptau=true)
 
-Remove nodes with one child. Return a new tree. Root node is left as is.
+Remove nodes with one child. Return a new tree. Root node is left as is.  
+If `ptau`, the length of branches above removed nodes is added to the branch length above their children. 
 
 ## Warning
 The `TreeNode` constituting `tree` are modified in the process. This means `tree` will be be modified as well in an uncontrolled manner.  
 """
-function remove_internal_singletons!(tree)
+function remove_internal_singletons!(tree; ptau=true)
 	root = tree.root
 	for n in values(tree.lnodes)
 		if !n.isleaf && !n.isroot
 			if length(n.child) == 1
-				delete_node!(n, ptau=true)
+				delete_node!(n, ptau=ptau)
+				delete!(tree.lnodes, n.label)
 			end
 		end
 	end

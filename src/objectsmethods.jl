@@ -107,6 +107,7 @@ function share_labels(tree1, tree2)
 	l1 = Set(l for l in keys(tree1.lleaves))
 	l2 = Set(l for l in keys(tree2.lleaves))
 	return l1 ==  l2
+
 end
 
 
