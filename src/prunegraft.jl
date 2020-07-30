@@ -183,19 +183,20 @@ Delete internal node with branch length smaller than `threshold`. Propagates rec
 - If `node` needs not be deleted, call `delete_null_branches!` on its children
 - If need be, call `delete_null_branches!` on `node.anc.child`
 """
-function delete_null_branches!(node::TreeNode; threshold = 1e-10)
+function delete_null_branches!(node::TreeNode; threshold = 1e-10, stochastic=false)
 	if !node.isleaf 	
-		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
+		stochastic ? thr = rand(Distributions.Exponential(threshold)) : thr = threshold
+		if !ismissing(node.data.tau) && node.data.tau < thr && !node.isroot
 			for c in node.child
 				c.data.tau += node.data.tau
 			end
 			nr = delete_node!(node)
 			for c in nr.child
-				delete_null_branches!(c, threshold=threshold)
+				delete_null_branches!(c, threshold=threshold, stochastic = stochastic)
 			end
 		else
 			for c in node.child
-				delete_null_branches!(c,threshold=threshold)
+				delete_null_branches!(c,threshold=threshold, stochastic=stochastic)
 			end
 		end
 	end
@@ -206,8 +207,7 @@ end
 
 Call `delete_null_branches!` on `tree.root`.
 """
-delete_null_branches!(tree::Tree; threshold=1e-10) = node2tree(delete_null_branches!(tree.root, threshold=threshold))
-
+delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) = node2tree(delete_null_branches!(tree.root, threshold=threshold,stochastic=stochastic))
 
 """
 	reroot!(node::TreeNode ; newroot::Union{TreeNode,Nothing}=nothing)

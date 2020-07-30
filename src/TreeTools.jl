@@ -4,6 +4,7 @@ module TreeTools
 using FastaIO
 using JSON
 using Dates
+using Distributions
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")
