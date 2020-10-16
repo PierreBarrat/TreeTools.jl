@@ -38,10 +38,11 @@ mutable struct EvoData <: TreeNodeData
 	sequence::Array{Char,1}
 	mutations::Array{Mutation,1}
 	tau::Union{Missing, Float64} # Time to ancestor
+	nmut::Union{Missing,Int64} # Number of mutations
 	nseg::Int64 # number of segments travelling along upper branch
 end
-function EvoData(; q = 0., sequence = Array{Char,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau = missing, nseg=1)
-	return EvoData(q, sequence, mutations, tau, nseg)
+function EvoData(; q = 0, sequence = Array{Char,1}(undef, 0), mutations=Array{Mutation,1}(undef, 0), tau=missing, nmut=missing, nseg=1)
+	return EvoData(q, sequence, mutations, tau, nmut, nseg)
 end
 function ==(x::EvoData, y::EvoData)
 	out = x.q == y.q

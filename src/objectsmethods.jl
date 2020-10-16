@@ -399,7 +399,7 @@ Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.d
 """
 function node_divtime(i_node::TreeNode, j_node::TreeNode)
 	a_node = lca(i_node, j_node)
-	tau = 0
+	tau = 0.
 	ii_node = i_node
 	jj_node = j_node
 	while ii_node != a_node
@@ -411,4 +411,33 @@ function node_divtime(i_node::TreeNode, j_node::TreeNode)
 		jj_node = jj_node.anc
 	end
 	return tau
+end
+
+"""
+	node_diffmut(i_node::TreeNode{EvoData}, j_node::TreeNode{EvoData})
+
+Compute number of mutations appearing on branches separating `i_node` and `j_node`. 
+"""
+function node_diffmut(i_node::TreeNode{EvoData}, j_node::TreeNode{EvoData}; ignore_missing=false)
+	a_node = lca(i_node, j_node)
+	n = 0
+	ii_node = i_node
+	jj_node = j_node
+	while ii_node != a_node
+		if ismissing(ii_node.data.nmut)
+			n += ignore_missing ? 0 : missing
+		else
+			n += ii_node.data.nmut
+		end
+		ii_node = ii_node.anc
+	end
+	while jj_node != a_node
+		if ismissing(jj_node.data.nmut)
+			n += ignore_missing ? 0 : missing
+		else
+			n += jj_node.data.nmut
+		end
+		jj_node = jj_node.anc
+	end
+	return n	
 end
