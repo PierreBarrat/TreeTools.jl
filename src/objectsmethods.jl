@@ -1,4 +1,4 @@
-export node2tree, tree_findlabel, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
+export node2tree, node2tree!, tree_findlabel, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
 export node_clade, node_leavesclade, node_leavesclade_labels, tree_clade, tree_leavesclade, isclade, node_findroot
 export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
@@ -19,6 +19,13 @@ function node2tree(root::TreeNode{T} where T)
 	return tree
 end
 
+function node2tree!(tree::Tree, root::TreeNode)
+	tree.root = root
+	tree.lnodes = Dict{String, TreeNode}()
+	tree.lleaves = Dict{fieldtype(TreeNode,:label), TreeNode}()
+	node2tree_addnode!(tree, root)
+end
+
 """
 	function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
 
@@ -27,7 +34,7 @@ If `node` is a leaf node, also add it to `tree.lleaves`.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
 	if in(node.label, keys(tree.lnodes)) || in(node.label, keys(tree.lleaves))
-		error("Trying to add node to an already existing key.")
+		error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
 	else
 		tree.lnodes[node.label] = node
 		if node.isleaf

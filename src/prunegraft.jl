@@ -1,4 +1,5 @@
-export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, remove_internal_singletons, prunesubtree!
+export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, delete_null_branches
+export remove_internal_singletons, prunesubtree!
 
 
 """
@@ -64,7 +65,7 @@ end
 """
 	prunenodes(tree, labels)
 
-Prune nodes corresponding to labels in `labels`. 
+Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`.
 """
 function prunenode(tree, labels ; propagate=true)
 	out = deepcopy(tree)
@@ -101,7 +102,7 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	if !r.isroot
 		subtree = node2tree(prunenode!(r)[1])
 	else
-		@warn "Trying to prune root"
+		@error "Trying to prune root"
 	end
 	for x in todel delete!(tree.lnodes, x) end
 	for x in labellist delete!(tree.lleaves, x) end
@@ -182,6 +183,8 @@ end
 Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree.
 - If `node` needs not be deleted, call `delete_null_branches!` on its children
 - If need be, call `delete_null_branches!` on `node.anc.child`
+
+Key word `stochastic` is used for artificially deleting some branches on simulated trees. 
 """
 function delete_null_branches!(node::TreeNode; threshold = 1e-10, stochastic=false)
 	if !node.isleaf 	
@@ -203,14 +206,23 @@ function delete_null_branches!(node::TreeNode; threshold = 1e-10, stochastic=fal
 	return node
 end
 """
-	delete_null_branches!(tree; threshold=1e-10)
+	delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) 
+	delete_null_branches(tree::Tree; threshold=1e-10, stochastic = false) 
 
-Call `delete_null_branches!` on `tree.root`.
+Call `delete_null_branches!` on `tree.root`. 
 """
-delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) = node2tree(delete_null_branches!(tree.root, threshold=threshold,stochastic=stochastic))
+function delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) 
+	delete_null_branches!(tree.root, threshold=threshold,stochastic=stochastic)
+	return nothing
+end
+function delete_null_branches(tree::Tree; threshold=1e-10, stochastic = false)
+	t = deepcopy(tree)
+	return node2tree(delete_null_branches!(t.root, threshold=threshold,stochastic=stochastic))
+end
 
 """
 	reroot!(node::TreeNode ; newroot::Union{TreeNode,Nothing}=nothing)
+Reroot the tree to which `node` belongs at `node`.  
 - If `node.isroot`, 
 - Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc, node)`. 
 - Else, call `reroot!(node.anc, node)`, then change the ancestor of `node` to be `newroot`. 
@@ -247,5 +259,6 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 		end
 	end
 end
+reroot!(tree::Tree, node::AbstractString) = begin reroot!(tree.lnodes[node]); tree.root = tree.lnodes[node] end
 
 
