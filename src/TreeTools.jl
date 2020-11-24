@@ -8,6 +8,7 @@ using Distributions
 
 ##
 import Base.iterate
+import Base: ==
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")

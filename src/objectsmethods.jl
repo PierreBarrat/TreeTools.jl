@@ -250,12 +250,12 @@ function isclade(nodelist)
 		out = false
 	else
 		claderoot = lca(nodelist)
-		clade = node_leavesclade_labels(claderoot)
+		# clade = node_leavesclade_labels(claderoot)
 		# Now, checking if `clade` is the same as `nodelist` 
-		for c in clade
+		for c in POTleaves(claderoot)
 			flag = false
 			for n in nodelist
-				if n.label==c
+				if n.label==c.label
 					flag = true
 					break
 				end
