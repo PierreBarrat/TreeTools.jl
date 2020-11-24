@@ -7,12 +7,12 @@ let n::Int64=0
 end
 
 """
-	read_tree(nw_file::String; NodeDataType=EvoData)
+	read_tree(nw_file::String; NodeDataType=default_node_datatype)
 
 Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.    
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
 """
-function read_tree(nw_file::String; NodeDataType=EvoData)
+function read_tree(nw_file::String; NodeDataType=default_node_datatype)
 	# println("Checking Tree")
 	tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType))
 	check_tree(tree)
@@ -20,11 +20,11 @@ function read_tree(nw_file::String; NodeDataType=EvoData)
 end
 
 """
-	parse_tree(nw::String; NodeDataType=EvoData)
+	parse_tree(nw::String; NodeDataType=default_node_datatype)
 
 Parse newick string into a tree.
 """
-function parse_tree(nw::String; NodeDataType=EvoData)
+function parse_tree(nw::String; NodeDataType=default_node_datatype)
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true 
@@ -34,12 +34,12 @@ function parse_tree(nw::String; NodeDataType=EvoData)
 end
 
 """
-	read_newick(nw_file::String; NodeDataType=EvoData)
+	read_newick(nw_file::String; NodeDataType=default_node_datatype)
 
 Read Newick file `nw_file` and create a graph of `TreeNode{NodeDataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{NodeDataType}` object.   
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.   
 """
-function read_newick(nw_file::String; NodeDataType=EvoData)
+function read_newick(nw_file::String; NodeDataType=default_node_datatype)
 	@assert NodeDataType <: TreeNodeData
 	f = open(nw_file)
 	nw = readlines(f)
@@ -61,11 +61,11 @@ function read_newick(nw_file::String; NodeDataType=EvoData)
 end
 
 """
-	parse_newick(nw::String; NodeDataType=EvoData)
+	parse_newick(nw::String; NodeDataType=default_node_datatype)
 
 Parse newick string into a `TreeNode`.
 """
-function parse_newick(nw::String; NodeDataType=EvoData)
+function parse_newick(nw::String; NodeDataType=default_node_datatype)
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string

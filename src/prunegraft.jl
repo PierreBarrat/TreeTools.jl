@@ -147,6 +147,7 @@ function graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
 	n.anc = r
 	n.isroot = false
 	n.data.tau = tau
+	return nothing
 end
 
 """

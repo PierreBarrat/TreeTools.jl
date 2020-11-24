@@ -1,6 +1,6 @@
 export TreeNode, Tree, Mutation
 export EvoData, LBIData, TreeNodeData
-export have_equal_children
+export POT
 
 import Base: ==
 
@@ -24,6 +24,23 @@ Abstract supertype for all data attached to `TreeNode` objects. The *only* requi
 """
 abstract type TreeNodeData end
 
+
+"""
+	mutable struct TimeData <: TreeNodeData
+"""
+mutable struct TimeData <: TreeNodeData
+	tau::Union{Missing, Float64}
+end
+TimeData() = TimeData(missing)
+
+"""
+	mutable struct MiscData <: TreeNodeData
+"""
+mutable struct MiscData <: TreeNodeData
+	tau::Union{Missing, Float64}
+	dat::Dict{Any,Any}
+end
+MiscData() = MiscData(missing, Dict())
 
 """
 	mutable struct EvoData <: TreeNodeData
@@ -75,6 +92,8 @@ function LBIData(; tau=0.,
 	return LBIData(tau, message_down, message_up, LBI, date, alive)
 end
 
+default_node_datatype = MiscData
+
 """
 	mutable struct TreeNode{T <: TreeNodeData}
 
@@ -102,7 +121,7 @@ function TreeNode(data::T;
 	label = "") where T
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
-TreeNode() = TreeNode(EvoData())
+TreeNode() = TreeNode(default_node_datatype())
 
 """
 	==(x::TreeNode, y::TreeNode)
@@ -165,3 +184,80 @@ function Tree(root::TreeNode{T};
 	return Tree(root, lnodes,lleaves)
 end
 Tree() = Tree(TreeNode())
+
+
+struct POT{T<:TreeNodeData}
+	root::TreeNode{T}
+end
+Base.eltype(::Type{POT{T}}) where T = TreeNode{T} 
+Base.IteratorSize(::Type{POT{T}}) where T = SizeUnknown()
+POT(t::Tree) = POT(t.root)
+
+
+abstract type POTState end
+
+struct POTStateUp <: POTState
+	n::TreeNode
+	i::Int64 # Position of n in list of siblings -- `n.and.child[i]==n`
+end
+struct POTStateDown <: POTState
+	n::TreeNode
+	i::Int64 # Position of n in list of siblings -- `n.and.child[i]==n`
+end
+struct POTStateStop <: POTState end
+
+
+Base.iterate(itr::POT) = firststate(itr, itr.root)
+"""
+- `state.n.isleaf`: go to sibling and down or ancestor and up (stop if root)
+- Otherwise: go to deepest child and up. 
+"""
+function Base.iterate(itr::POT, state::POTStateDown)
+	if state.n.isleaf # Go back to ancestor or sibling anyway
+		if state.n.isroot || state.n == itr.root
+			return (state.n, POTStateStop())
+		elseif state.i < length(state.n.anc.child) # Go to sibling
+			return (state.n, POTStateDown(state.n.anc.child[state.i+1], state.i+1))
+		else # Go back to ancestor 
+			return (state.n, POTStateUp(state.n.anc, get_sibling_number(state.n.anc)))
+		end
+	end
+	return firststate(itr, state.n) # Go to deepest child of `n` 
+end
+"""
+- If isroot, stop
+- If siblings left, visit them
+- Else, go to ancestor
+"""
+function Base.iterate(itr::POT, state::POTStateUp)
+	if state.n.isroot || state.n == itr.root
+		return (state.n, POTStateStop())
+	elseif state.i < length(state.n.anc.child) # Go to sibling
+		return (state.n, POTStateDown(state.n.anc.child[state.i+1], state.i+1))
+	else # Go back to ancestor 
+		return (state.n, POTStateUp(state.n.anc, get_sibling_number(state.n.anc)))
+	end	
+end
+Base.iterate(itr, ::POTStateStop) = nothing
+
+"""
+Go to deepest child of `a`. 
+"""
+function firststate(itr::POT, a::TreeNode)
+	if a.isleaf 
+		return iterate(itr, POTStateUp(a, 1))
+	end
+	firststate(itr, a.child[1])
+end
+
+function get_sibling_number(n::TreeNode)
+	if n.isroot
+		return 0
+	end
+	for (i,c) in enumerate(n.anc.child)
+		if n == c 
+			return i
+		end
+	end
+	@error "Could not find $(n.label) in children of $(n.anc.label)."
+end

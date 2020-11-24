@@ -5,6 +5,9 @@ using FastaIO
 using JSON
 using Dates
 using Distributions
+
+##
+import Base.iterate
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")
