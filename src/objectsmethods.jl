@@ -243,9 +243,9 @@ end
 
 Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.  
 """
-function isclade(nodelist)
+function isclade(nodelist; safe=true)
 	out = true
-	if !mapreduce(x->x.isleaf, *, nodelist, init=true)
+	if safe && !mapreduce(x->x.isleaf, *, nodelist, init=true)
 		# verbose && println("F")
 		out = false
 	else

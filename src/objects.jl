@@ -31,6 +31,7 @@ mutable struct TimeData <: TreeNodeData
 	tau::Union{Missing, Float64}
 end
 TimeData() = TimeData(missing)
+TimeData(;tau=missing) = TimeData(tau)
 
 """
 	mutable struct MiscData <: TreeNodeData
