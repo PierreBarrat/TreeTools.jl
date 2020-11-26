@@ -21,13 +21,15 @@ function showinfo(tree::Tree)
 end
 
 """
+    show(io::IO, tree::Tree, maxnodes=40; kwargs...)
+    show(t::Tree, maxnodes=40; kwargs...)
 """
-function show(io::IO, tree::Tree)
-    if length(tree.lnodes) < 40
-        print_tree(tree)
+function show(io::IO, tree::Tree, maxnodes=40; kwargs...)
+    if length(tree.lnodes) < maxnodes
+        print_tree(tree; kwargs...)
     end
 end
-show(t::Tree) = show(stdout, t)
+show(t::Tree, maxnodes=40; kwargs...) = show(stdout, t, maxnodes; kwargs...)
 function show(io::IO, n::TreeNode)
     # println("### TreeNode:")
     # println("Label $(n.label)")
@@ -54,7 +56,7 @@ end
     print_tree(node::TreeNode; vindent=2, hindent=5, hoffset=0)
     print_tree(t::Tree; vindent=2, hindent=5, hoffset=0)
 """
-function print_tree(node; vindent=2, hindent=5, hoffset=0)
+function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=3)
     hspace = ""
     for i in 1:hindent
         hspace *= "-"
@@ -63,19 +65,24 @@ function print_tree(node; vindent=2, hindent=5, hoffset=0)
     for i in 1:hoffset
         offset *= " "
     end
-
-    println("$offset $hspace $(node.label):$(node.data.tau)")
-    
-    if !node.isleaf
-        for c in node.child
-            for i in 1:vindent
-                println("$offset $(" "^hindent)|")
+    cdepth <= maxdepth && println("$offset $hspace $(node.label):$(node.data.tau)")
+        #
+    if cdepth <= maxdepth
+        if !node.isleaf
+            for c in node.child
+                for i in 1:vindent
+                    cdepth < maxdepth && println("$offset $(" "^hindent)|")
+                end
+                print_tree_(c, cdepth + 1, vindent=vindent, hindent=hindent, hoffset=hoffset+hindent, maxdepth=maxdepth)
             end
-            print_tree(c, vindent=vindent, hindent=hindent, hoffset=hoffset+hindent)
         end
+        #
     end
 end
-print_tree(t::Tree; vindent=2, hindent=5, hoffset=0) = print_tree(t.root; vindent=2, hindent=5, hoffset=0)
+function print_tree(node::TreeNode; vindent=2, hindent=5, maxdepth=3)
+    print_tree_(node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
+end
+print_tree(t::Tree; vindent=2, hindent=5, maxdepth=3) = print_tree(t.root; vindent=2, hindent=5, maxdepth=maxdepth)
 
 
 
