@@ -1,6 +1,7 @@
 export write_newick, write_fasta, write_newick!, write_branchlength
 
 """
+	write_newick(file::String, tree::Tree)
 """
 function write_newick(file::String, tree::Tree)
 	write_newick(file, tree.root)
@@ -8,6 +9,7 @@ end
 
 
 """
+	write_newick(file::String, root::TreeNode)
 """
 function write_newick(file::String, root::TreeNode)
 	out = write_newick!("", root)
@@ -40,6 +42,9 @@ function write_newick!(s::String, root::TreeNode)
 end
 
 """
+	write_newick(root::TreeNode)
+
+Return a newick string.
 """
 function write_newick(root::TreeNode)
 	return write_newick!("", root)*";"
