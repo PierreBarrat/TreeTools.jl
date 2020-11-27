@@ -214,6 +214,7 @@ Call `delete_null_branches!` on `tree.root`.
 """
 function delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) 
 	delete_null_branches!(tree.root, threshold=threshold,stochastic=stochastic)
+	node2tree!(tree, tree.root)
 	return nothing
 end
 function delete_null_branches(tree::Tree; threshold=1e-10, stochastic = false)
