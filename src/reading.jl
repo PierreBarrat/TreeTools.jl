@@ -13,7 +13,6 @@ Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
 """
 function read_tree(nw_file::String; NodeDataType=default_node_datatype)
-	# println("Checking Tree")
 	tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType))
 	check_tree(tree)
 	return tree
@@ -55,7 +54,7 @@ function read_newick(nw_file::String; NodeDataType=default_node_datatype)
 	end
 	nw = nw[1:end-1]
 
-	reset_n()
+	# reset_n()
 	root = parse_newick(nw, NodeDataType=NodeDataType)
 	return root
 end
@@ -66,6 +65,7 @@ end
 Parse newick string into a `TreeNode`.
 """
 function parse_newick(nw::String; NodeDataType=default_node_datatype)
+	reset_n()
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string

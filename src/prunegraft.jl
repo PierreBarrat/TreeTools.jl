@@ -53,33 +53,42 @@ function prunenode(node::TreeNode)
 end
 
 """
-	prunenode(t::Tree, label::Vararg{String})
+	prunenode(t::Tree, label::Vararg{String};, propagate=propagate)
 
-Prune node `t.lnodes[label]` from `t` for all `label`. Return pruned copy of `t`.
+Prune node `t.lnodes[label]` from `t` for all `label`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only. 
 """
-function prunenode(t::Tree, label::Vararg{String} ; propagate=true)
-	return prunenode(t, collect(label), propagate=propagate)
-end
+prunenode(t::Tree, label::Vararg{String} ; propagate=true) = prunenode(t, collect(label), propagate=propagate)
 
 
 """
-	prunenodes(tree, labels)
+	prunenodes(tree, labels; propagate=propagate)
 
-Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`.
+Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only. 
 """
 function prunenode(tree, labels ; propagate=true)
 	out = deepcopy(tree)
+	prunenode!(out, labels, propagate=propagate)
+	return out
+end
+
+prunenode!(tree::Tree, labels::Vararg{String}; propagate=true) = prunenode!(tree, collect(labels), propagate=propagate)
+"""
+	prunenodes!(tree, labels; propagate=propagate)
+
+Prune nodes corresponding to labels in `labels`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only. 
+"""
+function prunenode!(tree, labels::Array{<:String}; propagate=true)
 	for l in labels
-		propagate ? prunenode_!(out.lnodes[l]) : prunenode!(out.lnodes[l])
+		propagate ? _prunenode!(tree.lnodes[l]) : prunenode!(tree.lnodes[l])
 	end
-	out = node2tree(out.root)
+	node2tree!(tree, tree.root)
 end
 
 """
 """
-function prunenode_!(node)
+function _prunenode!(node)
 	if length(node.anc.child) == 1
-		prunenode_!(node.anc)
+		_prunenode!(node.anc)
 	else
 		prunenode!(node)
 	end
@@ -106,6 +115,7 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	end
 	for x in todel delete!(tree.lnodes, x) end
 	for x in labellist delete!(tree.lleaves, x) end
+	node2tree!(tree, tree.root)
 	remove_internal_singletons!(tree, ptau=true)
 	return subtree, a
 end
@@ -113,7 +123,7 @@ end
 """
 	remove_internal_singletons!(tree; ptau=true)
 
-Remove nodes with one child. Return a new tree. Root node is left as is.  
+Remove nodes with one child. Root node is left as is.  
 If `ptau`, the length of branches above removed nodes is added to the branch length above their children. 
 
 ## Warning
@@ -129,7 +139,8 @@ function remove_internal_singletons!(tree; ptau=true)
 			end
 		end
 	end
-	return node2tree(root)
+	node2tree!(tree, root)
+	# return node2tree(root)
 end
 
 

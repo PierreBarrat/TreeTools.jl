@@ -56,7 +56,7 @@ end
     print_tree(node::TreeNode; vindent=2, hindent=5, hoffset=0)
     print_tree(t::Tree; vindent=2, hindent=5, hoffset=0)
 """
-function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=3)
+function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=4)
     hspace = ""
     for i in 1:hindent
         hspace *= "-"
@@ -79,10 +79,10 @@ function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=3)
         #
     end
 end
-function print_tree(node::TreeNode; vindent=2, hindent=5, maxdepth=3)
+function print_tree(node::TreeNode; vindent=2, hindent=5, maxdepth=4)
     print_tree_(node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
 end
-print_tree(t::Tree; vindent=2, hindent=5, maxdepth=3) = print_tree(t.root; vindent=2, hindent=5, maxdepth=maxdepth)
+print_tree(t::Tree; vindent=2, hindent=5, maxdepth=4) = print_tree(t.root; vindent=2, hindent=5, maxdepth=maxdepth)
 
 
 
@@ -135,33 +135,33 @@ function check_tree(tree::Tree; strict=true)
     flag = true
     for n in values(tree.lnodes)
         if !n.isleaf && length(n.child)==0
-        	(flag = false) && (@warn "Node $(n.label) is non-leaf and has no child.")
+        	(flag = false) || (@warn "Node $(n.label) is non-leaf and has no child.")
         elseif !n.isroot && n.anc == nothing
-        	(flag = false) && (@warn "Node $(n.label) is non-root and has no ancestor.")
+        	(flag = false) || (@warn "Node $(n.label) is non-root and has no ancestor.")
         elseif !n.isroot && strict && length(n.child) == 1
-        	(flag = false) && (@warn "Node $(n.label) has only one child.")
+        	(flag = false) || (@warn "Node $(n.label) has only one child.")
         elseif !n.isroot && length(n.child) == 0 && !haskey(tree.lleaves, n.label)
-            (flag = false) && (@warn "Node $(n.label) has no child but is not in `tree.lleaves`")
+            (flag = false) || (@warn "Node $(n.label) has no child but is not in `tree.lleaves`")
         end
         for c in n.child
             if c.anc != n
-                (flag = false) && (@warn "One chilf of $(n.label) does not satisfy `c.anc == n`.")
+                (flag = false) || (@warn "One child of $(n.label) does not satisfy `c.anc == n`.")
             end
         end
         if get(labellist, n.label, 0) == 0
             labellist[n.label] = 1
         else
             labellist[n.label] += 1
-            (flag = false) && (@warn "Label $(n.label) already exists!")
+            (flag = false) || (@warn "Label $(n.label) already exists!")
         end
         if n.isroot
             nroot += 1
         end
     end
     if nroot > 1
-        (flag = false) && (@warn "Tree has multiple roots")
+        (flag = false) || (@warn "Tree has multiple roots")
     elseif nroot ==0
-        (flag = false) && (@warn "Tree has no root")
+        (flag = false) || (@warn "Tree has no root")
     end
     return flag
 end
