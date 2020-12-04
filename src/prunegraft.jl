@@ -140,7 +140,6 @@ function remove_internal_singletons!(tree; ptau=true)
 		end
 	end
 	node2tree!(tree, root)
-	# return node2tree(root)
 end
 
 
@@ -231,6 +230,66 @@ end
 function delete_null_branches(tree::Tree; threshold=1e-10, stochastic = false)
 	t = deepcopy(tree)
 	return node2tree(delete_null_branches!(t.root, threshold=threshold,stochastic=stochastic))
+end
+
+"""
+	delete_branches!(f, n::TreeNode)
+
+Delete internal node `n` if `f(n)` returns `true`. Propagates recursively down the tree. 
+"""
+function delete_branches!(f, n::TreeNode)
+	if !n.isleaf && !n.isroot && f(n)
+		if !ismissing(n.data.tau)
+			for c in n.child
+				if !ismissing(c.data.tau)
+					c.data.tau += n.data.tau
+				end
+			end
+		end
+		nr = delete_node!(n)
+		for c in nr.child
+			delete_branches!(f, c)
+		end
+	else
+		for c in n.child
+			delete_branches!(f, c)
+		end
+	end
+
+	return n
+end
+"""
+	delete_branches!(f, tree::Tree)
+"""
+function delete_branches!(f, tree::Tree)
+	delete_branches!(f, tree.root)
+	node2tree!(tree, tree.root)
+	return nothing
+end
+"""
+	delete_branches(f, tree::Tree)
+"""
+function delete_branches(f, tree::Tree)
+	t = deepcopy(tree)
+	delete_branches!(f, t)
+	return t
+end
+
+"""
+	delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
+"""
+function delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
+	delete_branches!(t) do n 
+		flag = false
+		if haskey(n.data.dat, :bootstrap)
+			for (i, thr) in enumerate(threshold)
+				if n.data.dat[:bootstrap][i] < thr
+					flag = true
+				end
+			end
+		end
+		flag
+	end
 end
 
 """

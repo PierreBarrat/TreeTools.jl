@@ -12,8 +12,8 @@ end
 Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.    
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
 """
-function read_tree(nw_file::String; NodeDataType=default_node_datatype)
-	tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType))
+function read_tree(nw_file::String; NodeDataType=default_node_datatype, bootstrap=false)
+	tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType, bootstrap=bootstrap))
 	check_tree(tree)
 	return tree
 end
@@ -23,9 +23,9 @@ end
 
 Parse newick string into a tree.
 """
-function parse_tree(nw::String; NodeDataType=default_node_datatype)
+function parse_tree(nw::String; NodeDataType=default_node_datatype, bootstrap=false)
 	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType)
+	parse_newick!(nw, root, NodeDataType, bootstrap=bootstrap)
 	root.isroot = true 
 	tree = node2tree(root)
 	check_tree(tree)
@@ -38,7 +38,7 @@ end
 Read Newick file `nw_file` and create a graph of `TreeNode{NodeDataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{NodeDataType}` object.   
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.   
 """
-function read_newick(nw_file::String; NodeDataType=default_node_datatype)
+function read_newick(nw_file::String; NodeDataType=default_node_datatype, bootstrap=false)
 	@assert NodeDataType <: TreeNodeData
 	f = open(nw_file)
 	nw = readlines(f)
@@ -55,7 +55,7 @@ function read_newick(nw_file::String; NodeDataType=default_node_datatype)
 	nw = nw[1:end-1]
 
 	# reset_n()
-	root = parse_newick(nw, NodeDataType=NodeDataType)
+	root = parse_newick(nw, NodeDataType=NodeDataType, bootstrap=bootstrap)
 	return root
 end
 
@@ -64,10 +64,10 @@ end
 
 Parse newick string into a `TreeNode`.
 """
-function parse_newick(nw::String; NodeDataType=default_node_datatype)
+function parse_newick(nw::String; NodeDataType=default_node_datatype, bootstrap=false)
 	reset_n()
 	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType)
+	parse_newick!(nw, root, NodeDataType, bootstrap)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
 	return root
 end
@@ -77,7 +77,7 @@ end
 
 Parse the tree contained in Newick string `nw`, rooting it at `root`. 
 """
-function parse_newick!(nw::String, root::TreeNode, NodeDataType)
+function parse_newick!(nw::String, root::TreeNode, NodeDataType, bootstrap=false)
 
 	# Setting isroot to false. Special case of the root is handled in main calling function
 	root.isroot = false
@@ -86,7 +86,12 @@ function parse_newick!(nw::String, root::TreeNode, NodeDataType)
 	lab, tau = nw_parse_name(String(parts[end]))
 	if lab == ""
 		lab = "NODE_$(increment_n())"
+	elseif bootstrap && length(parts) != 1 # If not a leaf node, has bootstrap values
+		NodeDataType != MiscData && @error "Can only store bootstrap values for `NodeDataType==MiscData`"
+		root.data.dat[:bootstrap] = parse_bootstrap_vals(lab)
+		lab = "NODE_$(increment_n())"
 	end
+	# println(lab)
 	root.label, root.data.tau = (NodeDataType == LBIData && ismissing(tau) ? (lab,0.) : (lab,tau))
 
 	if length(parts) == 1 # Is a leaf. Subtree is empty
@@ -104,7 +109,7 @@ function parse_newick!(nw::String, root::TreeNode, NodeDataType)
 
 		for sc in l_children
 			nc = TreeNode(NodeDataType())
-			parse_newick!(sc, nc, NodeDataType) # Will set everything right for subtree corresponding to nc
+			parse_newick!(sc, nc, NodeDataType, bootstrap) # Will set everything right for subtree corresponding to nc
 			nc.anc = root
 			push!(root.child, nc)
 		end
@@ -161,6 +166,13 @@ function nw_parse_name(s::String)
 	else # Node does not have a time, return string as name
 		return s, missing
 	end
+end
+
+"""
+In iqtree, the format is `x/y` where `x` is the SH-alrt support and `y` the bootstrap support. 
+"""
+function parse_bootstrap_vals(s::AbstractString)
+	[parse(Float64, String(sub)) for sub in split(s, '/', keepempty=false)]
 end
 
 
