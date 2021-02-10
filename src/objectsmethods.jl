@@ -33,7 +33,7 @@ Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node
 If `node` is a leaf node, also add it to `tree.lleaves`.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
-	if in(node.label, keys(tree.lnodes)) || in(node.label, keys(tree.lleaves))
+	if in(node.label, keys(tree.lnodes)) 
 		error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
 	else
 		tree.lnodes[node.label] = node
