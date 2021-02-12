@@ -8,7 +8,7 @@ using Distributions
 
 
 ##
-import Base.iterate, Base.length, Base.isequal, Base.in, Base.getindex, Base.setdiff, Base.lastindex
+import Base.iterate, Base.length, Base.isequal, Base.in, Base.getindex, Base.setdiff, Base.lastindex, Base.isempty
 import Base: ==
 ## Includes
 include("objects.jl")
