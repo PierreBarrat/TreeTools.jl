@@ -56,7 +56,7 @@ end
     print_tree(node::TreeNode; vindent=2, hindent=5, hoffset=0)
     print_tree(t::Tree; vindent=2, hindent=5, hoffset=0)
 """
-function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=4)
+function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=5)
     hspace = ""
     for i in 1:hindent
         hspace *= "-"
@@ -79,7 +79,7 @@ function print_tree_(node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=4)
         #
     end
 end
-function print_tree(node::TreeNode; vindent=2, hindent=5, maxdepth=4)
+function print_tree(node::TreeNode; vindent=2, hindent=5, maxdepth=5)
     print_tree_(node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
 end
 print_tree(t::Tree; vindent=2, hindent=5, maxdepth=4) = print_tree(t.root; vindent=2, hindent=5, maxdepth=maxdepth)
