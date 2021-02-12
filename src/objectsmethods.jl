@@ -366,6 +366,10 @@ function lca(nodelist)
 	end
 	return ca
 end
+"""
+	lca(t::Tree, labels::Array{<:AbstractString,1})
+"""
+lca(t::Tree, labels::Array{<:AbstractString,1}) = lca(Tuple(t.lnodes[n] for n in labels))
 
 """
 	isancestor(a:::TreeNode, node::TreeNode)
