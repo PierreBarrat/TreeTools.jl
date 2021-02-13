@@ -39,7 +39,9 @@ mutable struct MiscData <: TreeNodeData
 	tau::Union{Missing, Float64}
 	dat::Dict{Any,Any}
 end
-MiscData() = MiscData(missing, Dict())
+MiscData(;tau=missing, dat=Dict()) = MiscData(tau, dat)
+MiscData(tau) = MiscData(tau=tau)
+
 
 """
 	mutable struct EvoData <: TreeNodeData
