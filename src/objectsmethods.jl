@@ -366,6 +366,7 @@ function lca(nodelist)
 	end
 	return ca
 end
+lca(nodelist::Vararg{<:TreeNode}) = lca(collect(nodelist))
 """
 	lca(t::Tree, labels::Array{<:AbstractString,1})
 """
