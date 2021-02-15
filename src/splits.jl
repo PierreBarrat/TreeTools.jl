@@ -96,9 +96,10 @@ struct SplitList{T}
 	leaves::Array{T,1}
 	splits::Array{Split,1}
 	mask::Array{Bool,1}
-	SplitList{T}(leaves::Array{T,1}, splits, mask) where T = issorted(leaves) ? new(leaves, splits, mask) : @error("Leaves must be sorted")
+	splitmap::Dict{T,Split}
+	SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T = issorted(leaves) ? new(leaves, splits, mask, splitmap) : @error("Leaves must be sorted")
 end
-SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}) where T = SplitList{T}(leaves, splits, mask)
+SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, splitmap::Dict{T,Split}) where T = SplitList{T}(leaves, splits, mask, splitmap)
 
 length(S::SplitList) = length(S.splits)
 iterate(S::SplitList) = iterate(S.splits)
@@ -130,7 +131,7 @@ function SplitList(r::TreeNode, leaves)
 		mask[leafmap[l]] = true
 	end
 	#
-	S = SplitList(leaves_srt, Array{Split,1}(undef,0), mask)
+	S = SplitList(leaves_srt, Array{Split,1}(undef,0), mask, Dict{eltype(leaves), Split}())
 	_splitlist!(S, r, leafmap)
 	sortleaves!(S)
 	return S	
@@ -143,7 +144,7 @@ Compute the list of splits below `r`, including `r` itself.
 function SplitList(r::TreeNode, leaves, mask)
 	!issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
 	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves_srt))
-	S = SplitList(leaves_srt, Array{Split,1}(undef,0), mask)
+	S = SplitList(leaves_srt, Array{Split,1}(undef,0), mask, Dict{eltype(leaves_srt), Split}())
 	_splitlist!(S, r, leafmap)
 	return S
 end
@@ -162,6 +163,7 @@ function _splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
 			joinsplits!(s,sc)
 		end
 		push!(S.splits, s)
+		S.splitmap[r.label] = s
 	end
 	return s
 end
