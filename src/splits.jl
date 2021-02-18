@@ -86,10 +86,10 @@ end
 """
 	SplitList{T}
 
-```
-leaves::Array{T,1}
-splits::Array{Split,1}
-mask::Array{Bool,1}	
+- `leaves::Array{T,1}`
+- `splits::Array{Split,1}`
+- `mask::Array{Bool,1}`: subset of leaves for which splits apply. 
+- `splitmap::Dict{T,Split}`: indicate the split corresponding to the branch above a node.
 ```
 """
 struct SplitList{T}
@@ -335,3 +335,55 @@ function clean!(S::SplitList, mask=S.mask;
 end
 
 
+"""
+	map_splits_to_tree(S::Array{<:SplitList,1}, t::Tree)
+
+Call `map_splits_to_tree(S::SplitList, t::Tree)` for all elements of `S`. 
+Return a single `SplitList`. 
+"""
+function map_splits_to_tree(S::Array{<:SplitList,1}, t::Tree) 
+	out = SplitList(first(S).leaves, Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), 
+		Dict{eltype(first(S).leaves), Split}())	
+	for tmp in S
+		mS = map_splits_to_tree(tmp, t)
+		for s in mS
+			push!(out.splits, s)
+		end
+	end
+	return out
+end
+"""
+	map_splits_to_tree(S::SplitList, t::Tree)
+
+Map splits `S` from another tree to `t`: 
+- restrain them to `S.mask`
+- find the corresponding internal node that should be introduced in `t` 
+- compute the split defined by this internal node. 
+"""
+function map_splits_to_tree(S::SplitList, t::Tree)
+	mS = SplitList(S.leaves, Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), 
+		Dict{eltype(S.leaves), Split}())
+	treesplits = SplitList(t)
+	for i in 1:length(S)
+		ms = _map_split_to_tree(S, i, t, treesplits)
+		push!(mS.splits, ms)
+	end
+	return mS
+end
+
+
+"""
+Map split `S[i]` to `t`. 
+"""
+function _map_split_to_tree(S::SplitList, i::Int64, t::Tree, treesplits::SplitList)
+	roots = TreeTools.blca([t.lleaves[x] for x in S.leaves[S[i].dat .* S.mask]]...)
+	ms = Split(length(S.leaves))
+	for r in roots
+		if r.isleaf # `treesplits.splitmap` (probably) does not contain leaf-splits
+			ms.dat[findfirst(==(r.label), S.leaves)] = true
+		else
+			TreeTools.joinsplits!(ms, treesplits.splitmap[r.label])
+		end
+	end
+	return ms
+end

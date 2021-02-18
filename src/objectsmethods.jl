@@ -373,6 +373,24 @@ lca(nodelist::Vararg{<:TreeNode}) = lca(collect(nodelist))
 lca(t::Tree, labels::Array{<:AbstractString,1}) = lca(Tuple(t.lnodes[n] for n in labels))
 
 """
+	blca(nodelist::Vararg{<:TreeNode})
+
+Return list of nodes just below `lca(nodelist)`. Useful for introducing splits in a tree. 
+"""
+function blca(nodelist::Vararg{<:TreeNode})
+	r = lca(nodelist...)
+	out = []
+	for n in nodelist
+		a = n
+		while a.anc != r
+			a = a.anc
+		end
+		push!(out, a)
+	end
+	return out
+end
+
+"""
 	isancestor(a:::TreeNode, node::TreeNode)
 
 Check if `a` is an ancestor of `node`.
