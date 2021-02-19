@@ -9,7 +9,7 @@ using Distributions
 
 ##
 import Base.iterate, Base.length, Base.isequal, Base.in, Base.getindex, Base.setdiff, Base.lastindex, Base.isempty
-import Base: ==
+import Base: ==, unique, unique!
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")

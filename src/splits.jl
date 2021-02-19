@@ -1,6 +1,7 @@
 export Split, SplitList
 export arecompatible, iscompatible
 export getindex, length, iterate, lastindex
+export unique, unique!
 
 """
 	Split
@@ -315,6 +316,30 @@ function setdiff(S::SplitList, T::SplitList, mask=:left)
 end
 
 """
+	unique!(S::SplitList; usemask=true)
+"""
+function unique!(S::SplitList; usemask=true)
+	todel = Int64[]
+	hashes = Dict{BitArray{1}, Bool}()
+	for (i,s) in enumerate(S)
+		if haskey(hashes, s.dat)
+			push!(todel, i)
+		end
+		hashes[s.dat] = true
+	end
+	deleteat!(S.splits, todel)
+end
+
+"""
+	unique(S::SplitList; usemask=true)
+"""
+function unique(S::SplitList; usemask=true)
+	Sc = deepcopy(S)
+	unique!(Sc, usemask=usemask)
+	return Sc
+end
+
+"""
 	clean!(S::SplitList)
 
 Remove leaf and empty splits according to S.mask. Option to remove root.
@@ -335,17 +360,19 @@ function clean!(S::SplitList, mask=S.mask;
 end
 
 
+
+
 """
 	map_splits_to_tree(S::Array{<:SplitList,1}, t::Tree)
 
 Call `map_splits_to_tree(S::SplitList, t::Tree)` for all elements of `S`. 
 Return a single `SplitList`. 
 """
-function map_splits_to_tree(S::Array{<:SplitList,1}, t::Tree) 
-	out = SplitList(first(S).leaves, Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), 
-		Dict{eltype(first(S).leaves), Split}())	
+function map_splits_to_tree(S::Array{SplitList{T},1}, t::Tree) where T
+	out = SplitList(sort(collect(keys(t.lleaves))), Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), Dict{T, Split}())	
+	println(typeof(out))
 	for tmp in S
-		mS = map_splits_to_tree(tmp, t)
+		mS = TreeTools.map_splits_to_tree(tmp, t)
 		for s in mS
 			push!(out.splits, s)
 		end
@@ -359,6 +386,7 @@ Map splits `S` from another tree to `t`:
 - restrain them to `S.mask`
 - find the corresponding internal node that should be introduced in `t` 
 - compute the split defined by this internal node. 
+Useful for resolving a tree with splits of another. 
 """
 function map_splits_to_tree(S::SplitList, t::Tree)
 	mS = SplitList(S.leaves, Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), 
