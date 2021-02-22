@@ -123,6 +123,15 @@ function TreeNode(data::T;
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
 TreeNode() = TreeNode(default_node_datatype())
+function TreeNode(; data = default_node_datatype(),
+	anc = nothing, 
+	child = Array{TreeNode{default_node_datatype},1}(undef, 0),
+	isleaf = true,
+	isroot = true,
+	label = "") 
+	return TreeNode(anc, child, isleaf, isroot, label, data)
+end
+
 
 """
 	==(x::TreeNode, y::TreeNode)
