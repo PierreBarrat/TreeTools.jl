@@ -180,3 +180,18 @@ function get_node_dates!(t::Tree{LBIData}, dat)
         end
     end
 end
+
+"""
+    create_label(t::Tree, base="NODE")
+
+Create new node label in tree `t` with format `base_i` with `i::Int64`. 
+"""
+function create_label(t::Tree, base="NODE")
+    label_init = 1
+    for n in values(t.lnodes)
+        if match(Regex(base), n.label)!=nothing && parse(Int64, n.label[length(base)+2:end]) >= label_init
+            label_init = parse(Int64, n.label[10:end]) + 1
+        end
+    end
+    return "$(base)_$(label_init)"   
+end
