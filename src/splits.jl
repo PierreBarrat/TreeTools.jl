@@ -370,7 +370,6 @@ Return a single `SplitList`.
 """
 function map_splits_to_tree(S::Array{SplitList{T},1}, t::Tree) where T
 	out = SplitList(sort(collect(keys(t.lleaves))), Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), Dict{T, Split}())	
-	println(typeof(out))
 	for tmp in S
 		mS = TreeTools.map_splits_to_tree(tmp, t)
 		for s in mS
