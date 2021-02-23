@@ -102,6 +102,7 @@ struct SplitList{T}
 end
 SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, splitmap::Dict{T,Split}) where T = SplitList{T}(leaves, splits, mask, splitmap)
 
+
 length(S::SplitList) = length(S.splits)
 iterate(S::SplitList) = iterate(S.splits)
 iterate(S::SplitList, i::Int64) = iterate(S.splits, i)
@@ -281,9 +282,9 @@ end
 
 Is `s` in `S`? 
 """
-function in(s::Split, S::SplitList, mask=S.mask)
+function in(s::Split, S::SplitList, mask=S.mask; usemask=true)
 	for t in S
-		if isequal(s, t ,mask)
+		if (usemask && isequal(s, t, mask)) || (!usemask && s == t)
 			return true
 		end
 	end

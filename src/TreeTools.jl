@@ -20,6 +20,7 @@ include("writing.jl")
 include("misc.jl")
 include("lbi.jl")
 include("splits.jl") 
+include("resolving.jl")
 
 
 end
