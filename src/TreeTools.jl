@@ -5,7 +5,7 @@ using FastaIO
 using JSON
 using Dates
 using Distributions
-
+using Debugger
 
 ##
 import Base.iterate, Base.length, Base.isequal, Base.in, Base.getindex, Base.setdiff, Base.lastindex, Base.isempty
