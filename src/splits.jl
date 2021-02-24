@@ -101,7 +101,10 @@ struct SplitList{T}
 	SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T = issorted(leaves) ? new(leaves, splits, mask, splitmap) : @error("Leaves must be sorted")
 end
 SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, splitmap::Dict{T,Split}) where T = SplitList{T}(leaves, splits, mask, splitmap)
-
+"""
+	SplitList(leaves::Array{T,1}) where T
+"""
+SplitList(leaves::Array{T,1}) where T = SplitList{T}(leaves, Array{Split,1}(undef,0), ones(Bool, length(leaves)), Dict{T, Split}())
 
 length(S::SplitList) = length(S.splits)
 iterate(S::SplitList) = iterate(S.splits)
