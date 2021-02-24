@@ -122,7 +122,6 @@ function TreeNode(data::T;
 	label = "") where T
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
-TreeNode() = TreeNode(default_node_datatype())
 function TreeNode(; data = default_node_datatype(),
 	anc = nothing, 
 	child = Array{TreeNode{default_node_datatype},1}(undef, 0),
