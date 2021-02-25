@@ -163,7 +163,7 @@ end
 """
 	delete_node!(node::TreeNode; ptau=false)
 
-Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  If `ptau`, branch length above `node` is added to the regrafted branch. Otherwise, the regrafted branch's length is unchanged. 
+Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  If `ptau`, branch length above `node` is added to the regrafted branch. Otherwise, the regrafted branch's length is unchanged. Return modified `node.anc`.
 """
 function delete_node!(node::TreeNode; ptau=false)
 	if node.isroot
@@ -191,45 +191,45 @@ end
 """
 	delete_null_branches!(node ; threshold = 1e-10)
 
-Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree.
+Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
 - If `node` needs not be deleted, call `delete_null_branches!` on its children
 - If need be, call `delete_null_branches!` on `node.anc.child`
 
-Key word `stochastic` is used for artificially deleting some branches on simulated trees. 
 """
-function delete_null_branches!(node::TreeNode; threshold = 1e-10, stochastic=false)
+function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	if !node.isleaf 	
-		stochastic ? thr = rand(Distributions.Exponential(threshold)) : thr = threshold
-		if !ismissing(node.data.tau) && node.data.tau < thr && !node.isroot
+		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
 			for c in node.child
 				c.data.tau += node.data.tau
 			end
 			nr = delete_node!(node)
 			for c in nr.child
-				delete_null_branches!(c, threshold=threshold, stochastic = stochastic)
+				delete_null_branches!(c, threshold=threshold)
 			end
 		else
 			for c in node.child
-				delete_null_branches!(c,threshold=threshold, stochastic=stochastic)
+				delete_null_branches!(c,threshold=threshold)
 			end
 		end
+	elseif !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
+		node.data.tau = 0.
 	end
 	return node
 end
 """
-	delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) 
-	delete_null_branches(tree::Tree; threshold=1e-10, stochastic = false) 
+	delete_null_branches!(tree::Tree; threshold=1e-10) 
+	delete_null_branches(tree::Tree; threshold=1e-10) 
 
 Call `delete_null_branches!` on `tree.root`. 
 """
-function delete_null_branches!(tree::Tree; threshold=1e-10, stochastic = false) 
-	delete_null_branches!(tree.root, threshold=threshold,stochastic=stochastic)
+function delete_null_branches!(tree::Tree; threshold=1e-10) 
+	delete_null_branches!(tree.root, threshold=threshold)
 	node2tree!(tree, tree.root)
 	return nothing
 end
-function delete_null_branches(tree::Tree; threshold=1e-10, stochastic = false)
+function delete_null_branches(tree::Tree; threshold=1e-10)
 	t = deepcopy(tree)
-	return node2tree(delete_null_branches!(t.root, threshold=threshold,stochastic=stochastic))
+	return node2tree(delete_null_branches!(t.root, threshold=threshold))
 end
 
 """
