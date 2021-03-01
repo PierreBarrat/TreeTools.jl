@@ -199,9 +199,6 @@ Delete internal node with branch length smaller than `threshold`. Propagates rec
 function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	if !node.isleaf 	
 		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
-			for c in node.child
-				c.data.tau += node.data.tau
-			end
 			nr = delete_node!(node)
 			for c in nr.child
 				delete_null_branches!(c, threshold=threshold)
