@@ -2,7 +2,7 @@
 	resolve!(t::Tree, S::SplitList; conflict=:ignore, usemask=false, tau=0.)
 
 Add splits in `S` to `t` by introducing internal nodes. 
-If `conflict != :ignore`, will fail if a split `s` in `S` is not compatible with `t`. 
+If `conflict != :ignore`, will fail if a split `s` in `S` is not compatible with `t`. Otherwise, silently skip the conflicting splits. 
 """
 function resolve!(t::Tree{T}, S::SplitList; conflict=:ignore, usemask=false, tau=0., warn=true) where T
 	# Label for created nodes
@@ -30,8 +30,6 @@ function resolve!(t::Tree{T}, S::SplitList; conflict=:ignore, usemask=false, tau
 			elseif conflict
 				@error "Conflicting splits"
 			end
-		else
-			@warn "Split #$i already in tree. Maybe splits in `S` are not unique?"
 		end
 	end
 	node2tree!(t, t.root)
