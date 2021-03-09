@@ -55,6 +55,7 @@ end
 	resolve_ref!(Sref::SplitList, S::Vararg{SplitList}, usemask=false)
 
 Add new and compatible splits of `S` to `Sref`. If `usemask`, masks are used to determine compatibility. Return the number of added splits. 
+**Note**: the order of `S` matters if its elements contain incompatible splits! 
 """
 function resolve_ref!(Sref::SplitList, S::Vararg{SplitList}; usemask=false)
 	c = 0
