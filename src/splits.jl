@@ -90,7 +90,7 @@ end
 - `leaves::Array{T,1}`
 - `splits::Array{Split,1}`
 - `mask::Array{Bool,1}`: subset of leaves for which splits apply. 
-- `splitmap::Dict{T,Split}`: indicate the split corresponding to the branch above a node.
+- `splitmap::Dict{T,Split}`: indicate the split corresponding to the branch above a node. Only used is built from a tree with labels on internal nodes. 
 ```
 """
 struct SplitList{T}
@@ -200,42 +200,37 @@ end
 	arecompatible(s::Split,t::Split)
 	arecompatible(s::Split,t::Split, mask::Array{Bool})
 
-Four possible states: `(0,0), (0,1), (1,0), (1,1)`. If all four are seen, the splits are not compatible.  
+Are splits `s` and `t` compatible **in the cluster sense**. 
+Three possible states: `(0,1), (1,0), (1,1)`. If all are seen, the splits are not compatible.  
 """
 function arecompatible(s::Split,t::Split)
-	flag = falses(4)
+	flag = falses(3)
 	for (x,y) in zip(s,t)
-		if !flag[1] && !x && !y
+		if !flag[1] && !x && y
 			flag[1] = true
 			if alltrue(flag) return false end
-		elseif !flag[2] && !x && y
+		elseif !flag[2] && x && !y
 			flag[2] = true
 			if alltrue(flag) return false end
-		elseif !flag[3] && x && !y
+		elseif !flag[3] && x && y 
 			flag[3] = true
-			if alltrue(flag) return false end
-		elseif !flag[4] && x && y 
-			flag[4] = true
 			if alltrue(flag) return false end
 		end
 	end
 	return true
 end	
 function arecompatible(s::Split,t::Split, mask::Array{Bool})
-	flag = falses(4)
+	flag = falses(3)
 	for m in Iterators.filter(x->x, mask)
 		for (x,y) in zip(s,t)
-			if !flag[1] && !x && !y
+			if !flag[1] && !x && y
 				flag[1] = true
 				if alltrue(flag) return false end
-			elseif !flag[2] && !x && y
+			elseif !flag[2] && x && !y
 				flag[2] = true
 				if alltrue(flag) return false end
-			elseif !flag[3] && x && !y
+			elseif !flag[3] && x && y 
 				flag[3] = true
-				if alltrue(flag) return false end
-			elseif !flag[4] && x && y 
-				flag[4] = true
 				if alltrue(flag) return false end
 			end
 		end
@@ -295,6 +290,8 @@ function in(s::Split, S::SplitList, mask=S.mask; usemask=true)
 end
 
 """
+	setdiff(S::SplitList, T::SplitList, mask=:left)
+
 Return array of splits in S that are not in T.
 
 `mask` options: `:left`, `:right`, `:none`. 
