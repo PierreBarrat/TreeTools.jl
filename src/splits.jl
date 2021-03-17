@@ -112,6 +112,19 @@ iterate(S::SplitList, i::Int64) = iterate(S.splits, i)
 getindex(S::SplitList, i::Int64) = getindex(S.splits, i)
 lastindex(S::SplitList) = lastindex(S.splits)
 isempty(S::SplitList) = isempty(S.splits)
+
+function cat(aS::Vararg{SplitList{T}}) where T
+	if !mapreduce(S->S.leaves==aS[1].leaves && S.mask==aS[1].mask, *, aS, init=true) 
+		error("Split lists do not share leaves or masks")
+	end
+	catS = SplitList(aS[1].leaves, Array{Split,1}(undef,0), aS[1].mask, Dict{T, Split}())
+	for S in aS
+		append!(catS.splits, S.splits)
+	end 
+	unique!(catS.splits)
+	return catS
+end
+
 """
 	SplitList(t::Tree, mask=ones(Bool, length(t.lleaves)))
 
