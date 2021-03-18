@@ -195,3 +195,27 @@ function create_label(t::Tree, base="NODE")
     end
     return "$(base)_$(label_init)"   
 end
+
+"""
+    map_dict_to_tree!(t::Tree{MiscData}, dat::Dict)
+
+Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are iteratively added to `n.data.dat`. 
+"""
+function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict)
+    for (name, n) in t.lnodes
+        for (k,v) in dat[name]
+            n.data.dat[k] = v
+        end
+    end
+    nothing
+end
+"""
+    map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
+
+Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` corresponding to `k` are added to `t.lnodes[k].data.dat[key]`. 
+"""
+function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
+    for (name, n) in t.lnodes
+        n.data.dat[key] = dat[name]
+    end
+end

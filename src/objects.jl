@@ -4,7 +4,7 @@ export POT, POTleaves
 
 
 
-mutable struct Mutation
+struct Mutation
 	i::Int64
 	old
 	new
@@ -12,9 +12,17 @@ end
 function Mutation(x::Tuple{Int64,Any,Any})
 	return Mutation(x[1],x[2],x[3])
 end
+
 function ==(x::Mutation, y::Mutation)
 	mapreduce(f->getfield(x,f)==getfield(y,f), *, fieldnames(Mutation), init=true)
 end
+isequal(x::Mutation, y::Mutation) = (==(x,y))
+
+reverse(x::Mutation) = Mutation(x.i, x.new. x.old)
+function isreverse(x::Mutation, y::Mutation)
+	(x.i == y.i) && (x.old == y.new) && (x.new == y.old)
+end
+
 
 """
 	abstract type TreeNodeData
