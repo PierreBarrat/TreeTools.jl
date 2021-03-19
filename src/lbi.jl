@@ -30,7 +30,7 @@ function lbi!(t::Tree{LBIData}, τ; normalize=true)
 	lbi!(t.root, τ, normalize=normalize)
 	return false
 end
-lbi!(t::Tree{EvoData}, τ; normalize=true) = error("Cannot compute LBI for type Tree{EvoData}. Read the tree with keyword `LBIData`.")
+
 
 """
 	set_to_zero!(n::TreeNode{LBIData})

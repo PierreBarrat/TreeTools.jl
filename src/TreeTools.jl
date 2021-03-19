@@ -13,6 +13,7 @@ import Base: ==, unique, unique!, Base.cat
 ## Includes
 include("objects.jl")
 include("objectsmethods.jl")
+include("iterators.jl")
 include("mutations.jl")
 include("prunegraft.jl")
 include("reading.jl")

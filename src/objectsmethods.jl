@@ -74,36 +74,36 @@ function name_nodes!(r::TreeNode, labels ; i = 0)
 	return ii
 end
 
-"""
-       node_findlabel(label::String, root::TreeNode ; subtree = true)
+# """
+#        node_findlabel(label::String, root::TreeNode ; subtree = true)
 
-Find label in tree defined by `root`. If `subtree`, only the children of `root` are searched. Otherwise, the whole tree is searched.  
+# Find label in tree defined by `root`. If `subtree`, only the children of `root` are searched. Otherwise, the whole tree is searched.  
 
-# Note
-`subtree = false` is not yet implemented.
-"""
-function node_findlabel(label::String, root::TreeNode ; subtree = true)
-       found, node = _node_findlabel(label, root)
-       if !found
-               @warn "Label $(label) was not found."
-       end
-       return node
-end
+# # Note
+# `subtree = false` is not yet implemented.
+# """
+# function node_findlabel(label::String, root::TreeNode ; subtree = true)
+#        found, node = _node_findlabel(label, root)
+#        if !found
+#                @warn "Label $(label) was not found."
+#        end
+#        return node
+# end
 
-"""
-"""
-function _node_findlabel(label::String, root::TreeNode)
-       if root.label == label
-               return true, root
-       end
-       for c in root.child
-               found, out = _node_findlabel(label, c)
-               if found
-                       return found, out
-               end
-       end
-       return false, nothing
-end
+# """
+# """
+# function _node_findlabel(label::String, root::TreeNode)
+#        if root.label == label
+#                return true, root
+#        end
+#        for c in root.child
+#                found, out = _node_findlabel(label, c)
+#                if found
+#                        return found, out
+#                end
+#        end
+#        return false, nothing
+# end
 
 """
 	share_labels(tree1, tree2)
@@ -187,26 +187,6 @@ function node_leavesclade_labels(root::TreeNode)
 	return clade
 end
 
-"""
-	tree_clade(tree::Tree, label)
-
-Find and return labels of clade corresponding to all descendants of `tree.lnodes[label]`.
-"""
-function tree_clade(tree::Tree, label)
-	cl = node_clade(tree.lnodes[label])
-	out = map(x->node_findkey(x, tree), cl)
-	return out
-end
-
-"""
-	tree_leavesclade(tree::Tree, label)
-
-Find and return leaves labels of clade corresponding to all leaves descendants of `tree.lnodes[label]`.
-"""
-function tree_leavesclade(tree::Tree, label)
-	cl = node_leavesclade(tree.lnodes[label])
-	return map(x->node_find_leafkey(x, tree), cl)
-end
 
 """
 	node_findroot(node::TreeNode ; maxdepth=1000)
@@ -227,6 +207,9 @@ function node_findroot(node::TreeNode ; maxdepth=1000)
 end
 
 """
+	node_ancestor_list(node::TreeNode)
+
+Return array of all ancestors of `node` up to the root. 
 """
 function node_ancestor_list(node::TreeNode)
 	list = [node.label]
@@ -307,10 +290,6 @@ function find_clades_!(list, tree)
 	return cl
 end
 
-
-function find_clades!(r, nlist)
-
-end
 
 ###############################################################################################################
 ######################################## LCA, divtime, ... ####################################################
@@ -441,33 +420,4 @@ function node_divtime(i_node::TreeNode, j_node::TreeNode)
 		jj_node = jj_node.anc
 	end
 	return tau
-end
-
-"""
-	node_diffmut(i_node::TreeNode{EvoData}, j_node::TreeNode{EvoData})
-
-Compute number of mutations appearing on branches separating `i_node` and `j_node`. 
-"""
-function node_diffmut(i_node::TreeNode{EvoData}, j_node::TreeNode{EvoData}; ignore_missing=false)
-	a_node = lca(i_node, j_node)
-	n = 0
-	ii_node = i_node
-	jj_node = j_node
-	while ii_node != a_node
-		if ismissing(ii_node.data.nmut)
-			n += ignore_missing ? 0 : missing
-		else
-			n += ii_node.data.nmut
-		end
-		ii_node = ii_node.anc
-	end
-	while jj_node != a_node
-		if ismissing(jj_node.data.nmut)
-			n += ignore_missing ? 0 : missing
-		else
-			n += jj_node.data.nmut
-		end
-		jj_node = jj_node.anc
-	end
-	return n	
 end
