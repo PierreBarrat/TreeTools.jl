@@ -97,7 +97,7 @@ end
 """
 	prunesubtree!(tree, labellist)
 
-Prune and return subtree corresponding to the MRCA of labels in `labellist`, as well as its previous direct ancestor. 
+Prune and subtree corresponding to the MRCA of labels in `labellist`. Return the root of the subtree as well as its previous direct ancestor. 
 # Warning
 `TreeNode` objects contained in `tree` are modified, but `tree` is *not* re-indexed after the pruning. It is therefore necessary to call `node2tree(tree.root)` after this.
 """
@@ -272,22 +272,22 @@ function delete_branches(f, tree::Tree)
 	return t
 end
 
-"""
-	delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
-"""
-function delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
-	delete_branches!(t) do n 
-		flag = false
-		if haskey(n.data.dat, :bootstrap)
-			for (i, thr) in enumerate(threshold)
-				if n.data.dat[:bootstrap][i] < thr
-					flag = true
-				end
-			end
-		end
-		flag
-	end
-end
+# """
+# 	delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
+# """
+# function delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
+# 	delete_branches!(t) do n 
+# 		flag = false
+# 		if haskey(n.data.dat, :bootstrap)
+# 			for (i, thr) in enumerate(threshold)
+# 				if n.data.dat[:bootstrap][i] < thr
+# 					flag = true
+# 				end
+# 			end
+# 		end
+# 		flag
+# 	end
+# end
 
 """
 	reroot!(node::TreeNode ; newroot::Union{TreeNode,Nothing}=nothing)
