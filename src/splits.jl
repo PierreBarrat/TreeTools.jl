@@ -210,6 +210,14 @@ function isequal(s::SplitList, i::Int64, j::Int64; mask=true)
 end
 
 """
+	isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
+"""
+function isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
+	[S.leaves[s.dat .* S.mask] for s in S] == sort(A)
+end
+==(S::SplitList, A::Array{<:Array{<:AbstractString,1}}) = isequal(S,A)
+
+"""
 	arecompatible(s::Split,t::Split)
 	arecompatible(s::Split,t::Split, mask::Array{Bool})
 
