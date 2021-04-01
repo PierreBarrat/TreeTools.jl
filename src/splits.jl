@@ -213,7 +213,7 @@ end
 	isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
 """
 function isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
-	[S.leaves[s.dat .* S.mask] for s in S] == sort(A)
+	sort([S.leaves[s.dat .* S.mask] for s in S]) == sort(A)
 end
 ==(S::SplitList, A::Array{<:Array{<:AbstractString,1}}) = isequal(S,A)
 
