@@ -199,12 +199,12 @@ end
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict)
 
-Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are iteratively added to `n.data.dat`. 
+Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are added to `n.data.dat`. 
 """
-function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict)
+function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false)
     for (name, n) in t.lnodes
         for (k,v) in dat[name]
-            n.data.dat[k] = v
+            n.data.dat[symbol ? Symbol(k) : k] = v
         end
     end
     nothing
