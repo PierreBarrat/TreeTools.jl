@@ -68,34 +68,3 @@ function write_fasta(file::String, root::TreeNode ; internal = false)
 end
 
 
-
-# """
-# 	write_branchlength(tree::Tree, msaname::String, treename::String)
-
-# Create a JSON file storing branch lengths of all branches in `tree`. This is intended for reading with auspice.  
-# """
-# function write_branchlength(jsonfile::String, tree::Tree, jsontemplate::String)
-
-# end
-
-
-# """
-# 	write_branchlength(tree::Tree, msaname::String, treename::String)
-
-# Create a JSON file storing branch lengths of all branches in `tree`. This is intended for reading with auspice.  
-# """
-# function write_branchlength(jsonfile::String, tree::Tree, msaname::String, treename::String ; order = keys(tree.lnodes))
-# 	out = Dict()
-# 	node = Dict();
-# 	for k in order
-# 		n = tree.lnodes[k]
-# 		node[n.label] = Dict("branch_length"=>n.data.tau)
-# 	end
-# 	out["nodes"] = node
-# 	out["input_tree"] = treename
-# 	out["alignment"] = msaname
-# 	open(jsonfile, "w") do f 
-# 		JSON.print(f, out)
-# 	end
-# end
-

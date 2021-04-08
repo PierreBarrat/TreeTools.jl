@@ -1,7 +1,8 @@
 module TreeTools
 
 
-using FastaIO
+using FastaIO # Needed?
+using FASTX
 using JSON
 using Dates
 using Distributions
@@ -22,6 +23,7 @@ include("misc.jl")
 include("lbi.jl")
 include("splits.jl") 
 include("resolving.jl")
+include("sequences.jl")
 
 
 end
