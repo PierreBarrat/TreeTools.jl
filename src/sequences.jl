@@ -27,16 +27,15 @@ end
 
 
 struct FitchState{T}
-	state::Array{Set{T},1}
+	state::Array{Array{T,1},1}
 end
 function FitchState(L::Int64, ::Val{T}) where T  
-	state = Array{Set{T}, 1}(undef, L)
+	state = Array{Array{T,1}, 1}(undef, L)
 	for i in 1:L
-		state[i] = Set{T}()
+		state[i] = Array{T,1}(undef,0)
 	end
 	return FitchState{T}(state)
 end
-FitchState(s::BioSequences.LongSequence) = FitchState(s, Val(eltype(s)))
 function FitchState(s::BioSequences.LongSequence, ::Val{T}) where T
 	L = length(s)
 	fs = FitchState(L, Val(T))
@@ -45,6 +44,7 @@ function FitchState(s::BioSequences.LongSequence, ::Val{T}) where T
 	end
 	return fs
 end
+FitchState(s::BioSequences.LongSequence) = FitchState(s, Val(eltype(s)))
 
 length(s::FitchState) = length(s.state)
 
@@ -80,12 +80,8 @@ function ancestral_state(fs::FitchState{T}, fstates::Vararg{FitchState{T}}) wher
 		intersect!(aFs, i, fstates...)
 		if isempty(aFs.state[i]) || (length(aFs.state[i]) == 1 && isgap(first(aFs.state[i])))
 			aFs.state[i] = union(fs.state[i], (s.state[i] for s in fstates)...)
+			unique!(aFs.state[i])
 		end
-		# aFs.state[i] = intersect((fs.state[i] for fs in fstates)...)
-		# aFs.state[i] = intersect(fstates[1].state[i], fstates[2].state[i])
-		# if isempty(aFs.state[i]) || (length(aFs.state[i]) == 1 && isgap(first(aFs.state[i])))
-		# 	aFs.state[i] = union((fs.state[i] for fs in fstates)...)
-		# end
 	end
 	return aFs
 end
@@ -134,7 +130,7 @@ function fitch_root_state!(t::Tree, fitchkey=:fitchstate)
 			end
 		end
 		amax = isempty(L) ? rand(fs) : findmax(L)[2]
-		t.root.data.dat[fitchkey].state[i] = Set(amax)
+		t.root.data.dat[fitchkey].state[i] = [amax]
 	end
 end
 
@@ -154,14 +150,14 @@ fitch_down!(t::Tree, fitchkey) = fitch_down!(t.root, fitchkey)
 
 """
 """
-function fitch_remove_gaps!(t, fitchkey)
+function fitch_remove_gaps!(t, fitchkey=:fitchstate)
 	for n in values(t.lnodes)
 		if !n.isleaf
 			for (i,fs) in enumerate(n.data.dat[fitchkey].state)
 				if length(fs) > 1
-					for a in fs
+					for (k,a) in enumerate(fs)
 						if isgap(a)
-							delete!(fs, a)
+							deleteat!(fs, k)
 							break
 						end
 					end
