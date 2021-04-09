@@ -219,3 +219,13 @@ function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
         n.data.dat[key] = dat[name]
     end
 end
+
+"""
+"""
+function rand_times!(t, p=Exponential(1.))
+    for n in values(t.lnodes)
+        if !n.isroot
+            n.data.tau = rand(p)
+        end
+    end
+end
