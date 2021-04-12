@@ -50,16 +50,22 @@ length(s::FitchState) = length(s.state)
 
 
 """
+	fitch!(t::Tree, outkey=:ancestral_seq, seqkey=:seq; clear_fitch_states=true)
 """
-function fitch!(t::Tree, outkey=:ancestral_seq, seqkey=:seq)
+function fitch!(t::Tree, outkey=:ancestral_seq, seqkey=:seq; clear_fitch_states=true)
 	fitchkey = :fitchstate
-	@time init_fitchstates!(t, fitchkey, seqkey)
-	@time fitch_up!(t, fitchkey)
-	@time fitch_remove_gaps!(t, fitchkey)
-	@time fitch_root_state!(t, fitchkey)
-	@time fitch_down!(t, fitchkey)
-	@time fitch_remove_gaps!(t, fitchkey)
-	@time fitch_sample!(t, outkey, fitchkey)
+	init_fitchstates!(t, fitchkey, seqkey)
+	fitch_up!(t, fitchkey)
+	fitch_remove_gaps!(t, fitchkey)
+	fitch_root_state!(t, fitchkey)
+	fitch_down!(t, fitchkey)
+	fitch_remove_gaps!(t, fitchkey)
+	fitch_sample!(t, outkey, fitchkey)
+	if clear_fitch_states
+		for n in values(t.lnodes)
+			delete!(n.data.dat, fitchkey)
+		end
+	end
 end
 
 """

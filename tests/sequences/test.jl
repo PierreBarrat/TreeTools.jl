@@ -46,7 +46,7 @@ TreeTools.fitch_remove_gaps!(t)
 	@test mich.data.dat[:fitchstate].state == [[DNA_G], [DNA_C], [DNA_C], [DNA_G], [DNA_Gap]]
 end
 
-TreeTools.fitch!(t)
+TreeTools.fitch!(t, clear_fitch_states=false)
 @testset "Fitch" begin
 	@test (t.root.data.dat[:fitchstate].state[3] == [DNA_C] || t.root.data.dat[:fitchstate].state[3] == [DNA_A])
 	@test (mich.anc.data.dat[:fitchstate].state[3] == [DNA_A] || mich.anc.data.dat[:fitchstate].state[3] == [DNA_C])
