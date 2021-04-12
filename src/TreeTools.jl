@@ -1,11 +1,13 @@
 module TreeTools
 
 
-using FastaIO
+using FastaIO # Needed?
+using FASTX
 using JSON
 using Dates
 using Distributions
 using Debugger
+using BioSequences
 
 ##
 import Base.iterate, Base.length, Base.isequal, Base.in, Base.getindex, Base.setdiff, Base.lastindex, Base.isempty
@@ -22,6 +24,7 @@ include("misc.jl")
 include("lbi.jl")
 include("splits.jl") 
 include("resolving.jl")
+include("sequences.jl")
 
 
 end

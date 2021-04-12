@@ -74,36 +74,6 @@ function name_nodes!(r::TreeNode, labels ; i = 0)
 	return ii
 end
 
-# """
-#        node_findlabel(label::String, root::TreeNode ; subtree = true)
-
-# Find label in tree defined by `root`. If `subtree`, only the children of `root` are searched. Otherwise, the whole tree is searched.  
-
-# # Note
-# `subtree = false` is not yet implemented.
-# """
-# function node_findlabel(label::String, root::TreeNode ; subtree = true)
-#        found, node = _node_findlabel(label, root)
-#        if !found
-#                @warn "Label $(label) was not found."
-#        end
-#        return node
-# end
-
-# """
-# """
-# function _node_findlabel(label::String, root::TreeNode)
-#        if root.label == label
-#                return true, root
-#        end
-#        for c in root.child
-#                found, out = _node_findlabel(label, c)
-#                if found
-#                        return found, out
-#                end
-#        end
-#        return false, nothing
-# end
 
 """
 	share_labels(tree1, tree2)

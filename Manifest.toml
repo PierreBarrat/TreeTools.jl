@@ -6,14 +6,43 @@ git-tree-sha1 = "c30985d8821e0cd73870b17b0ed0ce6dc44cb744"
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 version = "1.3.0"
 
+[[Automa]]
+deps = ["Printf", "ScanByte", "TranscodingStreams"]
+git-tree-sha1 = "d50976f217489ce799e366d9561d56a98a30d7fe"
+uuid = "67c07d97-cdcb-5c2c-af73-a7f9c32a568b"
+version = "0.8.2"
+
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
+
+[[BioGenerics]]
+deps = ["TranscodingStreams"]
+git-tree-sha1 = "57deb413ca9f4c8bc7d4c6e98ebe217ff728c737"
+uuid = "47718e42-2ac5-11e9-14af-e5595289c2ea"
+version = "0.1.0"
+
+[[BioSequences]]
+deps = ["BioGenerics", "BioSymbols", "Combinatorics", "IndexableBitVectors", "Printf", "Random", "StableRNGs", "Twiddle"]
+git-tree-sha1 = "093ccb9211bdc71924abf8e74a0790af11da35a7"
+uuid = "7e6ae17a-c86d-528c-b3b9-7f778a29fe59"
+version = "2.0.5"
+
+[[BioSymbols]]
+deps = ["Automa"]
+git-tree-sha1 = "ec77888ac3e78f9d372c2b533bdb52668f9e2b09"
+uuid = "3c28c6f8-a34d-59c4-9654-267d177fcfa9"
+version = "4.0.4"
 
 [[CodeTracking]]
 deps = ["InteractiveUtils", "UUIDs"]
 git-tree-sha1 = "8ad457cfeb0bca98732c97958ef81000a543e73e"
 uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
 version = "1.0.5"
+
+[[Combinatorics]]
+git-tree-sha1 = "08c8b6831dc00bfea825826be0bc8336fc369860"
+uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+version = "1.0.2"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -73,6 +102,12 @@ git-tree-sha1 = "50ddf44c53698f5e784bbebb3f4b21c5807401b1"
 uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 version = "0.8.3"
 
+[[FASTX]]
+deps = ["Automa", "BioGenerics", "BioSequences", "BioSymbols", "TranscodingStreams"]
+git-tree-sha1 = "a980d6ac14c84c3ed17d0d07a0963a1c6d074b34"
+uuid = "c2308a5c-f048-11e8-3e8a-31650f418d12"
+version = "1.1.3"
+
 [[FastaIO]]
 deps = ["GZip"]
 git-tree-sha1 = "bee42c2e820a7b6bbb331689939e74d94b941039"
@@ -98,6 +133,12 @@ deps = ["DocStringExtensions", "InteractiveUtils", "REPL"]
 git-tree-sha1 = "f823a2d04fb233d52812c8024a6d46d9581904a4"
 uuid = "eafb193a-b7ab-5a9e-9068-77385905fa72"
 version = "0.4.5"
+
+[[IndexableBitVectors]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "b7f5e42dc867b8a8654a5f899064632dac05bc82"
+uuid = "1cb3b9ac-1ffd-5777-9e6b-a3d42300664d"
+version = "1.0.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -199,13 +240,24 @@ uuid = "79098fc4-a85e-5d69-aa6a-4863f24498fa"
 version = "0.6.1"
 
 [[Rmath_jll]]
-deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "d76185aa1f421306dec73c057aa384bad74188f0"
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "1b7bf41258f6c5c9c31df8c1ba34c1fc88674957"
 uuid = "f50d1b31-88e8-58de-be2c-1cc44531875f"
-version = "0.2.2+1"
+version = "0.2.2+2"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
+
+[[SIMD]]
+git-tree-sha1 = "2318299b4c8e8fe06f6f9114fb4404bd1461ae48"
+uuid = "fdea26ae-647d-5447-a871-4b548cad5224"
+version = "3.3.0"
+
+[[ScanByte]]
+deps = ["Libdl", "SIMD"]
+git-tree-sha1 = "9cc2955f2a254b18be655a4ee70bc4031b2b189e"
+uuid = "7b38b023-a4d7-4c5e-8d43-3f3097f304eb"
+version = "0.3.0"
 
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
@@ -232,6 +284,12 @@ deps = ["OpenSpecFun_jll"]
 git-tree-sha1 = "d8d8b8a9f4119829410ecd706da4cc8594a1e020"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
 version = "0.10.3"
+
+[[StableRNGs]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "b57c4216b6c163a3a9d674f6b9f7b99cdccdb959"
+uuid = "860ef19b-820b-49d6-a774-d7a799459cd3"
+version = "0.1.2"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
@@ -262,6 +320,17 @@ uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[TranscodingStreams]]
+deps = ["Random", "Test"]
+git-tree-sha1 = "7c53c35547de1c5b9d46a4797cf6d8253807108c"
+uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
+version = "0.9.5"
+
+[[Twiddle]]
+git-tree-sha1 = "29509c4862bfb5da9e76eb6937125ab93986270a"
+uuid = "7200193e-83a8-5a55-b20d-5d36d44a0795"
+version = "1.1.2"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]

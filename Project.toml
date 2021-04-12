@@ -4,8 +4,10 @@ authors = ["PierreBarrat <p.barrat@live.fr>"]
 version = "0.1.0"
 
 [deps]
+BioSequences = "7e6ae17a-c86d-528c-b3b9-7f778a29fe59"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+FASTX = "c2308a5c-f048-11e8-3e8a-31650f418d12"
 FastaIO = "a0c94c4b-ebed-5953-b5fc-82fe598ac79f"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
