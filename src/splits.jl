@@ -97,7 +97,7 @@ struct SplitList{T}
 	leaves::Array{T,1}
 	splits::Array{Split,1}
 	mask::Array{Bool,1}
-	splitmap::Dict{T,Split}
+	splitmap::Dict{T,Split} ## Maps each leaf to the split it is in. 
 	SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T = issorted(leaves) ? new(leaves, splits, mask, splitmap) : @error("Leaves must be sorted")
 end
 SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, splitmap::Dict{T,Split}) where T = SplitList{T}(leaves, splits, mask, splitmap)
@@ -112,6 +112,8 @@ iterate(S::SplitList, i::Int64) = iterate(S.splits, i)
 getindex(S::SplitList, i::Int64) = getindex(S.splits, i)
 lastindex(S::SplitList) = lastindex(S.splits)
 isempty(S::SplitList) = isempty(S.splits)
+Base.:(==)(S::SplitList, T::SplitList) = (S.leaves == T.leaves && sort(S.splits, by=x->x.dat) == sort(T.splits, by=x->x.dat) && S.mask == T.mask)
+
 
 function cat(aS::Vararg{SplitList{T}}) where T
 	if !mapreduce(S->S.leaves==aS[1].leaves && S.mask==aS[1].mask, *, aS, init=true) 
