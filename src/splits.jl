@@ -85,6 +85,19 @@ function joinsplits!(s::Split, t::Split)
 end
 
 """
+	joinsplits(s::Split, t::Split)
+
+Join `s` and `t`. Return resulting `Split`. 
+"""
+function joinsplits(s::Split, t::Split)
+	u = Split(similar(s.dat))
+	for (i,(x,y)) in enumerate(zip(s,t))
+		u.dat[i] = x | y
+	end
+	return u
+end
+
+"""
 	SplitList{T}
 
 - `leaves::Array{T,1}`
@@ -153,7 +166,6 @@ function SplitList(r::TreeNode, leaves)
 	#
 	S = SplitList(leaves_srt, Array{Split,1}(undef,0), mask, Dict{eltype(leaves), Split}())
 	_splitlist!(S, r, leafmap)
-	sortleaves!(S)
 	return S	
 end
 """
