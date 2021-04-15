@@ -200,11 +200,18 @@ end
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict)
 
 Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are added to `n.data.dat`. 
+
+If `!isnothing(key)`, only a specific key of `dat` is added. It's checked for by `k == key || Symbol(k) == key` for all keys `k` of `dat`.
+If `symbol`, data is added to nodes of `t` with symbols as keys. 
 """
-function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false)
+function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = nothing)
     for (name, n) in t.lnodes
         for (k,v) in dat[name]
-            n.data.dat[symbol ? Symbol(k) : k] = v
+            if !isnothing(key) && (k == key || Symbol(k) == key)
+                n.data.dat[key] = v
+            elseif isnothing(key) 
+                n.data.dat[symbol ? Symbol(k) : k] = v
+            end
         end
     end
     nothing
