@@ -325,6 +325,21 @@ function in(s::Split, S::SplitList, mask=S.mask; usemask=true)
 end
 
 """
+	in(s::AbstractArray, S::SplitList, mask=S.mask)
+
+Is `s` in `S`? 
+"""
+function in(s::AbstractArray, S::SplitList, mask=S.mask; usemask=true)
+	ss = sort(s)
+	for t in S
+		if (usemask && ss == S.leaves[t.dat .* S.mask]) || (!usemask && ss == S.leaves[t.dat])
+			return true
+		end
+	end
+	return false
+end
+
+"""
 	setdiff(S::SplitList, T::SplitList, mask=:left)
 
 Return array of splits in S that are not in T.
@@ -349,6 +364,29 @@ function setdiff(S::SplitList, T::SplitList, mask=:left)
 		end
 	end
 	return sd
+end
+
+"""
+	intersect(S::SplitList, T::SplitList, mask=:none)
+"""
+function intersect(S::SplitList, T::SplitList, mask=:none)
+	if mask == :none
+		m = ones(Bool, length(S.leaves))
+	elseif mask == :left
+		m = S.mask
+	elseif mask == :right
+		m = T.mask
+	else
+		@error "Unrecognized `mask` kw-arg."
+	end
+	#
+	U = SplitList(S.leaves)
+	for s in S
+		if in(s, T, m)
+			push!(U.splits, s)
+		end
+	end
+	return U
 end
 
 """
