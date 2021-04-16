@@ -7,6 +7,7 @@ alnfile = "aln.fasta"
 incomplete_alnfile = "aln_incomplete.fasta"
 
 @testset "Reading fasta alignment" begin
+	println("Should display warning below:")
 	@test !TreeTools.fasta2tree!(t, incomplete_alnfile)
 	@test TreeTools.fasta2tree!(t, alnfile)
 end
@@ -51,4 +52,18 @@ TreeTools.fitch!(t, clear_fitch_states=false)
 	@test (t.root.data.dat[:fitchstate].state[3] == [DNA_C] || t.root.data.dat[:fitchstate].state[3] == [DNA_A])
 	@test (mich.anc.data.dat[:fitchstate].state[3] == [DNA_A] || mich.anc.data.dat[:fitchstate].state[3] == [DNA_C])
 	@test (t.root.data.dat[:fitchstate].state[3] == [DNA_C] && n1.data.dat[:fitchstate].state[3] == [DNA_A, DNA_G, DNA_C]) || (t.root.data.dat[:fitchstate].state[3] == [DNA_A] && n1.data.dat[:fitchstate].state[3] == [DNA_A]) 
+end
+
+TreeTools.fitch!(t, (:cmseq, :otherseg), clear_fitch_states=true)
+@testset "Nested keys" begin
+	for n in values(t.lnodes)
+		if !n.isleaf
+			@test !haskey(n.data.dat, :fitchstate)
+			@test haskey(n.data.dat, :cmseq)
+			@test haskey(n.data.dat[:cmseq], :otherseg)
+		else
+			@test !haskey(n.data.dat, :fitchstate)
+			@test !haskey(n.data.dat, :cmseq)
+		end
+	end
 end
