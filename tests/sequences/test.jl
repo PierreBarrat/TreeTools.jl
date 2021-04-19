@@ -26,35 +26,37 @@ n2 = lca(sing, penn)
 r = t.root
 
 fasta2tree!(t, "aln.fasta")
-TreeTools.init_fitchstates!(t)
+
+i = rand(1:5)
+TreeTools.init_fitchstates!(t,i)
 @testset "Fitch init" begin
-	@test mich.data.dat[:fitchstate].state == [[DNA_G], [DNA_C], [DNA_C], [DNA_G], [DNA_Gap]]
+	@test mich.data.dat[:fitchstate].state == [Set(DNA_G), Set(DNA_C), Set(DNA_C), Set(DNA_G), Set(DNA_Gap)][i]
 end
 
 TreeTools.fitch_up!(t)
 @testset "Fitch up" begin
-	@test mich.data.dat[:fitchstate].state == [[DNA_G], [DNA_C], [DNA_C], [DNA_G], [DNA_Gap]]
-	@test n1.data.dat[:fitchstate].state == [[DNA_C, DNA_A], [DNA_C], [DNA_A, DNA_G], [DNA_G], [DNA_A, DNA_Gap]]
-	@test n2.data.dat[:fitchstate].state == [[DNA_C, DNA_A], [DNA_C], [DNA_C, DNA_A], [DNA_G], [DNA_A, DNA_Gap]]
-	@test mich.anc.data.dat[:fitchstate].state == [[DNA_G, DNA_C, DNA_A], [DNA_C], [DNA_C, DNA_A, DNA_G], [DNA_G], [DNA_Gap, DNA_A]]
-	@test t.root.data.dat[:fitchstate].state == [[DNA_C, DNA_A], [DNA_C], [DNA_C, DNA_A], [DNA_G], [DNA_Gap, DNA_A]]
+	@test mich.data.dat[:fitchstate].state == [Set(DNA_G), Set(DNA_C), Set(DNA_C), Set(DNA_G), Set(DNA_Gap)][i]
+	@test n1.data.dat[:fitchstate].state == [Set([DNA_C, DNA_A]), Set(DNA_C), Set([DNA_A, DNA_G]), Set(DNA_G), Set([DNA_A, DNA_Gap])][i]
+	@test n2.data.dat[:fitchstate].state == [Set([DNA_C, DNA_A]), Set(DNA_C), Set([DNA_C, DNA_A]), Set(DNA_G), Set([DNA_A, DNA_Gap])][i]
+	@test mich.anc.data.dat[:fitchstate].state == [Set([DNA_G, DNA_C, DNA_A]), Set(DNA_C), Set([DNA_C, DNA_A, DNA_G]), Set(DNA_G), Set([DNA_Gap, DNA_A])][i]
+	@test t.root.data.dat[:fitchstate].state == [Set([DNA_C, DNA_A]), Set([DNA_C]), Set([DNA_C, DNA_A]), Set([DNA_G]), Set([DNA_Gap, DNA_A])][i]
 end
 
 TreeTools.fitch_remove_gaps!(t)
 @testset "Fitch remove gaps" begin
-	@test n1.data.dat[:fitchstate].state == [[DNA_C, DNA_A], [DNA_C], [DNA_A, DNA_G], [DNA_G], [DNA_A]]
-	@test t.root.data.dat[:fitchstate].state == [[DNA_C, DNA_A], [DNA_C], [DNA_C, DNA_A], [DNA_G], [DNA_A]]
-	@test mich.data.dat[:fitchstate].state == [[DNA_G], [DNA_C], [DNA_C], [DNA_G], [DNA_Gap]]
+	@test n1.data.dat[:fitchstate].state == [Set([DNA_C, DNA_A]), Set([DNA_C]), Set([DNA_A, DNA_G]), Set([DNA_G]), Set([DNA_A])][i]
+	@test t.root.data.dat[:fitchstate].state == [Set([DNA_C, DNA_A]), Set([DNA_C]), Set([DNA_C, DNA_A]), Set([DNA_G]), Set([DNA_A])][i]
+	@test mich.data.dat[:fitchstate].state == [Set([DNA_G]), Set([DNA_C]), Set([DNA_C]), Set([DNA_G]), Set([DNA_Gap])][i]
 end
 
-TreeTools.fitch!(t, clear_fitch_states=false)
+TreeTools.fitch!(t, clear_fitch_states=false, variable_positions = missing)
 @testset "Fitch" begin
-	@test (t.root.data.dat[:fitchstate].state[3] == [DNA_C] || t.root.data.dat[:fitchstate].state[3] == [DNA_A])
-	@test (mich.anc.data.dat[:fitchstate].state[3] == [DNA_A] || mich.anc.data.dat[:fitchstate].state[3] == [DNA_C])
-	@test (t.root.data.dat[:fitchstate].state[3] == [DNA_C] && n1.data.dat[:fitchstate].state[3] == [DNA_A, DNA_G, DNA_C]) || (t.root.data.dat[:fitchstate].state[3] == [DNA_A] && n1.data.dat[:fitchstate].state[3] == [DNA_A]) 
+	@test in(t.root.data.dat[:seq], [dna"ACAGA", dna"ACCGA", dna"CCAGA", dna"CCCGA"])
+	@test in(mich.anc.data.dat[:seq][1], [DNA_C, DNA_A])
+	@test in(mich.anc.data.dat[:seq][3], [DNA_C, DNA_A])
 end
 
-TreeTools.fitch!(t, (:cmseq, :otherseg), clear_fitch_states=true)
+TreeTools.fitch!(t, (:cmseq, :otherseg), clear_fitch_states=true, variable_positions = missing)
 @testset "Nested keys" begin
 	for n in values(t.lnodes)
 		if !n.isleaf
@@ -66,4 +68,5 @@ TreeTools.fitch!(t, (:cmseq, :otherseg), clear_fitch_states=true)
 			@test !haskey(n.data.dat, :cmseq)
 		end
 	end
+	@test in(t.root.data.dat[:cmseq][:otherseg], [dna"ACAGA", dna"ACCGA", dna"CCAGA", dna"CCCGA"])
 end

@@ -228,11 +228,58 @@ function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
 end
 
 """
+    rand_times!(t, p=Exponential(1.))
 """
 function rand_times!(t, p=Exponential(1.))
     for n in values(t.lnodes)
         if !n.isroot
             n.data.tau = rand(p)
         end
+    end
+end
+
+
+##################################################
+##### Utilities for dicts with nested keys #######
+##################################################
+function recursive_key_init!(dat, key, ks...)
+    if !haskey(dat, key)
+        dat[key] = Dict()
+    end
+    recursive_key_init!(dat[key], ks...)
+end
+recursive_key_init!(dat) = nothing
+function recursive_get(dat, key, ks...)
+    if isempty(ks)
+        return dat[key]
+    else
+        return recursive_get(dat[key], ks...)
+    end
+end
+recursive_get(dat, key::Tuple) = recursive_get(dat, key...)
+function recursive_set!(dat, value, key, ks...)
+    if isempty(ks)
+        dat[key] = value
+    else
+        recursive_set!(dat[key], value, ks...)
+    end 
+    dat
+end
+function recursive_push!(dat, value, key, ks...)
+    if isempty(ks)
+        push!(dat[key], value)
+    else
+        recursive_push!(dat[key], value, ks...)
+    end 
+    dat
+end
+recursive_push!(dat, value, key::Tuple) = recursive_push!(dat, value, key...)
+function recursive_haskey(dat, key, ks...)
+    if !haskey(dat, key)
+        return false
+    elseif isempty(ks)
+        return true
+    else
+        return recursive_haskey(dat[key], ks...)
     end
 end
