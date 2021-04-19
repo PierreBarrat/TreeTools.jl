@@ -120,13 +120,13 @@ length(s::FitchState) = length(s.state)
 """
 function fitch!(t::Tree, outkey=:seq, seqkey=:seq; clear_fitch_states=true)
 	fitchkey = :fitchstate
-	init_fitchstates!(t, seqkey, fitchkey)
-	fitch_up!(t, fitchkey)
-	fitch_remove_gaps!(t, fitchkey)
-	fitch_root_state!(t, fitchkey)
-	fitch_down!(t, fitchkey)
-	fitch_remove_gaps!(t, fitchkey)
-	fitch_sample!(t, outkey, fitchkey)
+	@time init_fitchstates!(t, seqkey, fitchkey)
+	@time fitch_up!(t, fitchkey)
+	@time fitch_remove_gaps!(t, fitchkey)
+	@time fitch_root_state!(t, fitchkey)
+	@time fitch_down!(t, fitchkey)
+	@time fitch_remove_gaps!(t, fitchkey)
+	@time fitch_sample!(t, outkey, fitchkey)
 	if clear_fitch_states
 		for n in values(t.lnodes)
 			delete!(n.data.dat, fitchkey)
@@ -152,7 +152,7 @@ end
 	ancestral_state(fstates::Vararg{FitchState{T}}) where T
 """
 function ancestral_state(fs::FitchState{T}, fstates::Vararg{FitchState{T}}) where T
-	aFs = deepcopy(fs)
+	aFs = FitchState([copy(x) for x in fs.state])
 	for i in 1:length(aFs.state)
 		intersect!(aFs, i, fstates...)
 		if isempty(aFs.state[i]) || (length(aFs.state[i]) == 1 && isgap(first(aFs.state[i])))
