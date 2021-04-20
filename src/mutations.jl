@@ -27,35 +27,23 @@ end
 parse_mutation(mut::Mutation) = mut
 
 
-function compute_mutations!(n::TreeNode, seqkey, outkey)
+function compute_mutations!(f::Function, n::TreeNode, outkey)
 	n.isroot && return nothing
 	n.data.dat[outkey] = Array{Mutation,1}(undef, 0)
-	for (i,a) in enumerate(n.data.dat[seqkey])
-		if a != n.anc.data.dat[seqkey][i]
-			push!(n.data.dat[outkey], Mutation(i, n.anc.data.dat[seqkey][i], a))
+	for (i,a) in enumerate(f(n))
+		if a != f(n.anc)[i]
+			TreeTools.recursive_push!(n.data.dat, Mutation(i, f(n.anc)[i], a), outkey)
 		end
 	end
 	nothing
 end
-function compute_mutations!(n::TreeNode, seqkey::Tuple, outkey::Tuple)
-	n.isroot && return nothing
-	muts = Array{Mutation,1}(undef,0)
-	seq = recursive_get(n.data.dat, seqkey...)
-	aseq = recursive_get(n.anc.data.dat, seqkey...)
-	for (i, (a,b)) in enumerate(zip(seq, aseq))
-		if a != b
-			push!(muts, Mutation(i, n.anc.data.dat[seqkey][i], a))
-		end
-	end	
-	recursive_set!(n.data.dat, muts, outkey...)
-	nothing
-end
+
 """
 	compute_mutations!(t::Tree, seqkey, outkey)
 """
-function compute_mutations!(t::Tree, seqkey, outkey)
-	for n in values(tree.lnodes)
-		compute_mutations!(n, seqkey, outkey)
+function compute_mutations!(f::Function, t::Tree, outkey)
+	for n in values(t.lnodes)
+		compute_mutations!(f, n, outkey)
 	end
 end
 
