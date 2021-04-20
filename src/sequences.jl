@@ -241,11 +241,24 @@ function fitch_root_state!(t::Tree, fitchkey=:fitchstate)
 	filter!(==(amax), fs.state)
 end
 
-
+"""
+	set_child_state!(fs_child::FitchState{T}, fs_anc::FitchState{T}) where T
+"""
+function set_child_state!(fs_child::FitchState{T}, fs_anc::FitchState{T}) where T
+	if length(fs_anc) > 1
+		error("State $(fs_anc.state) on downward pass")
+	end
+	if in(first(fs_anc.state), fs_child.state)
+		filter!(==(first(fs_anc.state)), fs_child.state)
+	else
+		a = rand(fs_child.state)
+		filter!(==(a), fs_child.state)
+	end
+end
 """
 """
 function get_upstream_state!(n::TreeNode, fitchkey=:fitchstate)
-	n.data.dat[fitchkey] = ancestral_state(n.data.dat[fitchkey], n.anc.data.dat[fitchkey])
+	set_child_state!(n.data.dat[fitchkey], n.anc.data.dat[fitchkey])
 end
 function fitch_down!(r::TreeNode, fitchkey)
 	!r.isroot && get_upstream_state!(r, fitchkey)
