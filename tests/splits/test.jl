@@ -1,7 +1,7 @@
 using Test
 using TreeTools
 
-t = read_tree("tree1.nwk")
+t = read_tree("splits/tree1.nwk")
 S = SplitList(t)
 
 @test [S.leaves[s.dat] for s in S] == [["A1", "A2"],
