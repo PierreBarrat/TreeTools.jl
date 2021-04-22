@@ -114,8 +114,3 @@ Tree() = Tree(TreeNode())
 Iterators
 =#
 
-abstract type POTIterator end 
-
-struct POT{T<:TreeNodeData} <: POTIterator
-	root::TreeNode{T}
-end

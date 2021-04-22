@@ -1,3 +1,9 @@
+abstract type POTIterator end 
+
+struct POT{T<:TreeNodeData} <: POTIterator
+	root::TreeNode{T}
+end
+
 Base.eltype(::Type{POT{T}}) where T = TreeNode{T} 
 Base.IteratorSize(::Type{POT{T}}) where T = Iterators.SizeUnknown()
 POT(t::Tree) = POT(t.root)
