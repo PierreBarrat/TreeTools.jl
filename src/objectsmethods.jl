@@ -1,8 +1,3 @@
-export node2tree, node2tree!, tree_findlabel, node_findlabel, node_findkey, node_find_leafkey, node_findkey_safe, share_labels
-export node_clade, node_leavesclade, node_leavesclade_labels, tree_clade, tree_leavesclade, isclade, node_findroot
-export lca, node_depth, node_divtime, node_ancestor_list, isancestor
-
-
 ###############################################################################################################
 ################################# Trees from nodes, etc...			    #######################################
 ###############################################################################################################

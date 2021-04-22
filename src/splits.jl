@@ -1,8 +1,3 @@
-export Split, SplitList
-export arecompatible, iscompatible
-export getindex, length, iterate, lastindex
-export unique, unique!
-
 """
 	Split
 

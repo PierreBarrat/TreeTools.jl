@@ -1,6 +1,3 @@
-export read_tree, parse_tree
-export fasta2tree!, seq2num
-
 let n::Int64=0
 	global increment_n() = (n+=1)
 	global reset_n() = (n=0)

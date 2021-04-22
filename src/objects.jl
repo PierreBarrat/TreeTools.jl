@@ -1,8 +1,3 @@
-export TreeNode, Tree, Mutation
-export EvoData, LBIData, TreeNodeData
-export POT, POTleaves
-
-
 """
 	abstract type TreeNodeData
 

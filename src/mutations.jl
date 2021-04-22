@@ -1,5 +1,3 @@
-export Mutation
-
 struct Mutation{T}
 	i::Int64
 	old::T

@@ -1,6 +1,3 @@
-export lbi!, set_live_nodes!
-
-
 let state::Float64 = 0.
 	global lbi_newstate(x) = (state=x)
 	global lbi_getstate() = (state)

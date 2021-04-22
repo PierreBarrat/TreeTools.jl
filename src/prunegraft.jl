@@ -1,7 +1,3 @@
-export prunenode!, prunenode, graftnode!, delete_node!, delete_null_branches!, delete_null_branches
-export remove_internal_singletons, prunesubtree!
-
-
 """
 	prunenode!(node::TreeNode)
 
