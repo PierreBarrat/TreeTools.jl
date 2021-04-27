@@ -258,10 +258,14 @@ function recursive_set!(dat, value, key, ks...)
     if isempty(ks)
         dat[key] = value
     else
+        if !haskey(dat, key)
+            dat[key] = Dict()
+        end
         recursive_set!(dat[key], value, ks...)
     end 
     dat
 end
+recursive_set!(dat, value, key::Tuple) = recursive_set!(dat, value, key...)
 function recursive_push!(dat, value, key, ks...)
     if isempty(ks)
         push!(dat[key], value)
