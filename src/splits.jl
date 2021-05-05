@@ -197,11 +197,11 @@ end
 
 function show(io::IO, S::SplitList)
 	for (i,s) in enumerate(S)
-		println(io, S.leaves[s.dat .* S.mask])
 		if i > 20
-			println("...")
+			println(io, "...")
 			break
 		end
+		println(io, S.leaves[s.dat .* S.mask])
 	end
 end
 show(S::SplitList) = show(stdout, S)

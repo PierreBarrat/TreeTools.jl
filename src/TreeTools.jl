@@ -22,7 +22,7 @@ export node2tree, node2tree!, share_labels, node_leavesclade_labels, isclade
 export lca, node_depth, node_divtime, node_ancestor_list, isancestor
 
 include("iterators.jl")
-export POT, POTleaves
+export POT, POTleaves, nodes, leaves, internals
 
 include("mutations.jl")
 export Mutation
