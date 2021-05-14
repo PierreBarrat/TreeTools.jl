@@ -1,9 +1,9 @@
 """
-	fasta2tree!(tree, fastafile::String, key=:seq; warn=true)
+	fasta2tree!(tree, fastafile::AbstractString, key=:seq; warn=true)
 
-Add sequences of `fastafile` to tips of `tree`. For a leaf `n`, sequence is added to `n.data.dat[key]`. 
+Add sequences of `fastafile` to nodes of `tree`. For a leaf `n`, sequence is added to `n.data.dat[key]`.
 """
-function fasta2tree!(tree, fastafile::String, key::Union{Symbol, AbstractString}=:seq; warn=true)
+function fasta2tree!(tree, fastafile::AbstractString, key::Union{Symbol, AbstractString}=:seq; warn=true)
 	reader = open(FASTA.Reader, fastafile)
 	record = FASTA.Record()
 	while !eof(reader)
@@ -25,11 +25,11 @@ function fasta2tree!(tree, fastafile::String, key::Union{Symbol, AbstractString}
 end
 
 """
-	fasta2tree!(tree, fastafile::String, ks::Tuple; warn=true)
+	fasta2tree!(tree, fastafile::AbstractString, ks::Tuple; warn=true)
 
-Add sequences of `fastafile` to tips of `tree`. For a leaf `n`, sequence is added to `n.data.dat[ks[1]][ks[2]]...`. 	
+Add sequences of `fastafile` to nodes of `tree`. For a leaf `n`, sequence is added to `n.data.dat[ks[1]][ks[2]]...`.
 """
-function fasta2tree!(tree, fastafile::String, ks::Tuple; warn=true)
+function fasta2tree!(tree, fastafile::AbstractString, ks::Tuple; warn=true)
 	# Setting dicts
 	for n in values(tree.lleaves)
 		recursive_key_init!(n.data.dat, ks[1:end-1]...)
@@ -54,6 +54,24 @@ function fasta2tree!(tree, fastafile::String, ks::Tuple; warn=true)
 	end
 	warn && !flag && @warn "Not all leaves had a corresponding sequence in the alignment (file: $fastafile)."
 	return flag
+end
+
+
+
+
+"""
+	write_fasta(file::AbstractString, tree, seqkey = :selfseq ; internal = false)
+"""
+function write_fasta(file::AbstractString, tree, seqkey = :selfseq ; internal = false)
+	open(FASTA.Writer, file) do f
+		for n in nodes(tree)
+			if internal || n.isleaf
+				rec = FASTA.Record(n.label, recursive_get(n.data.dat, seqkey))
+				write(f, rec)
+			end
+		end
+	end
+	return nothing
 end
 
 

@@ -48,21 +48,4 @@ function write_newick(root::TreeNode)
 	return write_newick!("", root)*";"
 end
 
-"""
-	 write_fasta(file::String, tree::Tree ; internal = false)
-"""
-function write_fasta(file::String, tree::Tree ; internal = false)
-	write_fasta(file, tree.root, internal = internal)
-end
-
-"""
-	write_fasta(file::String, root::TreeNode ; internal = false)
-"""
-function write_fasta(file::String, root::TreeNode ; internal = false)
-	out = write_fasta!("", root, internal)
-	f = open(file, "w")
-	write(f, out)
-	close(f)
-end
-
 
