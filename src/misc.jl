@@ -3,7 +3,7 @@ function showinfo(tree::Tree)
     for n in values(tree.lnodes)
         println("Node $i: $(n.label)")
         n.isroot ? println("Root") : println("Ancestor: $(n.anc.label)")
-        if n.isleaf 
+        if n.isleaf
             println("Leaf")
         else
             print("Children: ")
@@ -28,10 +28,6 @@ function show(io::IO, tree::Tree, maxnodes=40; kwargs...)
 end
 show(t::Tree, maxnodes=40; kwargs...) = show(stdout, t, maxnodes; kwargs...)
 function show(io::IO, n::TreeNode)
-    # println("### TreeNode:")
-    # println("Label $(n.label)")
-    # println("Ancestor $n.anc.label")
-    # println("Number of children $(length(n.child))")
     nodeinfo(n)
 end
 show(n::TreeNode) = show(stdout, n)
@@ -39,13 +35,12 @@ show(n::TreeNode) = show(stdout, n)
 """
     nodeinfo(node::TreeNode)
 
-Print information about `node`. 
+Print information about `node`.
 """
 function nodeinfo(node)
-    println("Node $(node.label): ") 
+    println("Node $(node.label): ")
     node.isroot ? println("Ancestor : none (root)") : println("Ancestor: $(node.anc.label), tau = $(node.data.tau)")
     println("$(length(node.child)) children: $([x.label for x in node.child])")
-    # println("Brothers: $([x.label for x in node.anc.child])")
 end
 
 
@@ -109,7 +104,7 @@ function hamming(x::String, y::String; seqtype=:nucleotide)
         if seqtype==:nucleotide
             if in(a,"ACGT") && in(b,"ACGT")
                 out += a!=b
-            end    
+            end
         else
             out += a!=b
         end
@@ -135,9 +130,11 @@ function check_tree(tree::Tree; strict=true)
         	(flag = false) || (@warn "Node $(n.label) is non-leaf and has no child.")
         elseif !n.isroot && n.anc == nothing
         	(flag = false) || (@warn "Node $(n.label) is non-root and has no ancestor.")
-        elseif !n.isroot && strict && length(n.child) == 1
-        	(flag = false) || (@warn "Node $(n.label) has only one child.")
-        elseif !n.isroot && length(n.child) == 0 && !haskey(tree.lleaves, n.label)
+        elseif strict && length(n.child) == 1
+            if !(n.isroot && n.child[1].isleaf)
+        	   (flag = false) || (@warn "Node $(n.label) has only one child.")
+            end
+        elseif length(n.child) == 0 && !haskey(tree.lleaves, n.label)
             (flag = false) || (@warn "Node $(n.label) has no child but is not in `tree.lleaves`")
         end
         for c in n.child
@@ -168,7 +165,7 @@ end
 """
     get_node_dates!(t::Tree{LBIData}, dat)
 
-Get dates of nodes of `t` using data `dat`. Iterating through `dat` should give elements of format `(name, date)` where `name` is a label of a node. 
+Get dates of nodes of `t` using data `dat`. Iterating through `dat` should give elements of format `(name, date)` where `name` is a label of a node.
 """
 function get_node_dates!(t::Tree{LBIData}, dat)
     for (n,d) in dat
@@ -181,7 +178,7 @@ end
 """
     create_label(t::Tree, base="NODE")
 
-Create new node label in tree `t` with format `base_i` with `i::Int64`. 
+Create new node label in tree `t` with format `base_i` with `i::Int64`.
 """
 function create_label(t::Tree, base="NODE")
     label_init = 1
@@ -190,23 +187,23 @@ function create_label(t::Tree, base="NODE")
             label_init = parse(Int64, n.label[10:end]) + 1
         end
     end
-    return "$(base)_$(label_init)"   
+    return "$(base)_$(label_init)"
 end
 
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict)
 
-Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are added to `n.data.dat`. 
+Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are added to `n.data.dat`.
 
 If `!isnothing(key)`, only a specific key of `dat` is added. It's checked for by `k == key || Symbol(k) == key` for all keys `k` of `dat`.
-If `symbol`, data is added to nodes of `t` with symbols as keys. 
+If `symbol`, data is added to nodes of `t` with symbols as keys.
 """
 function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = nothing)
     for (name, n) in t.lnodes
         for (k,v) in dat[name]
             if !isnothing(key) && (k == key || Symbol(k) == key)
                 n.data.dat[key] = v
-            elseif isnothing(key) 
+            elseif isnothing(key)
                 n.data.dat[symbol ? Symbol(k) : k] = v
             end
         end
@@ -216,7 +213,7 @@ end
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
 
-Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` corresponding to `k` are added to `t.lnodes[k].data.dat[key]`. 
+Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` corresponding to `k` are added to `t.lnodes[k].data.dat[key]`.
 """
 function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
     for (name, n) in t.lnodes
@@ -262,7 +259,7 @@ function recursive_set!(dat, value, key, ks...)
             dat[key] = Dict()
         end
         recursive_set!(dat[key], value, ks...)
-    end 
+    end
     dat
 end
 recursive_set!(dat, value, key::Tuple) = recursive_set!(dat, value, key...)
@@ -271,7 +268,7 @@ function recursive_push!(dat, value, key, ks...)
         push!(dat[key], value)
     else
         recursive_push!(dat[key], value, ks...)
-    end 
+    end
     dat
 end
 recursive_push!(dat, value, key::Tuple) = recursive_push!(dat, value, key...)
