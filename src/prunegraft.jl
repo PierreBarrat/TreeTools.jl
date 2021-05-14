@@ -26,7 +26,7 @@ end
 """
 	prunenode(node::TreeNode)
 
-Prune node `node` by detaching it from its ancestor. Return pruned `node` and previous root `r`. The tree defined by `node` is copied before the operation, and therefore not modified. 
+Prune node `node` by detaching it from its ancestor. Return pruned `node` and previous root `r`. The tree defined by `node` is copied before the operation, and therefore not modified.
 """
 function prunenode(node::TreeNode)
 	if node.isroot
@@ -51,7 +51,7 @@ end
 """
 	prunenode(t::Tree, label::Vararg{String};, propagate=propagate)
 
-Prune node `t.lnodes[label]` from `t` for all `label`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only. 
+Prune node `t.lnodes[label]` from `t` for all `label`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
 """
 prunenode(t::Tree, label::Vararg{String} ; propagate=true) = prunenode(t, collect(label), propagate=propagate)
 
@@ -59,7 +59,7 @@ prunenode(t::Tree, label::Vararg{String} ; propagate=true) = prunenode(t, collec
 """
 	prunenodes(tree, labels; propagate=propagate)
 
-Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only. 
+Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
 """
 function prunenode(tree, labels ; propagate=true)
 	out = deepcopy(tree)
@@ -71,7 +71,7 @@ prunenode!(tree::Tree, labels::Vararg{String}; propagate=true) = prunenode!(tree
 """
 	prunenodes!(tree, labels; propagate=propagate)
 
-Prune nodes corresponding to labels in `labels`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only. 
+Prune nodes corresponding to labels in `labels`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
 """
 function prunenode!(tree, labels::Array{<:String}; propagate=true)
 	for l in labels
@@ -93,14 +93,14 @@ end
 """
 	prunesubtree!(tree, labellist)
 
-Prune and subtree corresponding to the MRCA of labels in `labellist`. Return the root of the subtree as well as its previous direct ancestor. 
+Prune and subtree corresponding to the MRCA of labels in `labellist`. Return the root of the subtree as well as its previous direct ancestor.
 # Warning
 `TreeNode` objects contained in `tree` are modified, but `tree` is *not* re-indexed after the pruning. It is therefore necessary to call `node2tree(tree.root)` after this.
 """
 function prunesubtree!(tree, labellist; clade_only=true)
 	if clade_only && !isclade(labellist, tree)
 		error("Can't prune non-clade $labellist")
-	end	
+	end
 	r = lca([tree.lnodes[x] for x in labellist])
 	todel = node_clade_labels(r)
 	a = r.anc
@@ -120,22 +120,26 @@ end
 """
 	remove_internal_singletons!(tree; ptau=true)
 
-Remove nodes with one child. Root node is left as is.  
-If `ptau`, the length of branches above removed nodes is added to the branch length above their children. 
-
-## Warning
-The `TreeNode` constituting `tree` are modified in the process. This means `tree` will be be modified as well in an uncontrolled manner.  
+Remove nodes with one child. Root node is left as is.
+If `ptau`, the length of branches above removed nodes is added to the branch length above their children.
 """
 function remove_internal_singletons!(tree; ptau=true)
 	root = tree.root
 	for n in values(tree.lnodes)
-		if !n.isleaf && !n.isroot
-			if length(n.child) == 1
+		if length(n.child) == 1
+			if !n.isroot
 				delete_node!(n, ptau=ptau)
 				delete!(tree.lnodes, n.label)
 			end
 		end
 	end
+	# If root itself is a singleton, delete its child and regraft onto it.
+	if length(tree.root.child) == 1 && !tree.root.child[1].isleaf
+		n = tree.root.child[1]
+		delete_node!(n, ptau=ptau)
+		delete!(tree.lnodes, n.label)
+	end
+	#
 	node2tree!(tree, root)
 end
 
@@ -143,7 +147,7 @@ end
 """
 	graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
 
-Graft `n` on `r`. 
+Graft `n` on `r`.
 """
 function graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
 	if !n.isroot || n.anc != nothing
@@ -194,7 +198,7 @@ Delete internal node with branch length smaller than `threshold`. Propagates rec
 
 """
 function delete_null_branches!(node::TreeNode; threshold = 1e-10)
-	if !node.isleaf 	
+	if !node.isleaf
 		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
 			nr = delete_node!(node)
 			for c in nr.child
@@ -211,12 +215,12 @@ function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	return node
 end
 """
-	delete_null_branches!(tree::Tree; threshold=1e-10) 
-	delete_null_branches(tree::Tree; threshold=1e-10) 
+	delete_null_branches!(tree::Tree; threshold=1e-10)
+	delete_null_branches(tree::Tree; threshold=1e-10)
 
-Call `delete_null_branches!` on `tree.root`. 
+Call `delete_null_branches!` on `tree.root`.
 """
-function delete_null_branches!(tree::Tree; threshold=1e-10) 
+function delete_null_branches!(tree::Tree; threshold=1e-10)
 	delete_null_branches!(tree.root, threshold=threshold)
 	node2tree!(tree, tree.root)
 	return nothing
@@ -229,20 +233,24 @@ end
 """
 	delete_branches!(f, n::TreeNode)
 
-Delete internal node `n` if `f(n)` returns `true`. Propagates recursively down the tree. 
+Delete branch above node `n` if `f(n)` returns `true`. Propagates recursively down the tree.
 """
 function delete_branches!(f, n::TreeNode)
-	if !n.isleaf && !n.isroot && f(n)
-		if !ismissing(n.data.tau)
-			for c in n.child
-				if !ismissing(c.data.tau)
-					c.data.tau += n.data.tau
+	if !n.isroot && f(n)
+		if !n.isleaf
+			if !ismissing(n.data.tau)
+				for c in n.child
+					if !ismissing(c.data.tau)
+						c.data.tau += n.data.tau
+					end
 				end
 			end
-		end
-		nr = delete_node!(n)
-		for c in nr.child
-			delete_branches!(f, c)
+			nr = delete_node!(n)
+			for c in nr.child
+				delete_branches!(f, c)
+			end
+		else
+			n.data.tau = ismissing(n.data.tau) ? missing : 0.
 		end
 	else
 		for c in n.child
@@ -257,6 +265,7 @@ end
 """
 function delete_branches!(f, tree::Tree)
 	delete_branches!(f, tree.root)
+	remove_internal_singletons!(tree)
 	node2tree!(tree, tree.root)
 	return nothing
 end
@@ -269,34 +278,18 @@ function delete_branches(f, tree::Tree)
 	return t
 end
 
-# """
-# 	delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
-# """
-# function delete_low_bootstrap!(t::Tree{MiscData}; threshold=[80,95])
-# 	delete_branches!(t) do n 
-# 		flag = false
-# 		if haskey(n.data.dat, :bootstrap)
-# 			for (i, thr) in enumerate(threshold)
-# 				if n.data.dat[:bootstrap][i] < thr
-# 					flag = true
-# 				end
-# 			end
-# 		end
-# 		flag
-# 	end
-# end
 
 """
 	reroot!(node::TreeNode ; newroot::Union{TreeNode,Nothing}=nothing)
-Reroot the tree to which `node` belongs at `node`.  
-- If `node.isroot`, 
-- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc, node)`. 
-- Else, call `reroot!(node.anc, node)`, then change the ancestor of `node` to be `newroot`. 
+Reroot the tree to which `node` belongs at `node`.
+- If `node.isroot`,
+- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc, node)`.
+- Else, call `reroot!(node.anc, node)`, then change the ancestor of `node` to be `newroot`.
 """
 function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
 	# Breaking cases
 	if node.anc == nothing || node.isroot
-		if !(node.anc == nothing && node.isroot) 
+		if !(node.anc == nothing && node.isroot)
 			@warn "There was a problem with input tree: previous root node has an ancestor."
 		elseif newroot != nothing
 			i = findfirst(c->c.label==newroot.label, node.child)
