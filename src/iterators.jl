@@ -1,17 +1,17 @@
-abstract type POTIterator end 
+abstract type POTIterator end
 
 struct POT{T<:TreeNodeData} <: POTIterator
 	root::TreeNode{T}
 end
 
-Base.eltype(::Type{POT{T}}) where T = TreeNode{T} 
+Base.eltype(::Type{POT{T}}) where T = TreeNode{T}
 Base.IteratorSize(::Type{POT{T}}) where T = Iterators.SizeUnknown()
 POT(t::Tree) = POT(t.root)
 
 struct POTleaves{T<:TreeNodeData} <: POTIterator
 	root::TreeNode{T}
 end
-Base.eltype(::Type{POTleaves{T}}) where T = TreeNode{T} 
+Base.eltype(::Type{POTleaves{T}}) where T = TreeNode{T}
 Base.IteratorSize(::Type{POTleaves{T}}) where T = Iterators.SizeUnknown()
 POTleaves(t::Tree) = POTleaves(t.root)
 
@@ -26,7 +26,7 @@ end
 Base.iterate(itr::POTIterator) = firststate(itr, itr.root)
 """
 - `state.n.isleaf`: go to sibling and down or ancestor and up (stop if root)
-- Otherwise: go to deepest child and up. 
+- Otherwise: go to deepest child and up.
 """
 function Base.iterate(itr::POTIterator, state::POTState{T}) where T
 	if state.direction == :down
@@ -44,21 +44,21 @@ function go_down(itr::POTIterator, state::POTState{T}) where T
 			return (state.n, POTState{T}(n, 0, :stop))
 		elseif state.i < length(state.n.anc.child) # Go to sibling
 			return (state.n, POTState{T}(state.n.anc.child[state.i+1], state.i+1, :down))
-		else # Go back to ancestor 
+		else # Go back to ancestor
 			return (state.n, POTState{T}(state.n.anc, get_sibling_number(state.n.anc), :up))
 		end
 	end
-	return firststate(itr, state.n) # Go to deepest child of `n` 
+	return firststate(itr, state.n) # Go to deepest child of `n`
 end
 function go_up(itr::POT{T}, state::POTState{T}) where T
 	if state.n.isroot || state.n == itr.root
 		return (state.n, POTState{T}(state.n, 0, :stop))
 	elseif state.i < length(state.n.anc.child) # Go to sibling
 		return (state.n, POTState{T}(state.n.anc.child[state.i+1], state.i+1, :down))
-	else # Go back to ancestor 
+	else # Go back to ancestor
 		# println("Hello")
 		return (state.n, POTState{T}(state.n.anc, get_sibling_number(state.n.anc), :up))
-	end	
+	end
 end
 function go_up(itr::POTleaves{T}, state::POTState{T}) where T
 	if state.n.isleaf
@@ -66,28 +66,28 @@ function go_up(itr::POTleaves{T}, state::POTState{T}) where T
 			return (state.n, POTState{T}(state.n, 0, :stop))
 		elseif state.i < length(state.n.anc.child) # Go to sibling
 			return (state.n, POTState{T}(state.n.anc.child[state.i+1], state.i+1, :down))
-		else # Go back to ancestor 
+		else # Go back to ancestor
 			# println("Hello")
 			return (state.n, POTState{T}(state.n.anc, get_sibling_number(state.n.anc), :up))
-		end	
+		end
 	else
 		if state.n.isroot || state.n == itr.root
 			return nothing
 		elseif state.i < length(state.n.anc.child) # Go to sibling
 			iterate(itr, POTState(state.n.anc.child[state.i+1], state.i+1, :down))
-		else # Go back to ancestor 
+		else # Go back to ancestor
 			iterate(itr, POTState(state.n.anc, get_sibling_number(state.n.anc), :up))
-		end			
+		end
 	end
 end
 
 
 
 """
-Go to deepest child of `a`. 
+Go to deepest child of `a`.
 """
 function firststate(itr::POTIterator, a::TreeNode{T}) where T
-	if a.isleaf 
+	if a.isleaf
 		return iterate(itr, POTState{T}(a, 1, :up))
 	end
 	firststate(itr, a.child[1])
@@ -98,7 +98,7 @@ function get_sibling_number(n::TreeNode)
 		return 0
 	end
 	for (i,c) in enumerate(n.anc.child)
-		if n == c 
+		if n == c
 			return i
 		end
 	end
@@ -109,3 +109,5 @@ end
 nodes(t) = values(t.lnodes)
 leaves(t) = values(t.lleaves)
 internals(t) = Iterators.filter(x->!x.isleaf, values(t.lnodes))
+
+nodes(f::Function, t) = filter(f, collect(nodes(t)))
