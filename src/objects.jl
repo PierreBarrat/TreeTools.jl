@@ -1,7 +1,7 @@
 """
 	abstract type TreeNodeData
 
-Abstract supertype for all data attached to `TreeNode` objects. The *only* requirement is a field `.tau::Union{Missing, <:Real}` containing the time to the ancestor. 
+Abstract supertype for all data attached to `TreeNode` objects. The *only* requirement is a field `.tau::Union{Missing, <:Real}` containing the time to the ancestor.
 """
 abstract type TreeNodeData end
 
@@ -21,7 +21,7 @@ MiscData(tau) = MiscData(tau=tau)
 """
 	mutable struct LBIData <: TreeNodeData
 
-Data used to compute the Local Branching Index. 
+Data used to compute the Local Branching Index.
 """
 mutable struct LBIData <: TreeNodeData
 	tau::Float64
@@ -45,7 +45,7 @@ default_node_datatype = MiscData
 """
 	mutable struct TreeNode{T <: TreeNodeData}
 
-Structural information on the tree, *i.e.* topology and branch length. 
+Structural information on the tree, *i.e.* topology and branch length.
 - `anc::Union{Nothing,TreeNode}`: Ancestor
 - `child::Array{TreeNode,1}`: List of children
 - `tau::Float64`: Time to ancestor
@@ -62,7 +62,7 @@ mutable struct TreeNode{T <: TreeNodeData}
 	data::T
 end
 function TreeNode(data::T;
-	anc = nothing, 
+	anc = nothing,
 	child = Array{TreeNode{T},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
@@ -70,11 +70,11 @@ function TreeNode(data::T;
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
 function TreeNode(; data = default_node_datatype(),
-	anc = nothing, 
+	anc = nothing,
 	child = Array{TreeNode{default_node_datatype},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
-	label = "") 
+	label = "")
 	return TreeNode(anc, child, isleaf, isroot, label, data)
 end
 
@@ -82,7 +82,7 @@ end
 """
 	==(x::TreeNode, y::TreeNode)
 
-Equality of labels between `x` and `y`. Checking for other properties of nodes turns out to be quite complicated. 
+Equality of labels between `x` and `y`.
 """
 function ==(x::TreeNode, y::TreeNode)
 	return x.label == y.label

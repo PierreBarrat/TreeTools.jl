@@ -94,8 +94,6 @@ end
 	prunesubtree!(tree, labellist)
 
 Prune and subtree corresponding to the MRCA of labels in `labellist`. Return the root of the subtree as well as its previous direct ancestor.
-# Warning
-`TreeNode` objects contained in `tree` are modified, but `tree` is *not* re-indexed after the pruning. It is therefore necessary to call `node2tree(tree.root)` after this.
 """
 function prunesubtree!(tree, labellist; clade_only=true)
 	if clade_only && !isclade(labellist, tree)
