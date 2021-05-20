@@ -6,10 +6,10 @@
 """
 	node2tree(root::TreeNode)
 
-Create a `Tree` object from `root`. Keys are integers. 
+Create a `Tree` object from `root`.
 """
-function node2tree(root::TreeNode{T} where T)
-	tree = Tree(root)
+function node2tree(root::TreeNode{T}) where T
+	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}())
 	node2tree_addnode!(tree, root)
 	return tree
 end
@@ -24,12 +24,14 @@ end
 """
 	function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
 
-Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true. 
+Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true.
 If `node` is a leaf node, also add it to `tree.lleaves`.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
-	if in(node.label, keys(tree.lnodes)) 
+	if in(node.label, keys(tree.lnodes))
 		error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
+	elseif isempty(node.label)
+		@warn "Adding node with empty label."
 	else
 		tree.lnodes[node.label] = node
 		if node.isleaf
@@ -37,7 +39,7 @@ function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
 		end
 		if addchildren
 			for c in node.child
-				node2tree_addnode!(tree, c, addchildren=true)
+				node2tree_addnode!(tree, c; addchildren)
 			end
 		end
 	end
@@ -46,7 +48,7 @@ end
 """
 	name_nodes!(t::Tree)
 
-Give a label to label-less nodes in `t`. 
+Give a label to label-less nodes in `t`.
 """
 function name_nodes!(t::Tree)
 	name_nodes!(t.root, collect(keys(t.lnodes)))
@@ -73,7 +75,7 @@ end
 """
 	share_labels(tree1, tree2)
 
-Check if `tree1` and `tree2` share the same labels for leaf nodes. 
+Check if `tree1` and `tree2` share the same labels for leaf nodes.
 """
 function share_labels(tree1, tree2)
 	l1 = Set(l for l in keys(tree1.lleaves))
@@ -90,7 +92,7 @@ end
 """
 	node_clade(root::TreeNode)
 
-Find and return clade corresponding to all descendants of `root`. 
+Find and return clade corresponding to all descendants of `root`.
 """
 function node_clade(root::TreeNode)
 	if root.isleaf
@@ -107,7 +109,7 @@ end
 """
 	node_clade_labels(root::TreeNode)
 
-Find and return labels of nodes in clade corresponding to all descendants of `root`. 
+Find and return labels of nodes in clade corresponding to all descendants of `root`.
 """
 function node_clade_labels(root::TreeNode)
 	if root.isleaf
@@ -123,7 +125,7 @@ end
 """
 	node_leavesclade(root::TreeNode)
 
-Find and return clade corresponding to all descendants of `root` that are leaves. 
+Find and return clade corresponding to all descendants of `root` that are leaves.
 """
 function node_leavesclade(root::TreeNode)
 	if root.isleaf
@@ -139,7 +141,7 @@ end
 """
 	node_leavesclade_labels(root::TreeNode)
 
-Find and return labels of nodes in clade corresponding to all descendants of `root` that are leaves. 
+Find and return labels of nodes in clade corresponding to all descendants of `root` that are leaves.
 """
 function node_leavesclade_labels(root::TreeNode)
 	if root.isleaf
@@ -161,12 +163,13 @@ Return root of the tree to which `node` belongs.
 function node_findroot(node::TreeNode ; maxdepth=1000)
 	temp = node
 	it = 0
-	while !temp.isroot || it>maxdepth
+	while !temp.isroot && it <= maxdepth
 		temp = temp.anc
-		it += 1 
+		it += 1
 	end
-	if it>maxdepth
-		@error "Could not find root after $maxdepth iterations."
+	if it > maxdepth
+		@error("Could not find root after $maxdepth iterations.")
+		error()
 	end
 	return temp
 end
@@ -174,7 +177,7 @@ end
 """
 	node_ancestor_list(node::TreeNode)
 
-Return array of all ancestors of `node` up to the root. 
+Return array of all ancestors of `node` up to the root.
 """
 function node_ancestor_list(node::TreeNode)
 	list = [node.label]
@@ -189,7 +192,7 @@ end
 """
 	isclade(nodelist)
 
-Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.  
+Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.
 """
 function isclade(nodelist; safe=true)
 	out = true
@@ -199,7 +202,7 @@ function isclade(nodelist; safe=true)
 	else
 		claderoot = lca(nodelist)
 		# clade = node_leavesclade_labels(claderoot)
-		# Now, checking if `clade` is the same as `nodelist` 
+		# Now, checking if `clade` is the same as `nodelist`
 		for c in POTleaves(claderoot)
 			flag = false
 			for n in nodelist
@@ -218,56 +221,35 @@ function isclade(nodelist; safe=true)
 end
 isclade(nodelist::AbstractArray{<:AbstractString}, t::Tree) = isclade([t.lnodes[n] for n in nodelist])
 
-"""
-	find_clades(tree, label_list)
-
-Find the set of clades for which leaves are exactly `label_list`. 
-"""
-function find_clades(tree, label_list)	
-	r = lca([tree.lleaves[l] for l in label_list])
-	cr = node_leavesclade_labels(r)
-	if issetequal(cr, label_list) # `label_list` is the clade of `r`
-		return [label_list]
-	else # Go up from ll[1] and get the biggest possible clade
-		ll = copy(label_list)
-		return find_clades_!(ll, tree)
-	end
-end
-function find_clades_!(list, tree)
-	cl = []
-	while !isempty(list)
-		tmp = []
-		r = tree.lleaves[list[1]]
-		rflag = true
-		idx = [1]
-		while rflag # Go up from r as long as we can
-			r = r.anc
-			cr = node_leavesclade_labels(r)
-			if !issubset(cr, list)
-				rflag = false
-			else
-				idx = findall(x->in(x,cr),list) # Which elements of list are in cr
-			end
-		end
-		push!(cl, list[idx])
-		deleteat!(list, idx)
-	end
-	return cl
-end
 
 
 ###############################################################################################################
 ######################################## LCA, divtime, ... ####################################################
 ###############################################################################################################
 """
+	node_depth(node::TreeNode)
+
+Distance from `node` to root.
+"""
+function node_depth(node::TreeNode)
+	d = 0
+	_node = node
+	while !_node.isroot
+		_node = _node.anc
+		d += 1
+	end
+	return d
+end
+
+"""
 	lca(i_node::TreeNode, j_node::TreeNode)
 
-Find and return lowest common ancestor of `i_node` and `j_node`.  
+Find and return lowest common ancestor of `i_node` and `j_node`.
 Idea is to go up in the tree in an asymmetric way on the side of the deeper node, until both are at equal distance from root. Then, problem is solved by going up in a symmetric way. (https://stackoverflow.com/questions/1484473/how-to-find-the-lowest-common-ancestor-of-two-nodes-in-any-binary-tree/6183069#6183069)
 """
 function lca(i_node::TreeNode, j_node::TreeNode)
 
-	if i_node.isroot 
+	if i_node.isroot
 		return i_node
 	elseif j_node.isroot
 		return j_node
@@ -297,10 +279,9 @@ end
 """
 	lca(nodelist)
 
-Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable collection of `TreeNode` objects. 
+Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable collection of `TreeNode` objects.
 """
 function lca(nodelist)
-	# ca = nodelist[1]
 	# Getting any element to start with
 	ca = first(nodelist)
 	for node in nodelist
@@ -310,7 +291,7 @@ function lca(nodelist)
 	end
 	return ca
 end
-lca(nodelist::Vararg{<:TreeNode}) = lca(collect(nodelist))
+lca(n::TreeNode, nodelist::Vararg{<:TreeNode}) = lca(vcat(n, collect(nodelist)))
 """
 	lca(t::Tree, labels::Array{<:AbstractString,1})
 """
@@ -319,7 +300,7 @@ lca(t::Tree, labels::Array{<:AbstractString,1}) = lca(Tuple(t.lnodes[n] for n in
 """
 	blca(nodelist::Vararg{<:TreeNode})
 
-Return list of nodes just below `lca(nodelist)`. Useful for introducing splits in a tree. 
+Return list of nodes just below `lca(nodelist)`. Useful for introducing splits in a tree.
 """
 function blca(nodelist::Vararg{<:TreeNode})
 	r = lca(nodelist...)
@@ -332,6 +313,28 @@ function blca(nodelist::Vararg{<:TreeNode})
 		push!(out, a)
 	end
 	return out
+end
+
+
+"""
+	node_divtime(i_node::TreeNode, j_node::TreeNode)
+
+Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.data.tau` values.
+"""
+function node_divtime(i_node::TreeNode, j_node::TreeNode)
+	a_node = lca(i_node, j_node)
+	tau = 0.
+	ii_node = i_node
+	jj_node = j_node
+	while ii_node != a_node
+		tau += ii_node.data.tau
+		ii_node = ii_node.anc
+	end
+	while jj_node != a_node
+		tau += jj_node.data.tau
+		jj_node = jj_node.anc
+	end
+	return tau
 end
 
 """
@@ -349,40 +352,4 @@ function isancestor(a::TreeNode, node::TreeNode)
 			return isancestor(a, node.anc)
 		end
 	end
-end
-
-"""
-	node_depth(node::TreeNode)
-
-Distance from `node` to root. 
-"""
-function node_depth(node::TreeNode)
-	d = 0
-	_node = node
-	while !_node.isroot
-		_node = _node.anc
-		d += 1
-	end 
-	return d
-end
-
-"""
-	node_divtime(i_node::TreeNode, j_node::TreeNode)
-
-Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.data.tau` values. 
-"""
-function node_divtime(i_node::TreeNode, j_node::TreeNode)
-	a_node = lca(i_node, j_node)
-	tau = 0.
-	ii_node = i_node
-	jj_node = j_node
-	while ii_node != a_node
-		tau += ii_node.data.tau
-		ii_node = ii_node.anc
-	end
-	while jj_node != a_node
-		tau += jj_node.data.tau
-		jj_node = jj_node.anc
-	end
-	return tau
 end

@@ -12,8 +12,8 @@ global root_1 = TreeTools.read_newick("test_prunegraft/tree1.nwk")
     # Pruning with copy
 	root = deepcopy(root_1)
 	global A2 = prunenode(root.child[1].child[1])[1]
-	@test root == root_1 && A == A2	
-end 
+	@test root == root_1 && A == A2
+end
 
 
 @testset "Grafting" begin
@@ -27,13 +27,12 @@ end
 @testset "Deleting" begin
 	root = deepcopy(root_1)
 	temp = delete_node!(root.child[1])
-	@test temp == root && root == TreeTools.read_newick("test_prunegraft/tree_del1.nwk") 
+	@test temp == root && root == TreeTools.read_newick("test_prunegraft/tree_del1.nwk")
 end
 
 @testset "Deleting branches" begin
     root = TreeTools.read_newick("test_prunegraft/tree_testnullbranches.nwk")
-    delete_null_branches!(root)
+    TreeTools.delete_null_branches!(root)
     @test root == TreeTools.read_newick("test_prunegraft/tree_testnullbranches_.nwk")
 end
 
-	

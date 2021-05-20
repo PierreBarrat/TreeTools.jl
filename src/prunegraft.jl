@@ -187,14 +187,7 @@ function delete_node!(node::TreeNode; ptau=false)
 	return out
 end
 
-"""
-	delete_null_branches!(node ; threshold = 1e-10)
 
-Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
-- If `node` needs not be deleted, call `delete_null_branches!` on its children
-- If need be, call `delete_null_branches!` on `node.anc.child`
-
-"""
 function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	if !node.isleaf
 		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
@@ -214,25 +207,18 @@ function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 end
 """
 	delete_null_branches!(tree::Tree; threshold=1e-10)
-	delete_null_branches(tree::Tree; threshold=1e-10)
 
-Call `delete_null_branches!` on `tree.root`.
+Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
+- If `node` needs not be deleted, call `delete_null_branches!` on its children
+- If need be, call `delete_null_branches!` on `node.anc.child`
 """
 function delete_null_branches!(tree::Tree; threshold=1e-10)
 	delete_null_branches!(tree.root, threshold=threshold)
 	node2tree!(tree, tree.root)
 	return nothing
 end
-function delete_null_branches(tree::Tree; threshold=1e-10)
-	t = deepcopy(tree)
-	return node2tree(delete_null_branches!(t.root, threshold=threshold))
-end
 
-"""
-	delete_branches!(f, n::TreeNode)
 
-Delete branch above node `n` if `f(n)` returns `true`. Propagates recursively down the tree.
-"""
 function delete_branches!(f, n::TreeNode)
 	if !n.isroot && f(n)
 		if !n.isleaf
@@ -260,6 +246,8 @@ function delete_branches!(f, n::TreeNode)
 end
 """
 	delete_branches!(f, tree::Tree)
+
+Delete branch above node `n` if `f(n)` returns `true`. Propagates recursively down the tree.
 """
 function delete_branches!(f, tree::Tree)
 	delete_branches!(f, tree.root)
@@ -267,22 +255,12 @@ function delete_branches!(f, tree::Tree)
 	node2tree!(tree, tree.root)
 	return nothing
 end
-"""
-	delete_branches(f, tree::Tree)
-"""
-function delete_branches(f, tree::Tree)
-	t = deepcopy(tree)
-	delete_branches!(f, t)
-	return t
-end
-
 
 """
-	reroot!(node::TreeNode ; newroot::Union{TreeNode,Nothing}=nothing)
 Reroot the tree to which `node` belongs at `node`.
 - If `node.isroot`,
-- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc, node)`.
-- Else, call `reroot!(node.anc, node)`, then change the ancestor of `node` to be `newroot`.
+- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc; node)`.
+- Else, call `reroot!(node.anc; node)`, then change the ancestor of `node` to be `newroot`.
 """
 function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
 	# Breaking cases
@@ -316,6 +294,14 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 		end
 	end
 end
-reroot!(tree::Tree, node::AbstractString) = begin reroot!(tree.lnodes[node]); tree.root = tree.lnodes[node] end
+"""
+	reroot!(tree::Tree, node::AbstractString)
+"""
+function reroot!(tree::Tree, node::AbstractString)
+	reroot!(tree.lnodes[node])
+	tree.root = tree.lnodes[node]
+
+	return nothing
+end
 
 

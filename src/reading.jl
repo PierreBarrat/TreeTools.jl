@@ -4,47 +4,56 @@ let n::Int64=0
 end
 
 """
-	read_tree(nw_file::String; NodeDataType=default_node_datatype)
+	read_tree(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 
-Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.    
+Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
 """
-function read_tree(nw_file::String; NodeDataType=default_node_datatype, bootstrap=false)
-	tree = node2tree(read_newick(nw_file; NodeDataType=NodeDataType, bootstrap=bootstrap))
+function read_tree(
+	nw_file::AbstractString;
+	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
+)
+	tree = node2tree(read_newick(nw_file; NodeDataType, bootstrap))
 	check_tree(tree)
 	return tree
 end
 
 """
-	parse_tree(nw::String; NodeDataType=default_node_datatype)
+	parse_newick_string(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 
 Parse newick string into a tree.
 """
-function parse_tree(nw::String; NodeDataType=default_node_datatype, bootstrap=false)
+function parse_newick_string(
+	nw::AbstractString;
+	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
+)
 	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType, bootstrap=bootstrap)
-	root.isroot = true 
+	parse_newick!(nw, root, NodeDataType, bootstrap)
+	root.isroot = true
 	tree = node2tree(root)
 	check_tree(tree)
 	return tree
 end
 
 """
-	read_newick(nw_file::String; NodeDataType=default_node_datatype)
+	read_newick(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 
-Read Newick file `nw_file` and create a graph of `TreeNode{NodeDataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{NodeDataType}` object.   
-`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.   
+Read Newick file `nw_file` and create a graph of `TreeNode{NodeDataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{NodeDataType}` object.
+`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
 """
-function read_newick(nw_file::String; NodeDataType=default_node_datatype, bootstrap=false)
+function read_newick(
+	nw_file::AbstractString;
+	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
+)
 	@assert NodeDataType <: TreeNodeData
 	f = open(nw_file)
 	nw = readlines(f)
 	close(f)
 	if length(nw) > 1
 		error("File $nw_file has more than one line.")
-	elseif length(nw) == 0 
+	elseif length(nw) == 0
 		error("File $nw_file is empty")
-	end 
+	end
 	nw = nw[1]
 	if nw[end] != ';'
 		error("File $nw_file does not end with ';'")
@@ -52,16 +61,19 @@ function read_newick(nw_file::String; NodeDataType=default_node_datatype, bootst
 	nw = nw[1:end-1]
 
 	# reset_n()
-	root = parse_newick(nw, NodeDataType=NodeDataType, bootstrap=bootstrap)
+	root = parse_newick(nw; NodeDataType, bootstrap)
 	return root
 end
 
 """
-	parse_newick(nw::String; NodeDataType=default_node_datatype)
+	parse_newick(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 
 Parse newick string into a `TreeNode`.
 """
-function parse_newick(nw::String; NodeDataType=default_node_datatype, bootstrap=false)
+function parse_newick(
+	nw::AbstractString;
+	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
+)
 	reset_n()
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType, bootstrap)
@@ -70,16 +82,16 @@ function parse_newick(nw::String; NodeDataType=default_node_datatype, bootstrap=
 end
 
 """
-	parse_newick!(nw::String, root::TreeNode)
+	parse_newick!(nw::AbstractString, root::TreeNode)
 
-Parse the tree contained in Newick string `nw`, rooting it at `root`. 
+Parse the tree contained in Newick string `nw`, rooting it at `root`.
 """
-function parse_newick!(nw::String, root::TreeNode, NodeDataType, bootstrap=false)
+function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType, bootstrap=false)
 
 	# Setting isroot to false. Special case of the root is handled in main calling function
 	root.isroot = false
 	# Getting label of the node, after last parenthesis
-	parts = map(x->String(x), split(nw, ")")) 
+	parts = map(x->String(x), split(nw, ")"))
 	lab, tau = nw_parse_name(String(parts[end]))
 	if lab == ""
 		lab = "NODE_$(increment_n())"
@@ -115,15 +127,15 @@ function parse_newick!(nw::String, root::TreeNode, NodeDataType, bootstrap=false
 end
 
 """
-	nw_parse_children(s::String)
+	nw_parse_children(s::AbstractString)
 
-Idea from http://stackoverflow.com/a/26809037  
-Split a string of children in newick format to an array of strings. 
+Idea from http://stackoverflow.com/a/26809037
+Split a string of children in newick format to an array of strings.
 
 ## Example
-`"A,(B,C),D"` --> `["A","(B,C)","D"]` 
+`"A,(B,C),D"` --> `["A","(B,C)","D"]`
 """
-function nw_parse_children(s::String)
+function nw_parse_children(s::AbstractString)
 	parcount = 0
 	l_children = []
 	current = ""
@@ -146,13 +158,13 @@ function nw_parse_children(s::String)
 end
 
 """
-	nw_parse_name(s::String)
+	nw_parse_name(s::AbstractString)
 
-Parse Newick string of child into name and time to ancestor. Default value for missing time is `missing`. 
+Parse Newick string of child into name and time to ancestor. Default value for missing time is `missing`.
 """
-function nw_parse_name(s::String)
+function nw_parse_name(s::AbstractString)
 	temp = split(s, ":")
-	if occursin(':', s) # Node has a time 	
+	if occursin(':', s) # Node has a time
 		if length(temp) == 2 # Node also has a name, return both
 			tau = (tau = tryparse(Float64,temp[2]); typeof(tau)==Nothing ? missing : tau) # Dealing with unparsable times
 			return string(temp[1]), tau
@@ -166,7 +178,7 @@ function nw_parse_name(s::String)
 end
 
 """
-In iqtree, the format is `x/y` where `x` is the SH-alrt support and `y` the bootstrap support. 
+In iqtree, the format is `x/y` where `x` is the SH-alrt support and `y` the bootstrap support.
 """
 function parse_bootstrap_vals(s::AbstractString)
 	[parse(Float64, String(sub)) for sub in split(s, '/', keepempty=false)]

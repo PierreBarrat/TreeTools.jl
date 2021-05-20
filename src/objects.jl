@@ -40,7 +40,7 @@ function LBIData(; tau=0.,
 	return LBIData(tau, message_down, message_up, LBI, date, alive)
 end
 
-default_node_datatype = MiscData
+const DEFAULT_NODE_DATATYPE = MiscData
 
 """
 	mutable struct TreeNode{T <: TreeNodeData}
@@ -84,9 +84,10 @@ end
 
 Equality of labels between `x` and `y`.
 """
-function ==(x::TreeNode, y::TreeNode)
+function Base.isequal(x::TreeNode, y::TreeNode)
 	return x.label == y.label
 end
+Base.:(==)(x::TreeNode, y::TreeNode) = isequal(x,y)
 
 
 """
@@ -98,14 +99,11 @@ mutable struct Tree{T <: TreeNodeData}
 	lleaves::Dict{fieldtype(TreeNode{T}, :label), TreeNode{T}}
 end
 function Tree(root::TreeNode{T};
-	lnodes = Dict{String, TreeNode{T}}(),
-	lleaves = Dict{fieldtype(TreeNode{T},:label), TreeNode{T}}()) where T
-	return Tree(root, lnodes,lleaves)
+		lnodes = Dict{String, TreeNode{T}}(root.label => root),
+		lleaves = Dict{fieldtype(TreeNode{T},:label), TreeNode{T}}(root.label => root)
+	) where T
+	return Tree(root, lnodes, lleaves)
 end
 Tree() = Tree(TreeNode())
 
-
-#=
-Iterators
-=#
 

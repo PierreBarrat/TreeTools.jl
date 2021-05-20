@@ -19,7 +19,7 @@ function lbi!(r::TreeNode{LBIData}, τ::Float64 ; normalize=true)
 	return nothing
 end
 lbi!(r::TreeNode{LBIData}, τ; normalize=true) = lbi!(r, convert(Float64, τ), normalize=true)
-function lbi!(t::Tree{LBIData}, τ; normalize=true) 
+function lbi!(t::Tree{LBIData}, τ; normalize=true)
 	if length(findall(x->x.data.alive, t.lleaves)) < 1
 		# @warn "Cannot compute LBI for tree with dead leaves."
 		return true
@@ -60,7 +60,7 @@ end
 """
 	get_message_up!(n::TreeNode{LBIData}, τ)
 
-Get message going up from node `n`. Ask for up messages `m_c` for all children `c` of `n`. Return `exp(-t/τ) * sum(m_c) + τ * (1 - exp(-t/τ)` where `t=n.data.tau`. Field `message_up` in `n`'s data is modified. 
+Get message going up from node `n`. Ask for up messages `m_c` for all children `c` of `n`. Return `exp(-t/τ) * sum(m_c) + τ * (1 - exp(-t/τ)` where `t=n.data.tau`. Field `message_up` in `n`'s data is modified.
 """
 function get_message_up!(n::TreeNode{LBIData}, τ::Float64)
 	n.data.message_up = 0.
@@ -78,7 +78,7 @@ end
 """
 	send_message_down!(n::TreeNode{LBIData}, τ)
 
-Send message going down from node `n`. Field `c.message_down` is modified for all children `c` of `n`. No return value. 
+Send message going down from node `n`. Field `c.message_down` is modified for all children `c` of `n`. No return value.
 
 ## Note
 It's a bit easier to think of this function as operating on `c.anc` where `c` is a child of `n`. Maybe I should code it like this.
@@ -91,8 +91,8 @@ function send_message_down!(n::TreeNode{LBIData}, τ::Float64)
 				c1.data.message_down += c2.data.message_up
 			end
 		end
-		c1.data.message_down *= exp(-c1.data.tau/τ) 
-		if c1.data.alive 
+		c1.data.message_down *= exp(-c1.data.tau/τ)
+		if c1.data.alive
 			c1.data.message_down += τ*(1 - exp(-c1.data.tau/τ))
 		end
 		send_message_down!(c1,τ)
@@ -135,7 +135,7 @@ function _get_max_lbi(n::TreeNode{LBIData})
 	end
 	if n.data.lbi > lbi_getstate()
 		lbi_newstate(n.data.lbi)
-	end	
+	end
 end
 
 
@@ -143,7 +143,7 @@ end
 	set_live_nodes!(n::TreeNode{LBIData}; datemin=missing, datemax=missing)
 	set_live_nodes!(t::Tree; datemin=missing, datemax=missing)
 
-Recursively sets the `.data.alive` field of tree nodes. 
+Recursively sets the `.data.alive` field of tree nodes.
 - If `n` is a leaf node, `n.data.date` must strictly be between `datemin` and `datemax` (if not missing).
 - If `n` is a non-terminal node, at least one of its children must be alive.
 """
@@ -151,7 +151,7 @@ function set_live_nodes!(n::TreeNode{LBIData}; datemin=missing, datemax=missing,
 	for c in n.child
 		set_live_nodes!(c, datemin=datemin, datemax=datemax, set_leaves=set_leaves)
 	end
-	if set_leaves && n.isleaf 
+	if set_leaves && n.isleaf
 		n.data.alive = (ismissing(datemin) || n.data.date > datemin) && (ismissing(datemax) || n.data.date < datemax)
 	elseif !n.isleaf
 		n.data.alive = mapreduce(x->x.data.alive, |, n.child, init=false)
@@ -160,3 +160,15 @@ function set_live_nodes!(n::TreeNode{LBIData}; datemin=missing, datemax=missing,
 end
 set_live_nodes!(t::Tree; datemin=missing, datemax=missing, set_leaves=true) = set_live_nodes!(t.root, datemin=datemin, datemax=datemax, set_leaves=set_leaves)
 
+"""
+    get_node_dates!(t::Tree{LBIData}, dat)
+
+Get dates of nodes of `t` using data `dat`. Iterating through `dat` should give elements of format `(name, date)` where `name` is a label of a node.
+"""
+function get_node_dates!(t::Tree{LBIData}, dat)
+    for (n,d) in dat
+        if haskey(t.lnodes, n)
+            t.lnodes[n].data.date = d
+        end
+    end
+end

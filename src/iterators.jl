@@ -1,3 +1,13 @@
+nodes(t) = values(t.lnodes)
+leaves(t) = values(t.lleaves)
+internals(t) = Iterators.filter(x->!x.isleaf, values(t.lnodes))
+
+nodes(f::Function, t) = filter(f, values(t.lnodes))
+
+
+#=
+Below: post order traversal iterator that I'm not actually using ...
+=#
 abstract type POTIterator end
 
 struct POT{T<:TreeNodeData} <: POTIterator
@@ -104,10 +114,3 @@ function get_sibling_number(n::TreeNode)
 	end
 	@error "Could not find $(n.label) in children of $(n.anc.label)."
 end
-
-
-nodes(t) = values(t.lnodes)
-leaves(t) = values(t.lleaves)
-internals(t) = Iterators.filter(x->!x.isleaf, values(t.lnodes))
-
-nodes(f::Function, t) = filter(f, collect(nodes(t)))

@@ -7,18 +7,18 @@ struct Split
 	dat::BitArray{1}
 end
 Split(L::Int64) = Split(falses(L))
-length(s::Split) = length(s.dat)
-iterate(s::Split) = iterate(s.dat)
-iterate(s::Split, i::Int64) = iterate(s.dat, i)
-getindex(s::Split, i::Int64) = s.dat[i]
+Base.length(s::Split) = length(s.dat)
+Base.iterate(s::Split) = iterate(s.dat)
+Base.iterate(s::Split, i::Int64) = iterate(s.dat, i)
+Base.getindex(s::Split, i::Int64) = s.dat[i]
 """
 	==(s::Split, t::Split)
 """
-==(s::Split, t::Split) = (s.dat == t.dat)
+Base.:(==)(s::Split, t::Split) = (s.dat == t.dat)
 """
 	isequal(s::Split, t::Split, mask::Array{Bool,1})
 """
-function isequal(s::Split, t::Split, mask::Array{Bool,1})
+function Base.isequal(s::Split, t::Split, mask::Array{Bool,1})
 	for (i,m) in enumerate(mask)
 		if m && s.dat[i] != t.dat[i]
 			return false
@@ -57,7 +57,7 @@ end
 """
 	isempty(s::Split, mask::Array{Bool,1})
 """
-function isempty(s::Split, mask::Array{Bool,1})
+function Base.isempty(s::Split, mask::Array{Bool,1})
 	for (x,m) in zip(s.dat, mask)
 		if m && x
 			return false
@@ -114,16 +114,16 @@ SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, split
 """
 SplitList(leaves::Array{T,1}) where T = SplitList{T}(leaves, Array{Split,1}(undef,0), ones(Bool, length(leaves)), Dict{T, Split}())
 
-length(S::SplitList) = length(S.splits)
-iterate(S::SplitList) = iterate(S.splits)
-iterate(S::SplitList, i::Int64) = iterate(S.splits, i)
-getindex(S::SplitList, i::Int64) = getindex(S.splits, i)
-lastindex(S::SplitList) = lastindex(S.splits)
-isempty(S::SplitList) = isempty(S.splits)
+Base.length(S::SplitList) = length(S.splits)
+Base.iterate(S::SplitList) = iterate(S.splits)
+Base.iterate(S::SplitList, i::Int64) = iterate(S.splits, i)
+Base.getindex(S::SplitList, i::Int64) = getindex(S.splits, i)
+Base.lastindex(S::SplitList) = lastindex(S.splits)
+Base.isempty(S::SplitList) = isempty(S.splits)
 Base.:(==)(S::SplitList, T::SplitList) = (S.leaves == T.leaves && sort(S.splits, by=x->x.dat) == sort(T.splits, by=x->x.dat) && S.mask == T.mask)
 
 
-function cat(aS::Vararg{SplitList{T}}) where T
+function Base.cat(aS::Vararg{SplitList{T}}) where T
 	if !mapreduce(S->S.leaves==aS[1].leaves && S.mask==aS[1].mask, *, aS, init=true)
 		error("Split lists do not share leaves or masks")
 	end
@@ -195,7 +195,7 @@ function _splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
 	return s
 end
 
-function show(io::IO, S::SplitList)
+function Base.show(io::IO, S::SplitList)
 	for (i,s) in enumerate(S)
 		if i > 20
 			println(io, "...")
@@ -204,13 +204,13 @@ function show(io::IO, S::SplitList)
 		println(io, S.leaves[s.dat .* S.mask])
 	end
 end
-show(S::SplitList) = show(stdout, S)
+Base.show(S::SplitList) = show(stdout, S)
 
 
 """
 	isequal(s::SplitList, i::Int64, j::Int64; mask=true)
 """
-function isequal(s::SplitList, i::Int64, j::Int64; mask=true)
+function Base.isequal(s::SplitList, i::Int64, j::Int64; mask=true)
 	if mask
 		return isequal(s.splits[i], s.splits[j], s.mask)
 	else
@@ -221,7 +221,7 @@ end
 """
 	isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
 """
-function isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
+function Base.isequal(S::SplitList, A::Array{<:Array{<:AbstractString,1}})
 	sort([S.leaves[s.dat .* S.mask] for s in S]) == sort(A)
 end
 ==(S::SplitList, A::Array{<:Array{<:AbstractString,1}}) = isequal(S,A)
@@ -310,7 +310,7 @@ end
 
 Is `s` in `S`?
 """
-function in(s::Split, S::SplitList, mask=S.mask; usemask=true)
+function Base.in(s::Split, S::SplitList, mask=S.mask; usemask=true)
 	for t in S
 		if (usemask && isequal(s, t, mask)) || (!usemask && s == t)
 			return true
@@ -324,7 +324,7 @@ end
 
 Is `s` in `S`?
 """
-function in(s::AbstractArray, S::SplitList, mask=S.mask; usemask=true)
+function Base.in(s::AbstractArray, S::SplitList, mask=S.mask; usemask=true)
 	ss = sort(s)
 	for t in S
 		if (usemask && ss == S.leaves[t.dat .* S.mask]) || (!usemask && ss == S.leaves[t.dat])
@@ -341,7 +341,7 @@ Return array of splits in S that are not in T.
 
 `mask` options: `:left`, `:right`, `:none`.
 """
-function setdiff(S::SplitList, T::SplitList, mask=:left)
+function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
 	if mask == :none
 		m = ones(Bool, length(S.leaves))
 	elseif mask == :left
@@ -366,7 +366,7 @@ end
 """
 	intersect(S::SplitList, T::SplitList, mask=:none)
 """
-function intersect(S::SplitList, T::SplitList, mask=:none)
+function Base.intersect(S::SplitList, T::SplitList, mask=:none)
 	if mask == :none
 		m = ones(Bool, length(S.leaves))
 	elseif mask == :left
@@ -389,7 +389,7 @@ end
 """
 	unique!(S::SplitList; usemask=true)
 """
-function unique!(S::SplitList; usemask=true)
+function Base.unique!(S::SplitList; usemask=true)
 	todel = Int64[]
 	hashes = Dict{BitArray{1}, Bool}()
 	for (i,s) in enumerate(S)
@@ -404,7 +404,7 @@ end
 """
 	unique(S::SplitList; usemask=true)
 """
-function unique(S::SplitList; usemask=true)
+function Base.unique(S::SplitList; usemask=true)
 	Sc = deepcopy(S)
 	unique!(Sc, usemask=usemask)
 	return Sc
