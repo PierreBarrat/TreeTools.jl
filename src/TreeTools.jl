@@ -16,8 +16,7 @@ include("objects.jl")
 export TreeNode, Tree
 
 include("methods.jl")
-export lca, node2tree, node2tree!, node_depth, node_divtime, node_leavesclade_labels
-export share_labels, node_leavesclade_labels
+export lca, node2tree, node2tree!, node_depth, node_divtime, share_labels
 
 include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals

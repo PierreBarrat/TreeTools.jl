@@ -153,10 +153,9 @@ function SplitList(r::TreeNode, leaves)
 	!issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
 	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves_srt))
 	# Compute mask : leaves that are descendents or `r`
-	rleaves = node_leavesclade_labels(r)
 	mask = zeros(Bool, length(leaves_srt))
-	for l in rleaves
-		mask[leafmap[l]] = true
+	for x in POTleaves(r)
+		mask[leafmap[x.label]] = true
 	end
 	#
 	S = SplitList(leaves_srt, Array{Split,1}(undef,0), mask, Dict{eltype(leaves), Split}())

@@ -48,47 +48,47 @@ function prunenode(node::TreeNode)
 	return node_, r
 end
 
-"""
-	prunenode(t::Tree, label::Vararg{String};, propagate=propagate)
+# """
+# 	prunenode(t::Tree, label::Vararg{String};, propagate=propagate)
 
-Prune node `t.lnodes[label]` from `t` for all `label`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
-"""
-prunenode(t::Tree, label::Vararg{String} ; propagate=true) = prunenode(t, collect(label), propagate=propagate)
+# Prune node `t.lnodes[label]` from `t` for all `label`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
+# """
+# prunenode(t::Tree, label::Vararg{String} ; propagate=true) = prunenode(t, collect(label), propagate=propagate)
 
 
-"""
-	prunenodes(tree, labels; propagate=propagate)
+# """
+# 	prunenodes(tree, labels; propagate=propagate)
 
-Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
-"""
-function prunenode(tree, labels ; propagate=true)
-	out = deepcopy(tree)
-	prunenode!(out, labels, propagate=propagate)
-	return out
-end
+# Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
+# """
+# function prunenode(tree, labels ; propagate=true)
+# 	out = deepcopy(tree)
+# 	prunenode!(out, labels, propagate=propagate)
+# 	return out
+# end
 
-prunenode!(tree::Tree, labels::Vararg{String}; propagate=true) = prunenode!(tree, collect(labels), propagate=propagate)
-"""
-	prunenodes!(tree, labels; propagate=propagate)
+# prunenode!(tree::Tree, labels::Vararg{String}; propagate=true) = prunenode!(tree, collect(labels), propagate=propagate)
+# """
+# 	prunenodes!(tree, labels; propagate=propagate)
 
-Prune nodes corresponding to labels in `labels`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
-"""
-function prunenode!(tree, labels::Array{<:String}; propagate=true)
-	for l in labels
-		propagate ? _prunenode!(tree.lnodes[l]) : prunenode!(tree.lnodes[l])
-	end
-	node2tree!(tree, tree.root)
-end
+# Prune nodes corresponding to labels in `labels`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
+# """
+# function prunenode!(tree, labels::Array{<:String}; propagate=true)
+# 	for l in labels
+# 		propagate ? _prunenode!(tree.lnodes[l]) : prunenode!(tree.lnodes[l])
+# 	end
+# 	node2tree!(tree, tree.root)
+# end
 
-"""
-"""
-function _prunenode!(node)
-	if length(node.anc.child) == 1
-		_prunenode!(node.anc)
-	else
-		prunenode!(node)
-	end
-end
+# """
+# """
+# function _prunenode!(node)
+# 	if length(node.anc.child) == 1
+# 		_prunenode!(node.anc)
+# 	else
+# 		prunenode!(node)
+# 	end
+# end
 
 """
 	prunesubtree!(tree, labellist)
@@ -100,14 +100,13 @@ function prunesubtree!(tree, labellist; clade_only=true)
 		error("Can't prune non-clade $labellist")
 	end
 	r = lca([tree.lnodes[x] for x in labellist])
-	todel = node_clade_labels(r)
 	a = r.anc
 	if !r.isroot
 		subtree = node2tree(prunenode!(r)[1])
 	else
 		@error "Trying to prune root"
 	end
-	for x in todel delete!(tree.lnodes, x) end
+	for x in POT(r) delete!(tree.lnodes, x.label) end
 	for x in labellist delete!(tree.lleaves, x) end
 	node2tree!(tree, tree.root)
 	remove_internal_singletons!(tree, ptau=true)

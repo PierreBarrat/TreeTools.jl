@@ -89,70 +89,70 @@ end
 ################################################### Clades ####################################################
 ###############################################################################################################
 
-"""
-	node_clade(root::TreeNode)
+# """
+# 	node_clade(root::TreeNode)
 
-Find and return clade corresponding to all descendants of `root`.
-"""
-function node_clade(root::TreeNode)
-	if root.isleaf
-		return [root]
-	end
-	clade = [root]
-	for c in root.child
-		append!(clade, node_clade(c))
-	end
-	return clade
-end
+# Find and return clade corresponding to all descendants of `root`.
+# """
+# function node_clade(root::TreeNode)
+# 	if root.isleaf
+# 		return [root]
+# 	end
+# 	clade = [root]
+# 	for c in root.child
+# 		append!(clade, node_clade(c))
+# 	end
+# 	return clade
+# end
 
 
-"""
-	node_clade_labels(root::TreeNode)
+# """
+# 	node_clade_labels(root::TreeNode)
 
-Find and return labels of nodes in clade corresponding to all descendants of `root`.
-"""
-function node_clade_labels(root::TreeNode)
-	if root.isleaf
-		return [root.label]
-	end
-	clade = [root.label]
-	for c in root.child
-		append!(clade, node_clade_labels(c))
-	end
-	return clade
-end
+# Find and return labels of nodes in clade corresponding to all descendants of `root`.
+# """
+# function node_clade_labels(root::TreeNode)
+# 	if root.isleaf
+# 		return [root.label]
+# 	end
+# 	clade = [root.label]
+# 	for c in root.child
+# 		append!(clade, node_clade_labels(c))
+# 	end
+# 	return clade
+# end
 
-"""
-	node_leavesclade(root::TreeNode)
+# """
+# 	node_leavesclade(root::TreeNode)
 
-Find and return clade corresponding to all descendants of `root` that are leaves.
-"""
-function node_leavesclade(root::TreeNode)
-	if root.isleaf
-		return [root]
-	end
-	clade = Array{TreeNode,1}(undef, 0)
-	for c in root.child
-		append!(clade, node_leavesclade(c))
-	end
-	return clade
-end
+# Find and return clade corresponding to all descendants of `root` that are leaves.
+# """
+# function node_leavesclade(root::TreeNode)
+# 	if root.isleaf
+# 		return [root]
+# 	end
+# 	clade = Array{TreeNode,1}(undef, 0)
+# 	for c in root.child
+# 		append!(clade, node_leavesclade(c))
+# 	end
+# 	return clade
+# end
 
-"""
-	node_leavesclade_labels(root::TreeNode)
+# """
+# 	node_leavesclade_labels(root::TreeNode)
 
-Find and return labels of nodes in clade corresponding to all descendants of `root` that are leaves.
-"""
-function node_leavesclade_labels(root::TreeNode)
-	if root.isleaf
-		return [root.label]
-	end
-	clade = Array{String}(undef,0)
-	for c in root.child
-		append!(clade, node_leavesclade_labels(c))
-	end
-	return clade
-end
+# Find and return labels of nodes in clade corresponding to all descendants of `root` that are leaves.
+# """
+# function node_leavesclade_labels(root::TreeNode)
+# 	if root.isleaf
+# 		return [root.label]
+# 	end
+# 	clade = Array{String}(undef,0)
+# 	for c in root.child
+# 		append!(clade, node_leavesclade_labels(c))
+# 	end
+# 	return clade
+# end
 
 
 """
@@ -191,17 +191,16 @@ end
 
 """
 	isclade(nodelist)
+	isclade(nodelist::AbstractArray{<:AbstractString}, t::Tree)
 
 Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.
 """
 function isclade(nodelist; safe=true)
 	out = true
 	if safe && !mapreduce(x->x.isleaf, *, nodelist, init=true)
-		# verbose && println("F")
 		out = false
 	else
 		claderoot = lca(nodelist)
-		# clade = node_leavesclade_labels(claderoot)
 		# Now, checking if `clade` is the same as `nodelist`
 		for c in POTleaves(claderoot)
 			flag = false
@@ -219,7 +218,9 @@ function isclade(nodelist; safe=true)
 	end
 	return out
 end
-isclade(nodelist::AbstractArray{<:AbstractString}, t::Tree) = isclade([t.lnodes[n] for n in nodelist])
+function isclade(nodelist::AbstractArray{<:AbstractString}, t::Tree)
+	return isclade([t.lnodes[n] for n in nodelist])
+end
 
 
 

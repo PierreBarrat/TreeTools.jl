@@ -6,7 +6,7 @@ nodes(f::Function, t) = filter(f, values(t.lnodes))
 
 
 #=
-Below: post order traversal iterator that I'm not actually using ...
+Post order traversal iterators
 =#
 abstract type POTIterator end
 
@@ -15,20 +15,34 @@ struct POT{T<:TreeNodeData} <: POTIterator
 end
 
 Base.eltype(::Type{POT{T}}) where T = TreeNode{T}
-Base.IteratorSize(::Type{POT{T}}) where T = Iterators.SizeUnknown()
+Base.IteratorSize(::Type{POT{T}}) where T = Iterators.HasLength()
+function Base.length(iter::POT)
+	l = 0
+	for n in iter
+		l += 1
+	end
+	return l
+end
 POT(t::Tree) = POT(t.root)
 
 struct POTleaves{T<:TreeNodeData} <: POTIterator
 	root::TreeNode{T}
 end
 Base.eltype(::Type{POTleaves{T}}) where T = TreeNode{T}
-Base.IteratorSize(::Type{POTleaves{T}}) where T = Iterators.SizeUnknown()
+Base.IteratorSize(::Type{POTleaves{T}}) where T = Iterators.HasLength()
+function Base.length(iter::POTleaves)
+	l = 0
+	for n in iter
+		l += 1
+	end
+	return l
+end
 POTleaves(t::Tree) = POTleaves(t.root)
 
 
 struct POTState{T<:TreeNodeData}
 	n::TreeNode{T}
-	i::Int64 # Position of n in list of siblings -- `n.and.child[i]==n`
+	i::Int64 # Position of n in list of siblings -- `n.anc.child[i]==n`
 	direction::Symbol
 end
 
@@ -66,7 +80,6 @@ function go_up(itr::POT{T}, state::POTState{T}) where T
 	elseif state.i < length(state.n.anc.child) # Go to sibling
 		return (state.n, POTState{T}(state.n.anc.child[state.i+1], state.i+1, :down))
 	else # Go back to ancestor
-		# println("Hello")
 		return (state.n, POTState{T}(state.n.anc, get_sibling_number(state.n.anc), :up))
 	end
 end
@@ -77,7 +90,6 @@ function go_up(itr::POTleaves{T}, state::POTState{T}) where T
 		elseif state.i < length(state.n.anc.child) # Go to sibling
 			return (state.n, POTState{T}(state.n.anc.child[state.i+1], state.i+1, :down))
 		else # Go back to ancestor
-			# println("Hello")
 			return (state.n, POTState{T}(state.n.anc, get_sibling_number(state.n.anc), :up))
 		end
 	else

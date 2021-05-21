@@ -23,7 +23,7 @@ end
 function write_newick!(s::String, root::TreeNode)
 	if !isempty(root.child)
 		s *= '('
-		temp = sort(root.child, by=x->length(node_leavesclade(x)))
+		temp = sort(root.child, by=x->length(POTleaves(x)))
 		for c in temp
 			s = write_newick!(s, c)
 			s *= ','
