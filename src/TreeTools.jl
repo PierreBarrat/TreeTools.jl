@@ -8,12 +8,12 @@ using Debugger
 using BioSequences
 
 ##
-import Base: ==, cat, getindex, in, intersect, isempty, isequal, iterate, length
+import Base: ==, cat, copy, getindex, in, intersect, isempty, isequal, iterate, length
 import Base: setdiff, show, unique, unique!
 
 ##
 include("objects.jl")
-export TreeNode, Tree
+export Tree, TreeNode, TreeNodeData
 
 include("methods.jl")
 export lca, node2tree, node2tree!, node_depth, node_divtime, share_labels
@@ -37,9 +37,6 @@ export write_newick, write_fasta
 include("misc.jl")
 export print_tree, check_tree
 export show
-
-include("lbi.jl")
-export lbi!, set_live_nodes!
 
 include("splits.jl")
 export Split, SplitList

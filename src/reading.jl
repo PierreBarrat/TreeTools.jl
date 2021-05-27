@@ -7,7 +7,7 @@ end
 	read_tree(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 
 Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
-`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
+`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`.
 """
 function read_tree(
 	nw_file::AbstractString;
@@ -100,8 +100,8 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType, bootstr
 		root.data.dat[:bootstrap] = parse_bootstrap_vals(lab)
 		lab = "NODE_$(increment_n())"
 	end
-	# println(lab)
-	root.label, root.data.tau = (NodeDataType == LBIData && ismissing(tau) ? (lab,0.) : (lab,tau))
+
+	root.label, root.data.tau = (lab,tau)
 
 	if length(parts) == 1 # Is a leaf. Subtree is empty
 		root.isleaf = true
