@@ -84,6 +84,35 @@ function share_labels(tree1, tree2)
 
 end
 
+###############################################################################################################
+##################################### Copy tree with different NodeData #######################################
+###############################################################################################################
+
+function Base.copy(r::TreeNode{MiscData}, ::Val{T}) where T <: TreeNodeData
+	!r.isroot && error("Copying non-root node.")
+	data = T(; tau = r.data.tau)
+	cr = TreeNode(data; anc = nothing, isleaf = r.isleaf, isroot = true, label = r.label)
+	for c in r.child
+		copy!(cr, c)
+	end
+	return cr
+end
+"""
+	Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeData
+
+Create a copy of `n` with node data type `T` and add it to the children of `an`.
+"""
+function Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeData
+	data = T(; tau = n.data.tau)
+	cn = TreeNode(data; anc = an, isleaf = n.isleaf, isroot = n.isroot, label = n.label)
+	# Adding `cn` to the children of its ancestor `an`
+	push!(an.child, cn)
+	# Copying children of `n`
+	for c in n.child
+		copy!(cn, c)
+	end
+end
+Base.copy(t::Tree{MiscData}, T::DataType) = node2tree(copy(t.root, Val(T)))
 
 ###############################################################################################################
 ################################################### Clades ####################################################
