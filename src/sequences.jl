@@ -1,7 +1,9 @@
 """
 	fasta2tree!(tree, fastafile::AbstractString, key=:seq; warn=true)
 
-Add sequences of `fastafile` to nodes of `tree`. For a leaf `n`, sequence is added to `n.data.dat[key]`.
+Add sequences of `fastafile` to nodes of `tree`.
+For a leaf `n`, sequence is added to `n.data.dat[key]`.
+If `key` is a `Tuple`, store sequence in `n.data.dat[key[1]][key[2]]...
 """
 function fasta2tree!(tree, fastafile::AbstractString, key::Union{Symbol, AbstractString}=:seq; warn=true)
 	reader = open(FASTA.Reader, fastafile)
@@ -24,11 +26,7 @@ function fasta2tree!(tree, fastafile::AbstractString, key::Union{Symbol, Abstrac
 	return flag
 end
 
-"""
-	fasta2tree!(tree, fastafile::AbstractString, ks::Tuple; warn=true)
 
-Add sequences of `fastafile` to nodes of `tree`. For a leaf `n`, sequence is added to `n.data.dat[ks[1]][ks[2]]...`.
-"""
 function fasta2tree!(tree, fastafile::AbstractString, ks::Tuple; warn=true)
 	# Setting dicts
 	for n in values(tree.lleaves)

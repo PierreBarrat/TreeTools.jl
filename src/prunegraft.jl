@@ -48,47 +48,6 @@ function prunenode(node::TreeNode)
 	return node_, r
 end
 
-# """
-# 	prunenode(t::Tree, label::Vararg{String};, propagate=propagate)
-
-# Prune node `t.lnodes[label]` from `t` for all `label`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
-# """
-# prunenode(t::Tree, label::Vararg{String} ; propagate=true) = prunenode(t, collect(label), propagate=propagate)
-
-
-# """
-# 	prunenodes(tree, labels; propagate=propagate)
-
-# Prune nodes corresponding to labels in `labels`. Return pruned copy of `t`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
-# """
-# function prunenode(tree, labels ; propagate=true)
-# 	out = deepcopy(tree)
-# 	prunenode!(out, labels, propagate=propagate)
-# 	return out
-# end
-
-# prunenode!(tree::Tree, labels::Vararg{String}; propagate=true) = prunenode!(tree, collect(labels), propagate=propagate)
-# """
-# 	prunenodes!(tree, labels; propagate=propagate)
-
-# Prune nodes corresponding to labels in `labels`. `propagate=true` avoids creation of new leaves by pruning ancestors of nodes if they have one child only.
-# """
-# function prunenode!(tree, labels::Array{<:String}; propagate=true)
-# 	for l in labels
-# 		propagate ? _prunenode!(tree.lnodes[l]) : prunenode!(tree.lnodes[l])
-# 	end
-# 	node2tree!(tree, tree.root)
-# end
-
-# """
-# """
-# function _prunenode!(node)
-# 	if length(node.anc.child) == 1
-# 		_prunenode!(node.anc)
-# 	else
-# 		prunenode!(node)
-# 	end
-# end
 
 """
 	prunesubtree!(tree, labellist)
@@ -255,12 +214,12 @@ function delete_branches!(f, tree::Tree)
 	return nothing
 end
 
-"""
+#=
 Reroot the tree to which `node` belongs at `node`.
 - If `node.isroot`,
 - Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc; node)`.
 - Else, call `reroot!(node.anc; node)`, then change the ancestor of `node` to be `newroot`.
-"""
+=#
 function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
 	# Breaking cases
 	if node.anc == nothing || node.isroot
@@ -295,6 +254,8 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 end
 """
 	reroot!(tree::Tree, node::AbstractString)
+
+Reroot `tree` at `tree.lnodes[node]`.
 """
 function reroot!(tree::Tree, node::AbstractString)
 	reroot!(tree.lnodes[node])
