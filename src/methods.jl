@@ -90,8 +90,11 @@ end
 
 function Base.copy(r::TreeNode{MiscData}, ::Val{T}) where T <: TreeNodeData
 	!r.isroot && error("Copying non-root node.")
-	data = T(; tau = r.data.tau)
-	cr = TreeNode(data; anc = nothing, isleaf = r.isleaf, isroot = true, label = r.label)
+	data = T()
+	cr = TreeNode(
+		data;
+		anc = nothing, isleaf = r.isleaf, isroot = true, label = r.label, tau = r.tau,
+	)
 	for c in r.child
 		copy!(cr, c)
 	end
@@ -103,8 +106,11 @@ end
 Create a copy of `n` with node data type `T` and add it to the children of `an`.
 """
 function Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeData
-	data = T(; tau = n.data.tau)
-	cn = TreeNode(data; anc = an, isleaf = n.isleaf, isroot = n.isroot, label = n.label)
+	data = T()
+	cn = TreeNode(
+		data;
+		anc = an, isleaf = n.isleaf, isroot = n.isroot, label = n.label, tau = n.tau,
+	)
 	# Adding `cn` to the children of its ancestor `an`
 	push!(an.child, cn)
 	# Copying children of `n`
@@ -284,7 +290,7 @@ end
 """
 	node_divtime(i_node::TreeNode, j_node::TreeNode)
 
-Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.data.tau` values.
+Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.tau` values.
 """
 function node_divtime(i_node::TreeNode, j_node::TreeNode)
 	a_node = lca(i_node, j_node)
@@ -292,11 +298,11 @@ function node_divtime(i_node::TreeNode, j_node::TreeNode)
 	ii_node = i_node
 	jj_node = j_node
 	while ii_node != a_node
-		tau += ii_node.data.tau
+		tau += ii_node.tau
 		ii_node = ii_node.anc
 	end
 	while jj_node != a_node
-		tau += jj_node.data.tau
+		tau += jj_node.tau
 		jj_node = jj_node.anc
 	end
 	return tau

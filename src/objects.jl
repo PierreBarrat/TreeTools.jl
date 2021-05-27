@@ -1,7 +1,7 @@
 """
 	abstract type TreeNodeData
 
-Abstract supertype for all data attached to `TreeNode` objects. The *only* requirement is a field `.tau::Union{Missing, <:Real}` containing the time to the ancestor.
+Abstract supertype for all data attached to `TreeNode` objects.
 """
 abstract type TreeNodeData end
 
@@ -10,11 +10,9 @@ abstract type TreeNodeData end
 	mutable struct MiscData <: TreeNodeData
 """
 mutable struct MiscData <: TreeNodeData
-	tau::Union{Missing, Float64}
 	dat::Dict{Any,Any}
 end
-MiscData(;tau=missing, dat=Dict()) = MiscData(tau, dat)
-MiscData(tau) = MiscData(tau=tau)
+MiscData(; dat=Dict()) = MiscData(dat)
 
 
 const DEFAULT_NODE_DATATYPE = MiscData
@@ -25,9 +23,9 @@ const DEFAULT_NODE_DATATYPE = MiscData
 Structural information on the tree, *i.e.* topology and branch length.
 - `anc::Union{Nothing,TreeNode}`: Ancestor
 - `child::Array{TreeNode,1}`: List of children
-- `tau::Float64`: Time to ancestor
 - `isleaf::Bool`
 - `isroot::Bool`
+- `tau::Union{Missing, Float64}`
 - `data::T`
 """
 mutable struct TreeNode{T <: TreeNodeData}
@@ -36,6 +34,7 @@ mutable struct TreeNode{T <: TreeNodeData}
 	isleaf::Bool
 	isroot::Bool
 	label::String
+	tau::Union{Missing, Float64}
 	data::T
 end
 function TreeNode(data::T;
@@ -43,16 +42,20 @@ function TreeNode(data::T;
 	child = Array{TreeNode{T},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
-	label = "") where T
-	return TreeNode(anc, child, isleaf, isroot, label, data)
+	label = "",
+	tau = missing,
+) where T
+	return TreeNode(anc, child, isleaf, isroot, label, tau, data)
 end
 function TreeNode(; data = default_node_datatype(),
 	anc = nothing,
 	child = Array{TreeNode{default_node_datatype},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
-	label = "")
-	return TreeNode(anc, child, isleaf, isroot, label, data)
+	label = "",
+	tau = missing,
+)
+	return TreeNode(anc, child, isleaf, isroot, label, tau, data)
 end
 
 

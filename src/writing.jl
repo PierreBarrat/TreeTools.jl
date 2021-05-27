@@ -32,9 +32,9 @@ function write_newick!(s::String, root::TreeNode)
 		s *= ')'
 	end
 	s *= root.label
-	if !ismissing(root.data.tau)
+	if !ismissing(root.tau)
 		s *= ':'
-		s *= string(root.data.tau)
+		s *= string(root.tau)
 	end
 	return s
 end

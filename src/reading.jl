@@ -9,11 +9,8 @@ end
 Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
 `NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`.
 """
-function read_tree(
-	nw_file::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
-)
-	tree = node2tree(read_newick(nw_file; NodeDataType, bootstrap))
+function read_tree(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+	tree = node2tree(read_newick(nw_file; NodeDataType))
 	check_tree(tree)
 	return tree
 end
@@ -23,12 +20,9 @@ end
 
 Parse newick string into a tree.
 """
-function parse_newick_string(
-	nw::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
-)
+function parse_newick_string(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType, bootstrap)
+	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true
 	tree = node2tree(root)
 	check_tree(tree)
@@ -36,15 +30,13 @@ function parse_newick_string(
 end
 
 """
-	read_newick(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+	read_newick(nw_file::AbstractString)
 
-Read Newick file `nw_file` and create a graph of `TreeNode{NodeDataType}` objects in the process. Return the root of said graph. `node2tree` or `read_tree` must be called to obtain a `Tree{NodeDataType}` object.
-`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`. This defaults to `EvoData`.
+Read Newick file `nw_file` and create a graph of `TreeNode` objects in the process.
+  Return the root of said graph.
+  `node2tree` or `read_tree` must be called to obtain a `Tree` object.
 """
-function read_newick(
-	nw_file::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
-)
+function read_newick(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 	@assert NodeDataType <: TreeNodeData
 	f = open(nw_file)
 	nw = readlines(f)
@@ -61,7 +53,7 @@ function read_newick(
 	nw = nw[1:end-1]
 
 	# reset_n()
-	root = parse_newick(nw; NodeDataType, bootstrap)
+	root = parse_newick(nw; NodeDataType)
 	return root
 end
 
@@ -70,13 +62,10 @@ end
 
 Parse newick string into a `TreeNode`.
 """
-function parse_newick(
-	nw::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, bootstrap=false
-)
+function parse_newick(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 	reset_n()
 	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType, bootstrap)
+	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
 	return root
 end
@@ -86,7 +75,7 @@ end
 
 Parse the tree contained in Newick string `nw`, rooting it at `root`.
 """
-function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType, bootstrap=false)
+function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType)
 
 	# Setting isroot to false. Special case of the root is handled in main calling function
 	root.isroot = false
@@ -95,13 +84,9 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType, bootstr
 	lab, tau = nw_parse_name(String(parts[end]))
 	if lab == ""
 		lab = "NODE_$(increment_n())"
-	elseif bootstrap && length(parts) != 1 # If not a leaf node, has bootstrap values
-		NodeDataType != MiscData && @error "Can only store bootstrap values for `NodeDataType==MiscData`"
-		root.data.dat[:bootstrap] = parse_bootstrap_vals(lab)
-		lab = "NODE_$(increment_n())"
 	end
 
-	root.label, root.data.tau = (lab,tau)
+	root.label, root.tau = (lab,tau)
 
 	if length(parts) == 1 # Is a leaf. Subtree is empty
 		root.isleaf = true
@@ -118,7 +103,7 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType, bootstr
 
 		for sc in l_children
 			nc = TreeNode(NodeDataType())
-			parse_newick!(sc, nc, NodeDataType, bootstrap) # Will set everything right for subtree corresponding to nc
+			parse_newick!(sc, nc, NodeDataType) # Will set everything right for subtree corresponding to nc
 			nc.anc = root
 			push!(root.child, nc)
 		end
@@ -175,13 +160,6 @@ function nw_parse_name(s::AbstractString)
 	else # Node does not have a time, return string as name
 		return s, missing
 	end
-end
-
-"""
-In iqtree, the format is `x/y` where `x` is the SH-alrt support and `y` the bootstrap support.
-"""
-function parse_bootstrap_vals(s::AbstractString)
-	[parse(Float64, String(sub)) for sub in split(s, '/', keepempty=false)]
 end
 
 

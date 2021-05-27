@@ -29,7 +29,7 @@ include("prunegraft.jl")
 export delete_node!, graftnode!, prunenode!, prunenode, prunesubtree!
 
 include("reading.jl")
-export read_tree, parse_tree
+export parse_tree, parse_newick, read_tree
 
 include("writing.jl")
 export write_newick, write_fasta

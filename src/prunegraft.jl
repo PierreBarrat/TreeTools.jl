@@ -101,11 +101,11 @@ end
 
 
 """
-	graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
+	graftnode!(r::TreeNode, n::TreeNode ; tau=n.tau)
 
 Graft `n` on `r`.
 """
-function graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
+function graftnode!(r::TreeNode, n::TreeNode ; tau=n.tau)
 	if !n.isroot || n.anc != nothing
 		@error "Trying to graft non-root node."
 	end
@@ -113,7 +113,7 @@ function graftnode!(r::TreeNode, n::TreeNode ; tau=n.data.tau)
 	r.isleaf = false
 	n.anc = r
 	n.isroot = false
-	n.data.tau = tau
+	n.tau = tau
 	return nothing
 end
 
@@ -131,14 +131,14 @@ function delete_node!(node::TreeNode; ptau=false)
 	if node.isleaf
 		prunenode!(node)
 	else
-		base_tau = node.data.tau
+		base_tau = node.tau
 		child_list = []
 		for c in node.child
 			push!(child_list, c)
 		end
 		for c in child_list
 			nc = prunenode!(c)[1]
-			graftnode!(node.anc, nc, tau = (base_tau*ptau + nc.data.tau))
+			graftnode!(node.anc, nc, tau = (base_tau*ptau + nc.tau))
 		end
 		prunenode!(node)
 	end
@@ -148,7 +148,7 @@ end
 
 function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	if !node.isleaf
-		if !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
+		if !ismissing(node.tau) && node.tau < threshold && !node.isroot
 			nr = delete_node!(node)
 			for c in nr.child
 				delete_null_branches!(c, threshold=threshold)
@@ -158,8 +158,8 @@ function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 				delete_null_branches!(c,threshold=threshold)
 			end
 		end
-	elseif !ismissing(node.data.tau) && node.data.tau < threshold && !node.isroot
-		node.data.tau = 0.
+	elseif !ismissing(node.tau) && node.tau < threshold && !node.isroot
+		node.tau = 0.
 	end
 	return node
 end
@@ -180,10 +180,10 @@ end
 function delete_branches!(f, n::TreeNode)
 	if !n.isroot && f(n)
 		if !n.isleaf
-			if !ismissing(n.data.tau)
+			if !ismissing(n.tau)
 				for c in n.child
-					if !ismissing(c.data.tau)
-						c.data.tau += n.data.tau
+					if !ismissing(c.tau)
+						c.tau += n.tau
 					end
 				end
 			end
@@ -192,7 +192,7 @@ function delete_branches!(f, n::TreeNode)
 				delete_branches!(f, c)
 			end
 		else
-			n.data.tau = ismissing(n.data.tau) ? missing : 0.
+			n.tau = ismissing(n.tau) ? missing : 0.
 		end
 	else
 		for c in n.child
@@ -229,7 +229,7 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 			i = findfirst(c->c.label==newroot.label, node.child)
 			splice!(node.child, i)
 			node.anc = newroot
-			node.data.tau = newroot.data.tau
+			node.tau = newroot.tau
 			node.isroot = false
 		end
 	else # Recursion
@@ -241,14 +241,14 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 			reroot!(node.anc, newroot=node)
 			push!(node.child, node.anc)
 			node.anc = nothing
-			node.data.tau = missing
+			node.tau = missing
 		else
 			i = findfirst(c->c.label==newroot.label, node.child)
 			splice!(node.child, i)
 			reroot!(node.anc, newroot=node)
 			push!(node.child, node.anc)
 			node.anc = newroot
-			node.data.tau = newroot.data.tau
+			node.tau = newroot.tau
 		end
 	end
 end

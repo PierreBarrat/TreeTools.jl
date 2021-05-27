@@ -42,7 +42,7 @@ Print information about `node`.
 """
 function nodeinfo(io, node)
     println(io, "Node $(node.label): ")
-    node.isroot ? println(io, "Ancestor : none (root)") : println(io, "Ancestor: $(node.anc.label), tau = $(node.data.tau)")
+    node.isroot ? println(io, "Ancestor : none (root)") : println(io, "Ancestor: $(node.anc.label), tau = $(node.tau)")
     println(io, "$(length(node.child)) children: $([x.label for x in node.child])")
 end
 
@@ -60,7 +60,7 @@ function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth
     for i in 1:hoffset
         offset *= " "
     end
-    cdepth <= maxdepth && println(io, "$offset $hspace $(node.label):$(node.data.tau)")
+    cdepth <= maxdepth && println(io, "$offset $hspace $(node.label):$(node.tau)")
         #
     if cdepth <= maxdepth
         if !node.isleaf
@@ -187,7 +187,7 @@ Add random branch lengths to tree.
 function rand_times!(t, p=Exponential(1.))
     for n in values(t.lnodes)
         if !n.isroot
-            n.data.tau = rand(p)
+            n.tau = rand(p)
         end
     end
 end
