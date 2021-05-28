@@ -118,7 +118,7 @@ function Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeD
 		copy!(cn, c)
 	end
 end
-Base.copy(t::Tree{MiscData}, T::DataType) = node2tree(copy(t.root, Val(T)))
+Base.copy(t::Tree{MiscData}, T::DataType = MiscData) = node2tree(copy(t.root, Val(T)))
 
 ###############################################################################################################
 ################################################### Clades ####################################################

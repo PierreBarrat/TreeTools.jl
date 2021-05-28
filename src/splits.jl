@@ -253,7 +253,7 @@ Three possible states: `(0,1), (1,0), (1,1)`. If all are seen, the splits are no
 """
 function arecompatible(s::Split,t::Split)
 	f1 = false; f2 = false; f3 = false;
-	@inbounds @simd for i in eachindex(s.dat)
+	@inbounds for i in eachindex(s.dat)
 		if s.dat[i] || t.dat[i]
 			if !f1 && !s.dat[i] && t.dat[i]
 				f1 = true
@@ -461,8 +461,9 @@ Return a single `SplitList`.
 """
 function map_splits_to_tree(S::Array{SplitList{T},1}, t::Tree) where T
 	out = SplitList(sort(collect(keys(t.lleaves))), Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)), Dict{T, Split}())
+	treesplits = SplitList(t)
 	for tmp in S
-		mS = TreeTools.map_splits_to_tree(tmp, t)
+		mS = TreeTools.map_splits_to_tree(tmp, t, treesplits)
 		for s in mS
 			push!(out.splits, s)
 		end
@@ -479,11 +480,18 @@ Map splits `S` from another tree to `t`:
 Useful for resolving a tree with splits of another.
 """
 function map_splits_to_tree(S::SplitList, t::Tree)
-	mS = SplitList(S.leaves, Array{Split,1}(undef,0), ones(Bool, length(t.lleaves)),
-		Dict{eltype(S.leaves), Split}())
 	treesplits = SplitList(t)
+	return map_splits_to_tree(S, t, treesplits)
+end
+function map_splits_to_tree(S::SplitList, tree::Tree, treesplits::SplitList)
+	mS = SplitList(
+		S.leaves,
+		Array{Split,1}(undef,0),
+		ones(Bool, length(treesplits.leaves)),
+		Dict{eltype(S.leaves), Split}()
+	)
 	for i in 1:length(S)
-		ms = _map_split_to_tree(S, i, t, treesplits)
+		ms = _map_split_to_tree(S, i, tree, treesplits)
 		push!(mS.splits, ms)
 	end
 	return mS
