@@ -13,7 +13,7 @@ S = SplitList(t)
 s4 = S.splitmap["NODE_4"]
 s5 = S.splitmap["NODE_5"]
 s45 = TreeTools.joinsplits(s4,s5)
-@testset begin
+@testset "Splits" begin
 	@test in(s4, S)
 	@test in(s5, S)
 	@test !in(s45, S)

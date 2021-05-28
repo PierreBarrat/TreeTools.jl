@@ -266,7 +266,7 @@ lca(n::TreeNode, nodelist::Vararg{<:TreeNode}) = lca(vcat(n, collect(nodelist)))
 """
 	lca(t::Tree, labels::Array{<:AbstractString,1})
 """
-lca(t::Tree, labels::Array{<:AbstractString,1}) = lca(Tuple(t.lnodes[n] for n in labels))
+lca(t::Tree, labels::Array{<:AbstractString,1}) = lca([t.lnodes[n] for n in labels])
 
 """
 	blca(nodelist::Vararg{<:TreeNode})

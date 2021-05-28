@@ -57,6 +57,7 @@ function is_leaf_split(s::Split, mask::Array{Bool,1})
 	return true
 end
 
+
 """
 	isempty(s::Split, mask::Array{Bool,1})
 """
@@ -93,6 +94,20 @@ function joinsplits(s::Split, t::Split)
 		u.dat[i] = x | y
 	end
 	return u
+end
+
+"""
+	is_sub_split(s::Split, t::Split)
+
+Check if `s` is a subsplit of `t`.
+"""
+function is_sub_split(s::Split, t::Split)
+	for i in eachindex(s.dat)
+		if s.dat[i] & !(t.dat[i])
+			return false
+		end
+	end
+	return true
 end
 
 """
@@ -237,17 +252,19 @@ Are splits `s` and `t` compatible **in the cluster sense**.
 Three possible states: `(0,1), (1,0), (1,1)`. If all are seen, the splits are not compatible.
 """
 function arecompatible(s::Split,t::Split)
-	flag = falses(3)
-	for (x,y) in zip(s,t)
-		if !flag[1] && !x && y
-			flag[1] = true
-			if alltrue(flag) return false end
-		elseif !flag[2] && x && !y
-			flag[2] = true
-			if alltrue(flag) return false end
-		elseif !flag[3] && x && y
-			flag[3] = true
-			if alltrue(flag) return false end
+	f1 = false; f2 = false; f3 = false;
+	@inbounds @simd for i in eachindex(s.dat)
+		if s.dat[i] || t.dat[i]
+			if !f1 && !s.dat[i] && t.dat[i]
+				f1 = true
+			elseif !f2 && s.dat[i] && !t.dat[i]
+				f2 = true
+			elseif !f3 && s.dat[i] && t.dat[i]
+				f3 = true
+			end
+		end
+		if f1 && f2 && f3
+			return false
 		end
 	end
 	return true
@@ -315,7 +332,7 @@ Is `s` in `S`?
 """
 function Base.in(s::Split, S::SplitList, mask=S.mask; usemask=true)
 	for t in S
-		if (usemask && isequal(s, t, mask)) || (!usemask && s == t)
+		if (!usemask && s == t) || (usemask && isequal(s, t, mask))
 			return true
 		end
 	end
@@ -341,10 +358,13 @@ Return array of splits in S that are not in T.
 function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
 	if mask == :none
 		m = ones(Bool, length(S.leaves))
+		usemask = false
 	elseif mask == :left
 		m = S.mask
+		usemask = true
 	elseif mask == :right
 		m = T.mask
+		usemask = true
 	else
 		@error "Unrecognized `mask` kw-arg."
 	end
@@ -352,7 +372,7 @@ function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
 	# sd = Array{Split,1}(undef,0)
 	U = SplitList(S.leaves)
 	for s in S
-		if !in(s, T, m) && !is_root_split(s, m) && !is_leaf_split(s, m) && !isempty(s,m)
+		if !in(s, T, m; usemask) && !is_root_split(s, m) && !is_leaf_split(s, m) && !isempty(s,m)
 			# push!(sd, s)
 			push!(U.splits, s)
 		end

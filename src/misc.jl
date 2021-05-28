@@ -140,8 +140,9 @@ Create new node label in tree `t` with format `base_i` with `i::Int`.
 """
 function create_label(t::Tree, base="NODE")
     label_init = 1
+    pattern = Regex(base)
     for n in values(t.lnodes)
-        if match(Regex(base), n.label)!=nothing && parse(Int64, n.label[length(base)+2:end]) >= label_init
+        if match(pattern, n.label)!=nothing && parse(Int64, n.label[length(base)+2:end]) >= label_init
             label_init = parse(Int64, n.label[length(base)+2:end]) + 1
         end
     end
