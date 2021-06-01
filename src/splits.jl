@@ -124,13 +124,33 @@ struct SplitList{T}
 	splits::Array{Split,1}
 	mask::Array{Bool,1}
 	splitmap::Dict{T,Split} ## Maps each leaf to the split it is in.
-	SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T = issorted(leaves) ? new(leaves, splits, mask, splitmap) : @error("Leaves must be sorted")
+	function SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T
+		if issorted(leaves)
+			return new(leaves, splits, mask, splitmap)
+		else
+			@error("Leaves must be sorted")
+		end
+	end
 end
-SplitList(leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, splitmap::Dict{T,Split}) where T = SplitList{T}(leaves, splits, mask, splitmap)
+function SplitList(
+	leaves::Array{T,1},
+	splits::Array{Split,1},
+	mask::Array{Bool,1},
+	splitmap::Dict{T,Split}
+) where T
+	SplitList{T}(leaves, splits, mask, splitmap)
+end
 """
 	SplitList(leaves::Array{T,1}) where T
 """
-SplitList(leaves::Array{T,1}) where T = SplitList{T}(leaves, Array{Split,1}(undef,0), ones(Bool, length(leaves)), Dict{T, Split}())
+function SplitList(leaves::Array{T,1}) where T
+	SplitList{T}(
+		leaves,
+		Array{Split,1}(undef,0),
+		ones(Bool, length(leaves)),
+		Dict{T, Split}()
+	)
+end
 
 Base.length(S::SplitList) = length(S.splits)
 Base.iterate(S::SplitList) = iterate(S.splits)
@@ -138,8 +158,9 @@ Base.iterate(S::SplitList, i::Int64) = iterate(S.splits, i)
 Base.getindex(S::SplitList, i::Int64) = getindex(S.splits, i)
 Base.lastindex(S::SplitList) = lastindex(S.splits)
 Base.isempty(S::SplitList) = isempty(S.splits)
-Base.:(==)(S::SplitList, T::SplitList) = (S.leaves == T.leaves && sort(S.splits, by=x->x.dat) == sort(T.splits, by=x->x.dat) && S.mask == T.mask)
-
+function Base.:(==)(S::SplitList, T::SplitList)
+	S.leaves == T.leaves && sort(S.splits, by=x->x.dat) == sort(T.splits, by=x->x.dat) && S.mask == T.mask
+end
 
 function Base.cat(aS::Vararg{SplitList{T}}) where T
 	if !mapreduce(S->S.leaves==aS[1].leaves && S.mask==aS[1].mask, *, aS, init=true)
