@@ -67,7 +67,7 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	end
 	for x in POT(r) delete!(tree.lnodes, x.label) end
 	for x in labellist delete!(tree.lleaves, x) end
-	node2tree!(tree, tree.root)
+	#node2tree!(tree, tree.root)
 	remove_internal_singletons!(tree, ptau=true)
 	return subtree, a
 end
@@ -96,7 +96,7 @@ function remove_internal_singletons!(tree; ptau=true)
 		delete!(tree.lnodes, n.label)
 	end
 	#
-	node2tree!(tree, root)
+	#node2tree!(tree, root)
 end
 
 
