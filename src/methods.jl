@@ -88,7 +88,7 @@ end
 ##################################### Copy tree with different NodeData #######################################
 ###############################################################################################################
 
-function Base.copy(r::TreeNode{MiscData}, ::Val{T}) where T <: TreeNodeData
+function _copy(r::TreeNode, ::Val{T}) where T <: TreeNodeData
 	!r.isroot && error("Copying non-root node.")
 	data = T()
 	cr = TreeNode(
@@ -96,16 +96,16 @@ function Base.copy(r::TreeNode{MiscData}, ::Val{T}) where T <: TreeNodeData
 		anc = nothing, isleaf = r.isleaf, isroot = true, label = r.label, tau = r.tau,
 	)
 	for c in r.child
-		copy!(cr, c)
+		_copy!(cr, c)
 	end
 	return cr
 end
 """
-	Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeData
+	_copy!(an::TreeNode{T}, n::TreeNode) where T <: TreeNodeData
 
 Create a copy of `n` with node data type `T` and add it to the children of `an`.
 """
-function Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeData
+function _copy!(an::TreeNode{T}, n::TreeNode) where T <: TreeNodeData
 	data = T()
 	cn = TreeNode(
 		data;
@@ -115,10 +115,10 @@ function Base.copy!(an::TreeNode{T}, n::TreeNode{MiscData}) where T <: TreeNodeD
 	push!(an.child, cn)
 	# Copying children of `n`
 	for c in n.child
-		copy!(cn, c)
+		_copy!(cn, c)
 	end
 end
-Base.copy(t::Tree{MiscData}, T::DataType = MiscData) = node2tree(copy(t.root, Val(T)))
+Base.copy(t::Tree, T::DataType = MiscData) = node2tree(_copy(t.root, Val(T)))
 
 ###############################################################################################################
 ################################################### Clades ####################################################

@@ -13,7 +13,7 @@ struct Split
 		return new(dat)
 	end
 end
-Split(L::Integer) = Split(zeros(Int, L))
+Split(L::Integer) = Split(fill(typemax(Int), L))
 Base.length(s::Split) = length(s.dat)
 Base.iterate(s::Split) = iterate(s.dat)
 Base.iterate(s::Split, i::Integer) = iterate(s.dat, i)
@@ -97,15 +97,22 @@ Base.isempty(s::Split) = isempty(s.dat)
 
 Join `t` to `s`.
 """
-function joinsplits!(s::Split, t...)
+function joinsplits!(s::Split, t::Vararg{Split})
 	for x in t
 		append!(s.dat, x.dat)
 	end
 	sort!(s.dat)
 	unique!(s.dat)
 	return nothing
-end
 
+end
+# Same as above, but assume s is initialized with 0s, and start filling at index `i`.
+function _joinsplits!(s::Split, t::Split, i::Integer)
+	for j in 1:length(t)
+		s.dat[j + i - 1] = t.dat[j]
+	end
+	return nothing
+end
 """
 	joinsplits(s::Split, t::Split)
 
@@ -276,8 +283,9 @@ function leaves(S::SplitList, i)
 end
 
 function SplitList(t::Tree, mask=ones(Bool, length(t.lleaves)))
-	leaves = collect(keys(t.lleaves))
-	return SplitList(t.root, leaves, mask)
+	leaves = sort(collect(keys(t.lleaves)))
+	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves))
+	return SplitList(t.root, leaves, mask, leafmap)
 end
 function SplitList(r::TreeNode, leaves)
 	!issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
@@ -297,9 +305,13 @@ function SplitList(r::TreeNode, leaves)
 	_splitlist!(S, r, leafmap)
 	return S
 end
-function SplitList(r::TreeNode, leaves, mask)
+function SplitList(
+	r::TreeNode,
+	leaves,
+	mask,
+	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(sort(leaves)))
+)
 	!issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
-	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves_srt))
 	S = SplitList(
 		leaves_srt,
 		Array{Split,1}(undef,0),
@@ -318,14 +330,28 @@ Compute the split defined by `r` and store it in S, by first calling `_splitlist
 """
 function _splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
 	if r.isleaf
-		i = findfirst(==(r.label), S.leaves)
-		s = Split([i])
+		s = Split([leafmap[r.label]])
 	else
-		s = Split(0)
+		#s = Split(0)
+		L = 0
 		for c in r.child
 			sc = _splitlist!(S, c, leafmap)
-			joinsplits!(s,sc)
+			L += length(sc)
 		end
+		s = Split(L)
+		i = 1
+		for c in r.child
+			if c.isleaf
+				s.dat[i] = leafmap[c.label]
+				i += 1
+			else
+				sc = S.splitmap[c.label]
+				_joinsplits!(s,sc,i)
+				i += length(sc)
+			end
+		end
+		sort!(s.dat)
+		unique!(s.dat)
 		push!(S.splits, s)
 		S.splitmap[r.label] = s
 	end

@@ -7,12 +7,17 @@ abstract type TreeNodeData end
 
 
 """
-	mutable struct MiscData <: TreeNodeData
+	struct MiscData <: TreeNodeData
 """
-mutable struct MiscData <: TreeNodeData
+struct MiscData <: TreeNodeData
 	dat::Dict{Any,Any}
 end
 MiscData(; dat=Dict()) = MiscData(dat)
+
+"""
+"""
+struct EmptyData <: TreeNodeData
+end
 
 
 const DEFAULT_NODE_DATATYPE = MiscData
