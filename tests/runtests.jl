@@ -1,5 +1,5 @@
-include("test_objectmethods/test.jl")
-include("test_prunegraft/test.jl")
+include("methods/test.jl")
+include("prunegraft/test.jl")
 include("iterators/test.jl")
 include("splits/test.jl")
 include("sequences/test.jl")

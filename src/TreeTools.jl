@@ -8,8 +8,8 @@ using Debugger
 using BioSequences
 
 ##
-import Base: ==, cat, copy, getindex, in, intersect, isempty, isequal, iterate, length
-import Base: setdiff, show, unique, unique!
+import Base: ==, cat, copy, eachindex, getindex, in, intersect, isempty, isequal, iterate
+import Base: length, setdiff, show, unique, unique!
 
 ##
 include("objects.jl")
