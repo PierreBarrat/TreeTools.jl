@@ -88,7 +88,7 @@ end
 ##################################### Copy tree with different NodeData #######################################
 ###############################################################################################################
 
-function _copy(r::TreeNode, ::Val{T}) where T <: TreeNodeData
+function _copy(r::TreeNode, ::Type{T}) where T <: TreeNodeData
 	!r.isroot && error("Copying non-root node.")
 	data = T()
 	cr = TreeNode(
@@ -120,7 +120,7 @@ function _copy!(an::TreeNode{T}, n::TreeNode) where T <: TreeNodeData
 
 	return nothing
 end
-Base.copy(t::Tree, T::DataType = MiscData) = node2tree(_copy(t.root, Val(T)))
+Base.copy(t::Tree, T::DataType = MiscData) = node2tree(_copy(t.root, T))
 
 Base.convert(::Type{Tree{EmptyData}}, t::Tree) = copy(t, EmptyData)
 
