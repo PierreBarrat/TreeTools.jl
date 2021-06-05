@@ -1,11 +1,6 @@
 module TreeTools
 
 using FASTX
-using JSON
-using Dates
-using Distributions
-using Debugger
-using BioSequences
 
 ##
 import Base: ==, cat, copy, eachindex, getindex, in, intersect, isempty, isequal, iterate
