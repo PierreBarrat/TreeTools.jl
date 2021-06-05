@@ -117,6 +117,8 @@ function _copy!(an::TreeNode{T}, n::TreeNode) where T <: TreeNodeData
 	for c in n.child
 		_copy!(cn, c)
 	end
+
+	return nothing
 end
 Base.copy(t::Tree, T::DataType = MiscData) = node2tree(_copy(t.root, Val(T)))
 
