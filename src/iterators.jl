@@ -11,6 +11,7 @@ Post order traversal iterators
 abstract type POTIterator end
 
 Base.IteratorSize(::Type{POTIterator}) = Iterators.HasLength()
+Base.IteratorEltype(::Type{POTIterator}) = HasEltype()
 function Base.length(iter::POTIterator)
 	l = 0
 	for n in iter
@@ -18,14 +19,24 @@ function Base.length(iter::POTIterator)
 	end
 	return l
 end
+Base.iterate(itr::POTIterator) = firststate(itr, itr.root)
 
+"""
+	struct POT{T<:TreeNodeData} <: POTIterator
+		root::TreeNode{T}
+	end
+"""
 struct POT{T<:TreeNodeData} <: POTIterator
 	root::TreeNode{T}
 end
-
 Base.eltype(::Type{POT{T}}) where T = TreeNode{T}
 POT(t::Tree) = POT(t.root)
 
+"""
+	struct POTleaves{T<:TreeNodeData} <: POTIterator
+		root::TreeNode{T}
+	end
+"""
 struct POTleaves{T<:TreeNodeData} <: POTIterator
 	root::TreeNode{T}
 end
@@ -40,7 +51,6 @@ struct POTState{T<:TreeNodeData}
 end
 
 
-Base.iterate(itr::POTIterator) = firststate(itr, itr.root)
 """
 - `state.n.isleaf`: go to sibling and down or ancestor and up (stop if root)
 - Otherwise: go to deepest child and up.
@@ -96,7 +106,6 @@ function go_up(itr::POTleaves{T}, state::POTState{T}) where T
 		end
 	end
 end
-
 
 
 """

@@ -3,15 +3,15 @@ module TreeTools
 using FASTX
 
 ##
-import Base: ==, cat, convert, copy, eachindex, getindex, in, intersect, isempty, isequal
-import Base: iterate, length, setdiff, show, unique, unique!
+import Base: ==, cat, convert, copy, eachindex, eltype, getindex, in, intersect, isempty
+import Base: isequal, iterate, length, map!, setdiff, show, unique, unique!
 
 ##
 include("objects.jl")
 export Tree, TreeNode, TreeNodeData
 
 include("methods.jl")
-export lca, node2tree, node2tree!, node_depth, node_divtime, share_labels
+export lca, map!, node2tree, node2tree!, node_depth, node_divtime, share_labels
 
 include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals

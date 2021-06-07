@@ -65,9 +65,11 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	else
 		@error "Trying to prune root"
 	end
-	for x in POT(r) delete!(tree.lnodes, x.label) end
+	delnode(n) = delete!(tree.lnodes, n.label)
+	map!(delnode, r)
+	# for x in POT(r) delete!(tree.lnodes, x.label) end
 	for x in labellist delete!(tree.lleaves, x) end
-	#node2tree!(tree, tree.root)
+
 	remove_internal_singletons!(tree, ptau=true)
 	return subtree, a
 end

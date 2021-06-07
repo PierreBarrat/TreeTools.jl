@@ -292,9 +292,8 @@ function SplitList(r::TreeNode, leaves)
 	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves_srt))
 	# Compute mask : leaves that are descendents or `r`
 	mask = zeros(Bool, length(leaves_srt))
-	for x in POTleaves(r)
-		mask[leafmap[x.label]] = true
-	end
+	tmp(n) = if n.isleaf mask[leafmap[n.label]] = true end
+	map!(tmp, r)
 	#
 	S = SplitList(
 		leaves_srt,
