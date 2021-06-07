@@ -10,39 +10,32 @@ Post order traversal iterators
 =#
 abstract type POTIterator end
 
-struct POT{T<:TreeNodeData} <: POTIterator
-	root::TreeNode{T}
-end
-
-Base.eltype(::Type{POT{T}}) where T = TreeNode{T}
-Base.IteratorSize(::Type{POT{T}}) where T = Iterators.HasLength()
-function Base.length(iter::POT)
+Base.IteratorSize(::Type{POTIterator}) = Iterators.HasLength()
+function Base.length(iter::POTIterator)
 	l = 0
 	for n in iter
 		l += 1
 	end
 	return l
 end
+
+struct POT{T<:TreeNodeData} <: POTIterator
+	root::TreeNode{T}
+end
+
+Base.eltype(::Type{POT{T}}) where T = TreeNode{T}
 POT(t::Tree) = POT(t.root)
 
 struct POTleaves{T<:TreeNodeData} <: POTIterator
 	root::TreeNode{T}
 end
 Base.eltype(::Type{POTleaves{T}}) where T = TreeNode{T}
-Base.IteratorSize(::Type{POTleaves{T}}) where T = Iterators.HasLength()
-function Base.length(iter::POTleaves)
-	l = 0
-	for n in iter
-		l += 1
-	end
-	return l
-end
 POTleaves(t::Tree) = POTleaves(t.root)
 
 
 struct POTState{T<:TreeNodeData}
 	n::TreeNode{T}
-	i::Int64 # Position of n in list of siblings -- `n.anc.child[i]==n`
+	i::Int # Position of n in list of siblings -- `n.anc.child[i]==n`
 	direction::Symbol
 end
 
@@ -52,7 +45,7 @@ Base.iterate(itr::POTIterator) = firststate(itr, itr.root)
 - `state.n.isleaf`: go to sibling and down or ancestor and up (stop if root)
 - Otherwise: go to deepest child and up.
 """
-function Base.iterate(itr::POTIterator, state::POTState{T}) where T
+function Base.iterate(itr::POTIterator, state::POTState)
 	if state.direction == :down
 		return go_down(itr, state)
 	elseif state.direction == :up
@@ -61,6 +54,7 @@ function Base.iterate(itr::POTIterator, state::POTState{T}) where T
 		return nothing
 	end
 end
+
 
 function go_down(itr::POTIterator, state::POTState{T}) where T
 	if state.n.isleaf # Go back to ancestor or sibling anyway
