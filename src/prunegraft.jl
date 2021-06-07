@@ -58,7 +58,7 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	if clade_only && !isclade(labellist, tree)
 		error("Can't prune non-clade $labellist")
 	end
-	r = lca([tree.lnodes[x] for x in labellist])
+	r = lca(tree, labellist)
 	a = r.anc
 	if !r.isroot
 		subtree = node2tree(prunenode!(r)[1])

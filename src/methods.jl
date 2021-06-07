@@ -265,7 +265,7 @@ end
 
 Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable collection of `TreeNode` objects.
 """
-function lca(nodelist)
+function lca(nodelist::Vararg{<:TreeNode})
 	# Getting any element to start with
 	ca = first(nodelist)
 	for node in nodelist
@@ -275,11 +275,21 @@ function lca(nodelist)
 	end
 	return ca
 end
-lca(n::TreeNode, nodelist::Vararg{<:TreeNode}) = lca(vcat(n, collect(nodelist)))
+# lca(n::TreeNode) = n
+lca(nodelist) = lca(nodelist...)
+# lca(n::TreeNode, nodelist::Vararg{<:TreeNode}) = lca(vcat(n, collect(nodelist)))
 """
 	lca(t::Tree, labels::Array{<:AbstractString,1})
 """
-lca(t::Tree, labels::Array{<:AbstractString,1}) = lca([t.lnodes[n] for n in labels])
+function lca(t::Tree, labels)
+	ca = t.lnodes[first(labels)]
+	for l in labels
+		if !isancestor(ca, t.lnodes[l])
+			ca = lca(ca, t.lnodes[l])
+		end
+	end
+	return ca
+end
 
 """
 	blca(nodelist::Vararg{<:TreeNode})
