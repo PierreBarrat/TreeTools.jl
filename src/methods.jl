@@ -27,21 +27,20 @@ end
 Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true.
 If `node` is a leaf node, also add it to `tree.lleaves`.
 """
-function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
-	if in(node.label, keys(tree.lnodes))
-		error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
-	elseif isempty(node.label)
-		@warn "Adding node with empty label."
-	else
-		tree.lnodes[node.label] = node
-		if node.isleaf
-			tree.lleaves[node.label] = node
+function node2tree_addnode!(tree::Tree, node::TreeNode; safe = false)
+	if safe
+		if in(node.label, keys(tree.lnodes))
+			error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
+		elseif isempty(node.label)
+			error("Adding node with empty label.")
 		end
-		if addchildren
-			for c in node.child
-				node2tree_addnode!(tree, c; addchildren)
-			end
-		end
+	end
+	tree.lnodes[node.label] = node
+	if node.isleaf
+		tree.lleaves[node.label] = node
+	end
+	for c in node.child
+		node2tree_addnode!(tree, c; safe)
 	end
 end
 
@@ -84,7 +83,11 @@ function share_labels(tree1, tree2)
 
 end
 
+"""
+	Base.map!(f, r::TreeNode)
 
+Call `f(n)` on each node in the clade below `r`, `r` included. Return `nothing`.
+"""
 function Base.map!(f, r::TreeNode)
 	for c in r.child
 		map!(f, c)
@@ -100,12 +103,18 @@ end
 function _copy(r::TreeNode, ::Type{T}) where T <: TreeNodeData
 	!r.isroot && error("Copying non-root node.")
 	data = T()
+	child = if r.isleaf
+		Array{TreeNode{T}, 1}(undef, 0)
+	else
+		Array{TreeNode{T}, 1}(undef, length(r.child))
+	end
 	cr = TreeNode(
 		data;
 		anc = nothing, isleaf = r.isleaf, isroot = true, label = r.label, tau = r.tau,
+		child = child
 	)
-	for c in r.child
-		_copy!(cr, c)
+	for (i,c) in enumerate(r.child)
+		_copy!(cr, c, i)
 	end
 	return cr
 end
@@ -114,17 +123,23 @@ end
 
 Create a copy of `n` with node data type `T` and add it to the children of `an`.
 """
-function _copy!(an::TreeNode{T}, n::TreeNode) where T <: TreeNodeData
+function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 	data = T()
+	child = if n.isleaf
+		Array{TreeNode{T}, 1}(undef, 0)
+	else
+		Array{TreeNode{T}, 1}(undef, length(n.child))
+	end
 	cn = TreeNode(
 		data;
 		anc = an, isleaf = n.isleaf, isroot = n.isroot, label = n.label, tau = n.tau,
+		child = child
 	)
 	# Adding `cn` to the children of its ancestor `an`
-	push!(an.child, cn)
+	an.child[i] = cn
 	# Copying children of `n`
-	for c in n.child
-		_copy!(cn, c)
+	for (i,c) in enumerate(n.child)
+		_copy!(cn, c, i)
 	end
 
 	return nothing
@@ -275,9 +290,7 @@ function lca(nodelist::Vararg{<:TreeNode})
 	end
 	return ca
 end
-# lca(n::TreeNode) = n
 lca(nodelist) = lca(nodelist...)
-# lca(n::TreeNode, nodelist::Vararg{<:TreeNode}) = lca(vcat(n, collect(nodelist)))
 """
 	lca(t::Tree, labels::Array{<:AbstractString,1})
 """
