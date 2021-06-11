@@ -9,6 +9,7 @@ import Base: isempty, isequal, iterate, length, map!, setdiff, show, unique, uni
 ##
 include("objects.jl")
 export Tree, TreeNode, TreeNodeData
+export isleaf, isroot
 
 include("methods.jl")
 export lca, map!, node2tree, node2tree!, node_depth, node_divtime, share_labels

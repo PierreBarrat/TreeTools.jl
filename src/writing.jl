@@ -1,21 +1,27 @@
 """
-	write_newick(file::String, tree::Tree)
+	write_newick([file::String,] tree::Tree)
+
+Write `tree` as a newick string in `file`.
+  If `file` is not provided, return the newick string.
 """
-function write_newick(file::String, tree::Tree)
-	write_newick(file, tree.root)
-end
+write_newick(file::String, tree::Tree) = write_newick(file, tree.root)
+write_newick(tree::Tree) = write_newick(tree.root)
 
 
+
 """
-	write_newick(file::String, root::TreeNode)
+	write_newick([file::String,] root::TreeNode)
 """
 function write_newick(file::String, root::TreeNode)
-	out = write_newick!("", root)
-	out *= ';'
-	f = open(file, "w")
-	write(f, out)
-	close(f)
+	out = write_newick(root)
+	open(file, "w") do f
+		write(f, out)
+	end
+
+	return nothing
 end
+write_newick(root::TreeNode) = write_newick!("", root)*";"
+
 
 
 """
@@ -39,13 +45,5 @@ function write_newick!(s::String, root::TreeNode)
 	return s
 end
 
-"""
-	write_newick(root::TreeNode)
-
-Return a newick string.
-"""
-function write_newick(root::TreeNode)
-	return write_newick!("", root)*";"
-end
 
 

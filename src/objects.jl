@@ -62,6 +62,8 @@ function TreeNode(; data = default_node_datatype(),
 )
 	return TreeNode(anc, child, isleaf, isroot, label, tau, data)
 end
+isleaf(n) = n.isleaf
+isroot(n) = n.isroot
 
 
 """
