@@ -67,7 +67,6 @@ function prunesubtree!(tree, labellist; clade_only=true)
 	end
 	delnode(n) = delete!(tree.lnodes, n.label)
 	map!(delnode, r)
-	# for x in POT(r) delete!(tree.lnodes, x.label) end
 	for x in labellist delete!(tree.lleaves, x) end
 
 	remove_internal_singletons!(tree, ptau=true)

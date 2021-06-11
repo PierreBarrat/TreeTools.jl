@@ -12,13 +12,7 @@ abstract type POTIterator end
 
 Base.IteratorSize(::Type{POTIterator}) = Iterators.HasLength()
 Base.IteratorEltype(::Type{POTIterator}) = HasEltype()
-function Base.length(iter::POTIterator)
-	l = 0
-	for n in iter
-		l += 1
-	end
-	return l
-end
+
 Base.iterate(itr::POTIterator) = firststate(itr, itr.root)
 
 """
@@ -31,6 +25,9 @@ struct POT{T<:TreeNodeData} <: POTIterator
 end
 Base.eltype(::Type{POT{T}}) where T = TreeNode{T}
 POT(t::Tree) = POT(t.root)
+function Base.length(iter::POT)
+	return count(x->true, iter.root)
+end
 
 """
 	struct POTleaves{T<:TreeNodeData} <: POTIterator
@@ -42,7 +39,9 @@ struct POTleaves{T<:TreeNodeData} <: POTIterator
 end
 Base.eltype(::Type{POTleaves{T}}) where T = TreeNode{T}
 POTleaves(t::Tree) = POTleaves(t.root)
-
+function Base.length(iter::POTleaves)
+	return count(isleaf, iter.root)
+end
 
 struct POTState{T<:TreeNodeData}
 	n::TreeNode{T}

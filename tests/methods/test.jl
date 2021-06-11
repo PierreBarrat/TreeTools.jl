@@ -30,5 +30,9 @@ end
 
 @testset "Count" begin
 	t1 = node2tree(root_1)
+	@test count(isleaf, t1) == 4
+	@test count(n -> n.label[1] == 'A', t1) == 3
+	@test count(isleaf, t1.lnodes["AB"]) == 2
+	@test count(n -> n.label[1] == 'A', t1.lnodes["AB"]) == 2
 end
 

@@ -106,12 +106,14 @@ function Base.count(f, r::TreeNode)
 	c = _count(f, 0, r)
 	return c
 end
+Base.count(f, t::Tree) = count(f, t.root)
+
 function _count(f, c, r)
 	if f(r)
 		c += 1
 	end
-	for n in r.children
-		c += _count(f, c, n)
+	for n in r.child
+		c += _count(f, 0, n)
 	end
 	return c
 end
