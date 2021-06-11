@@ -96,6 +96,25 @@ function Base.map!(f, r::TreeNode)
 	return nothing
 end
 
+"""
+	Base.count(f, r::TreeNode)
+
+Call `f(n)` on each node in the clade below `r` and return the number of time it returns
+  `true`.
+"""
+function Base.count(f, r::TreeNode)
+	c = _count(f, 0, r)
+	return c
+end
+function _count(f, c, r)
+	if f(r)
+		c += 1
+	end
+	for n in r.children
+		c += _count(f, c, n)
+	end
+	return c
+end
 ###############################################################################################################
 ##################################### Copy tree with different NodeData #######################################
 ###############################################################################################################
@@ -110,8 +129,7 @@ function _copy(r::TreeNode, ::Type{T}) where T <: TreeNodeData
 	end
 	cr = TreeNode(
 		data;
-		anc = nothing, isleaf = r.isleaf, isroot = true, label = r.label, tau = r.tau,
-		child = child
+		anc=nothing, isleaf=r.isleaf, isroot=true, label=r.label, tau=r.tau, child=child
 	)
 	for (i,c) in enumerate(r.child)
 		_copy!(cr, c, i)
@@ -132,8 +150,7 @@ function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 	end
 	cn = TreeNode(
 		data;
-		anc = an, isleaf = n.isleaf, isroot = n.isroot, label = n.label, tau = n.tau,
-		child = child
+		anc=an, isleaf=n.isleaf, isroot=n.isroot, label=n.label, tau=n.tau, child=child
 	)
 	# Adding `cn` to the children of its ancestor `an`
 	an.child[i] = cn

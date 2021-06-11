@@ -3,8 +3,8 @@ module TreeTools
 using FASTX
 
 ##
-import Base: ==, cat, convert, copy, eachindex, eltype, getindex, in, intersect, isempty
-import Base: isequal, iterate, length, map!, setdiff, show, unique, unique!
+import Base: ==, cat, convert, copy, count, eachindex, eltype, getindex, in, intersect
+import Base: isempty, isequal, iterate, length, map!, setdiff, show, unique, unique!
 
 ##
 include("objects.jl")

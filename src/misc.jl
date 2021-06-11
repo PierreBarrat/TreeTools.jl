@@ -36,7 +36,7 @@ end
 Base.show(n::TreeNode) = show(stdout, n)
 
 """
-    nodeinfo(node::TreeNode)
+    nodeinfo(io, node)
 
 Print information about `node`.
 """
@@ -47,10 +47,6 @@ function nodeinfo(io, node)
 end
 
 
-"""
-    print_tree(io, node::TreeNode; vindent=2, hindent=5, hoffset=0)
-    print_tree(io, t::Tree; vindent=2, hindent=5, hoffset=0)
-"""
 function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=5)
     hspace = ""
     for i in 1:hindent
@@ -60,7 +56,15 @@ function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth
     for i in 1:hoffset
         offset *= " "
     end
-    cdepth <= maxdepth && println(io, "$offset $hspace $(node.label):$(node.tau)")
+    if cdepth < maxdepth
+    	println(io, "$offset $hspace $(node.label):$(node.tau)")
+    elseif cdepth == maxdepth
+    	if node.isleaf
+    		println(io, "$offset $hspace $(node.label):$(node.tau)")
+    	else
+    		println(io, "$offset $hspace $(node.label):$(node.tau) ...")
+    	end
+    end
         #
     if cdepth <= maxdepth
         if !node.isleaf
@@ -77,7 +81,7 @@ end
 function print_tree(io, node::TreeNode; vindent=2, hindent=5, maxdepth=5)
     print_tree_(io, node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
 end
-print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=4) = print_tree(io, t.root; vindent=2, hindent=5, maxdepth=maxdepth)
+print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=5) = print_tree(io, t.root; vindent=2, hindent=5, maxdepth=maxdepth)
 
 
 
