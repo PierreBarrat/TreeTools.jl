@@ -66,12 +66,17 @@ end
 # Let's pretend we found (A1,A2,B1,B2) and (C1,C2,D) to be MCCs
 Smcc = SplitList(S.leaves)
 append!(Smcc.splits, [Split([1,2,3,4]), Split([5,6,7])])
+U = union(S, Smcc)
 @testset "6" begin
 	Smapped = TreeTools.map_splits_to_tree(Smcc, t)
 	@test leaves(Smapped, 1) == ["A1", "A2", "B1", "B2"]
 	@test leaves(Smapped, 2) == ["A1", "A2", "B1", "B2", "C1", "C2", "D"]
 	@test iscompatible(Smapped[1], S)
 	@test iscompatible(Smapped[2], S)
+	@test in(Smcc.splits[1], U)
+	@test in(Smcc.splits[2], U)
+	union!(S, Smcc)
+	@test U == S
 end
 
 println()
