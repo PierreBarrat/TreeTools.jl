@@ -4,7 +4,7 @@
 Write `tree` as a newick string in `file`.
   If `file` is not provided, return the newick string.
 """
-write_newick(file::String, tree::Tree) = write_newick(file, tree.root)
+write_newick(file::String, tree::Tree, mode="w") = write_newick(file, tree.root, mode)
 write_newick(tree::Tree) = write_newick(tree.root)
 
 
@@ -12,9 +12,9 @@ write_newick(tree::Tree) = write_newick(tree.root)
 """
 	write_newick([file::String,] root::TreeNode)
 """
-function write_newick(file::String, root::TreeNode)
+function write_newick(file::String, root::TreeNode, mode = "w")
 	out = write_newick(root)
-	open(file, "w") do f
+	open(file, mode) do f
 		write(f, out)
 	end
 
