@@ -4,7 +4,8 @@ using FASTX
 
 ##
 import Base: ==, cat, convert, copy, count, eachindex, eltype, getindex, in, intersect
-import Base: isempty, isequal, iterate, length, map!, setdiff, show, unique, unique!
+import Base: isempty, isequal, iterate, length, map!, setdiff, show
+import Base: union, union!, unique, unique!
 
 ##
 include("objects.jl")

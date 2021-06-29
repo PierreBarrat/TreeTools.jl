@@ -125,8 +125,7 @@ function joinsplits(s::Split, t...)
 end
 
 """
-	is_sub_split(s::Split, t::Split)
-	is_sub_split(s::Split, t::Split, mask)
+	is_sub_split(s::Split, t::Split[, mask])
 
 Check if `s` is a subsplit of `t`.
 """
@@ -194,20 +193,20 @@ end
 """
 	SplitList{T}
 
-- `leaves::Array{T,1}`
+- `leaves::Array{T,1}`: labels of leaves
 - `splits::Array{Split,1}`
 - `mask::Array{Bool,1}`: subset of leaves for which splits apply.
 - `splitmap::Dict{T,Split}`: indicate the split corresponding to the branch above a node.
-  Only used is built from a tree with labels on internal nodes.
+  Only initialized if built from a tree with labels on internal nodes.
 
 # Constructors
 	SplitList(leaves::Array{T,1}) where T
 
 Empty `SplitList`.
 
-	SplitList(t::Tree[, mask=ones(Bool, length(t.lleaves))])
+	SplitList(t::Tree[, mask])
 
-List of splits in `t`.
+List of splits in `t`. `mask` defaults to ones.
 
 	SplitList(r::TreeNode, leaves[, mask])
 
@@ -391,15 +390,13 @@ end
 ==(S::SplitList, A::AbstractArray) = isequal(S,A)
 
 """
-	arecompatible(s::Split,t::Split)
-	arecompatible(s::Split,t::Split, mask::Array{Bool})
+	arecompatible(s::Split, t::Split[, mask::Array{Bool}])
 
 Are splits `s` and `t` compatible **in the cluster sense**.
-Three possible states: `(0,1), (1,0), (1,1)`. If all are seen, the splits are not compatible.
 
 	arecompatible(s::SplitList, i::Integer, j::Integer; mask=true)
 
-Are `s.splits[i]` and `s.splits[j]` compatible?
+Are `s.splits[i]` and `s.splits[j]` compatible **in the cluster sense**?
 """
 function arecompatible(s::Split, t::Split)
 	if is_sub_split(s, t) || is_sub_split(t, s)
@@ -430,7 +427,7 @@ end
 """
 	iscompatible(s::Split, S::SplitList, mask=S.mask; usemask=true)
 
-Is `s` compatible with all splits in `S`.
+Is `s` compatible with all splits in `S`?
 """
 function iscompatible(s::Split, S::SplitList, mask=S.mask; usemask=true)
 	for t in S
@@ -457,15 +454,7 @@ function Base.in(s::Split, S::SplitList, mask=S.mask; usemask=true)
 	end
 	return false
 end
-#function Base.in(s::AbstractArray, S::SplitList, mask=S.mask; usemask=true) where T
-#	ss = sort(s)
-#	for i in eachindex(S.splits)
-#		if (usemask && ss == leaves(S,i)) || (!usemask && ss == S.leaves[t.dat])
-#			return true
-#		end
-#	end
-#	return false
-#end
+
 
 """
 	setdiff(S::SplitList, T::SplitList, mask=:left)
@@ -502,7 +491,60 @@ function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
 end
 
 """
+	union(S::SplitList, T::SplitList, mask=:none)
+	union!(S::SplitList, T::SplitList, mask=:none)
+
+Build a union of `Split`s. Ignore potential incompatibilities. Possible values of
+  `mask` are `:none, :left, :right`.
+"""
+union, union!
+
+function Base.union!(S::SplitList, T::SplitList, mask=:none)
+	if mask == :none
+		m = ones(Bool, length(S.leaves))
+	elseif mask == :left
+		m = S.mask
+	elseif mask == :right
+		m = T.mask
+	else
+		@error "Unrecognized `mask` kw-arg."
+	end
+
+	for t in T
+		if !in(t, S, m)
+			push!(S.splits, t)
+		end
+	end
+
+	return S
+end
+
+function Base.union(S::SplitList, T::SplitList, mask=:none)
+	if mask == :none
+		m = ones(Bool, length(S.leaves))
+	elseif mask == :left
+		m = S.mask
+	elseif mask == :right
+		m = T.mask
+	else
+		@error "Unrecognized `mask` kw-arg."
+	end
+
+	U = SplitList(copy(S.leaves), deepcopy(S.splits), m, Dict())
+	println(typeof(U))
+	for t in T
+		if !in(t, S, m)
+			push!(U.splits, t)
+		end
+	end
+
+	return U
+end
+
+"""
 	intersect(S::SplitList, T::SplitList, mask=:none)
+
+Build an intersection of `Split`s. Possible values of `mask` are `:none, :left, :right`.
 """
 function Base.intersect(S::SplitList, T::SplitList, mask=:none)
 	if mask == :none
@@ -525,8 +567,11 @@ function Base.intersect(S::SplitList, T::SplitList, mask=:none)
 end
 
 """
+	unique(S::SplitList; usemask=true)
 	unique!(S::SplitList; usemask=true)
 """
+unique, unique!
+
 function Base.unique!(S::SplitList; usemask=true)
 	todel = Int64[]
 	hashes = Dict{Array{Int,1}, Bool}()
@@ -539,9 +584,6 @@ function Base.unique!(S::SplitList; usemask=true)
 	deleteat!(S.splits, todel)
 end
 
-"""
-	unique(S::SplitList; usemask=true)
-"""
 function Base.unique(S::SplitList; usemask=true)
 	Sc = deepcopy(S)
 	unique!(Sc, usemask=usemask)

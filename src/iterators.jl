@@ -1,3 +1,16 @@
+"""
+	nodes(t)
+	leaves(t)
+	internals(t)
+
+Iterator over all nodes / leaves / internal nodes of a tree.
+
+# Note
+`length` cannot be called on `internals(t)` as the latter is based on `Iterators.filter`.
+  A way to get the number of internal nodes of a tree is for example by calling
+  `length(nodes(t)) - length(leaves(t))`.
+"""
+nodes, leaves, internals
 nodes(t) = values(t.lnodes)
 leaves(t) = values(t.lleaves)
 internals(t) = Iterators.filter(x->!x.isleaf, values(t.lnodes))
