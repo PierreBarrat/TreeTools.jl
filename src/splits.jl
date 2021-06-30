@@ -499,7 +499,7 @@ Build a union of `Split`s. Ignore potential incompatibilities. Possible values o
 """
 union, union!
 
-function Base.union!(S::SplitList, T::SplitList, mask=:none)
+function Base.union!(S::SplitList, T::SplitList; mask=:none)
 	if mask == :none
 		m = ones(Bool, length(S.leaves))
 	elseif mask == :left
@@ -518,8 +518,14 @@ function Base.union!(S::SplitList, T::SplitList, mask=:none)
 
 	return S
 end
+function Base.union!(S::SplitList, T...; mask=:none)
+	for t in T
+		union!(S, t)
+	end
+	return S
+end
 
-function Base.union(S::SplitList, T::SplitList, mask=:none)
+function Base.union(S::SplitList, T...; mask=:none)
 	if mask == :none
 		m = ones(Bool, length(S.leaves))
 	elseif mask == :left
@@ -530,16 +536,12 @@ function Base.union(S::SplitList, T::SplitList, mask=:none)
 		@error "Unrecognized `mask` kw-arg."
 	end
 
-	U = SplitList(copy(S.leaves), deepcopy(S.splits), m, Dict())
-	println(typeof(U))
-	for t in T
-		if !in(t, S, m)
-			push!(U.splits, t)
-		end
-	end
+	U = SplitList(copy(S.leaves))
+	union!(U, S, T...; mask)
 
 	return U
 end
+
 
 """
 	intersect(S::SplitList, T::SplitList, mask=:none)
