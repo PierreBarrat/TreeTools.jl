@@ -3,7 +3,8 @@ using TreeTools
 
 println("##### splits #####")
 
-t = read_tree("splits/tree1.nwk") # (((A1,A2),(B1,B2),(C1,C2)),D,E);
+nwk1 = "(((A1,A2),(B1,B2),(C1,C2)),D,E)"
+t = node2tree(parse_newick(nwk1)) #
 S = SplitList(t)
 
 @testset "1" begin

@@ -2,9 +2,14 @@ module TreeTools
 
 using FASTX
 
-##
-import Base: ==, cat, convert, copy, count, eachindex, eltype, getindex, in, intersect
-import Base: isempty, isequal, iterate, length, map!, setdiff, show
+## Iteration
+import Base: eltype, iterate, IteratorEltype, IteratorSize, length
+## Indexing
+import Base: eachindex, firstindex, getindex, lastindex, setindex!
+
+## Others
+import Base: ==, cat, convert, copy, count, hash, in, intersect
+import Base: isempty, isequal, map!, setdiff, show, size
 import Base: union, union!, unique, unique!
 
 ##

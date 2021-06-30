@@ -20,7 +20,8 @@ end
 function Base.:(==)(x::Mutation, y::Mutation)
 	mapreduce(f->getfield(x,f)==getfield(y,f), *, fieldnames(Mutation), init=true)
 end
-Base.isequal(x::Mutation, y::Mutation) = (==(x,y))
+Base.hash(x::Mutation, h::UInt) = hash((x.i, x.old, x.new), h)
+
 Base.reverse(x::Mutation) = Mutation(x.i, x.new. x.old)
 function isreverse(x::Mutation, y::Mutation)
 	(x.i == y.i) && (x.old == y.new) && (x.new == y.old)

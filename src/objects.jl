@@ -75,6 +75,7 @@ function Base.isequal(x::TreeNode, y::TreeNode)
 	return x.label == y.label
 end
 Base.:(==)(x::TreeNode, y::TreeNode) = isequal(x,y)
+Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 
 
 """

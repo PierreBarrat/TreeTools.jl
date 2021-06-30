@@ -14,10 +14,21 @@ struct Split
 	end
 end
 Split(L::Integer) = Split(fill(typemax(Int), L))
-Base.length(s::Split) = length(s.dat)
+
+# Iteration
 Base.iterate(s::Split) = iterate(s.dat)
 Base.iterate(s::Split, i::Integer) = iterate(s.dat, i)
+Base.IteratorSize(::Type{Split}) = HasLength()
+Base.length(s::Split) = length(s.dat)
+Base.size(s::Split) = length(s)
+Base.IteratorEltype(::Type{Split}) = HasEltype()
+Base.eltype(::Type{Split}) = Int
+Base.eltype(::Split) = Int
+
+# Indexing
 Base.getindex(s::Split, i::Integer) = s.dat[i]
+
+# Equality
 Base.:(==)(s::Split, t::Split) = (s.dat == t.dat)
 """
 	isequal(s::Split, t::Split[, mask::Array{Bool,1}])
@@ -40,6 +51,7 @@ function Base.isequal(s::Split, t::Split, mask::Array{Bool,1})
 	return true
 end
 Base.isequal(s::Split, t::Split) = (s.dat == t.dat)
+Base.hash(s::Split, h::UInt) = hash(s.dat, h)
 
 
 """
@@ -248,18 +260,30 @@ function SplitList(leaves::Array{T,1}) where T
 	)
 end
 
-Base.length(S::SplitList) = length(S.splits)
+# Iteration
 Base.iterate(S::SplitList) = iterate(S.splits)
 Base.iterate(S::SplitList, i::Integer) = iterate(S.splits, i)
-Base.getindex(S::SplitList, i::Integer) = getindex(S.splits, i)
+Base.IteratorSize(::Type{SplitList}) = HasLength()
+Base.length(S::SplitList) = length(S.splits)
+Base.IteratorEltype(::Type{SplitList}) = HasEltype()
+Base.eltype(::Type{SplitList}) = TreeTools.Split
+Base.eltype(::SplitList) = Split
+
+# Indexing
+Base.getindex(S::SplitList, i) = getindex(S.splits, i)
+Base.setindex!(S::SplitList, s::Split, i) = setindex!(S.splits, s, i)
+Base.firstindex(S::SplitList) = firstindex(S.splits)
 Base.lastindex(S::SplitList) = lastindex(S.splits)
 Base.eachindex(S::SplitList) = eachindex(S.splits)
 Base.isempty(S::SplitList) = isempty(S.splits)
+
+# Equality
 function Base.:(==)(S::SplitList, T::SplitList)
 	S.leaves == T.leaves &&
 	sort(S.splits, by=x->x.dat) == sort(T.splits, by=x->x.dat) &&
 	S.mask == T.mask
 end
+Base.hash(S::SplitList, h::UInt) = hash(S.splits, h)
 
 function Base.cat(aS::Vararg{SplitList{T}}) where T
 	if !mapreduce(S->S.leaves==aS[1].leaves && S.mask==aS[1].mask, *, aS, init=true)
