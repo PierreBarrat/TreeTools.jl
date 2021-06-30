@@ -20,7 +20,7 @@ Base.iterate(s::Split, i::Integer) = iterate(s.dat, i)
 Base.getindex(s::Split, i::Integer) = s.dat[i]
 Base.:(==)(s::Split, t::Split) = (s.dat == t.dat)
 """
-	isequal(s::Split, t::Split, mask::Array{Bool,1})
+	isequal(s::Split, t::Split[, mask::Array{Bool,1}])
 
 Test for equality between splits restricted to `mask`.
 """
@@ -39,6 +39,8 @@ function Base.isequal(s::Split, t::Split, mask::Array{Bool,1})
 
 	return true
 end
+Base.isequal(s::Split, t::Split) = (s.dat == t.dat)
+
 
 """
 	is_root_split(s::Split, mask::Array{Bool,1})
