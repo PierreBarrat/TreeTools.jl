@@ -20,7 +20,7 @@ struct EmptyData <: TreeNodeData
 end
 
 
-const DEFAULT_NODE_DATATYPE = MiscData
+const DEFAULT_NODE_DATATYPE = EmptyData
 
 """
 	mutable struct TreeNode{T <: TreeNodeData}
@@ -52,9 +52,9 @@ function TreeNode(data::T;
 ) where T
 	return TreeNode(anc, child, isleaf, isroot, label, tau, data)
 end
-function TreeNode(; data = default_node_datatype(),
+function TreeNode(; data = DEFAULT_NODE_DATATYPE(),
 	anc = nothing,
-	child = Array{TreeNode{default_node_datatype},1}(undef, 0),
+	child = Array{TreeNode{DEFAULT_NODE_DATATYPE},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
 	label = "",

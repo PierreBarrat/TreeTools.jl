@@ -2,7 +2,7 @@ using Test
 using TreeTools
 using BioSequences
 
-t = read_tree("sequences/tree.nwk")
+t = read_tree("sequences/tree.nwk", NodeDataType=TreeTools.MiscData)
 alnfile = "sequences/aln.fasta"
 incomplete_alnfile = "sequences/aln_incomplete.fasta"
 
