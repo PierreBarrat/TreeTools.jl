@@ -36,3 +36,6 @@ end
     @test root == TreeTools.read_newick("prunegraft/tree_testnullbranches_.nwk")
 end
 
+
+nwk1 = "(A,(B,(C,D)))"
+t1 = node2tree(TreeTools.parse_newick(nwk1))

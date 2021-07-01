@@ -1,7 +1,8 @@
 """
 	prunenode!(node::TreeNode)
 
-Prune node `node` by detaching it from its ancestor. Return pruned `node` and the root of its ancestor. The whole tree is modified.
+Prune node `node` by detaching it from its ancestor. Return pruned `node` and its previous
+  ancestor.
 """
 function prunenode!(node::TreeNode)
 	if node.isroot
@@ -11,7 +12,7 @@ function prunenode!(node::TreeNode)
 	anc = node.anc
 	for (i,c) in enumerate(anc.child)
 		if c == node
-			splice!(anc.child,i)
+			deleteat!(anc.child,i)
 			break
 		end
 	end
@@ -20,7 +21,7 @@ function prunenode!(node::TreeNode)
 	end
 	node.anc = nothing
 	node.isroot = true
-	return node, node_findroot(anc)
+	return node, anc
 end
 
 """
@@ -39,7 +40,7 @@ function prunenode(node::TreeNode)
 	anc = node_.anc
 	for (i,c) in enumerate(anc.child)
 		if c == node_
-			splice!(anc.child,i)
+			deleteat!(anc.child,i)
 			break
 		end
 	end
@@ -50,29 +51,39 @@ end
 
 
 """
+	prunesubtree!(tree, r::TreeNode)
 	prunesubtree!(tree, labellist)
 
-Prune and subtree corresponding to the MRCA of labels in `labellist`. Return the root of the subtree as well as its previous direct ancestor.
+Prune and subtree corresponding to the MRCA of labels in `labellist`.
+  Return the root of the subtree as well as its previous direct ancestor.
 """
 function prunesubtree!(tree, labellist; clade_only=true)
 	if clade_only && !isclade(labellist, tree)
 		error("Can't prune non-clade $labellist")
 	end
 	r = lca(tree, labellist)
-	a = r.anc
-	if !r.isroot
-		subtree = node2tree(prunenode!(r)[1])
-	else
-		@error "Trying to prune root"
-	end
-	delnode(n) = delete!(tree.lnodes, n.label)
-	map!(delnode, r)
-	for x in labellist delete!(tree.lleaves, x) end
-
-	remove_internal_singletons!(tree, ptau=true)
-	return subtree, a
+	return prunesubtree!(tree, r)
 end
 
+function prunesubtree!(tree, r::TreeNode; remove_singletons=true)
+	if r.isroot
+		@error "Trying to prune root"
+	end
+
+	a = r.anc
+	delnode(n) = begin
+		delete!(tree.lnodes, n.label)
+		if n.isleaf
+			delete!(tree.lleaves, n.label)
+		end
+	end
+	map!(delnode, r)
+	prunenode!(r)
+	if remove_singletons
+		remove_internal_singletons!(tree, ptau=true)
+	end
+	return r, a
+end
 
 """
 	remove_internal_singletons!(tree; ptau=true)
@@ -133,11 +144,7 @@ function delete_node!(node::TreeNode; ptau=false)
 		prunenode!(node)
 	else
 		base_tau = node.tau
-		child_list = []
-		for c in node.child
-			push!(child_list, c)
-		end
-		for c in child_list
+		for c in reverse(node.child)
 			nc = prunenode!(c)[1]
 			graftnode!(node.anc, nc, tau = (base_tau*ptau + nc.tau))
 		end
@@ -228,7 +235,7 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 			@warn "There was a problem with input tree: previous root node has an ancestor."
 		elseif newroot != nothing
 			i = findfirst(c->c.label==newroot.label, node.child)
-			splice!(node.child, i)
+			deleteat!(node.child, i)
 			node.anc = newroot
 			node.tau = newroot.tau
 			node.isroot = false
@@ -245,7 +252,7 @@ function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing
 			node.tau = missing
 		else
 			i = findfirst(c->c.label==newroot.label, node.child)
-			splice!(node.child, i)
+			deleteat!(node.child, i)
 			reroot!(node.anc, newroot=node)
 			push!(node.child, node.anc)
 			node.anc = newroot
