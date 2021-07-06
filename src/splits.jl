@@ -645,20 +645,20 @@ end
 
 
 """
-	map_splits_to_tree(S::Array{<:SplitList,1}, t::Tree)
+	map_splits_to_tree(S_array::Array{<:SplitList,1}, t::Tree)
 
 Call `map_splits_to_tree(S::SplitList, t::Tree)` for all elements of `S`.
 Return a single `SplitList`.
 """
-function map_splits_to_tree(S::Array{SplitList{T},1}, t::Tree) where T
+function map_splits_to_tree(S_array::Array{SplitList{T},1}, t::Tree) where T
 	out = SplitList(
 		sort(collect(keys(t.lleaves))),
 		Array{Split,1}(undef,0),
 		ones(Bool, length(t.lleaves)), Dict{T, Split}(),
 	)
 	treesplits = SplitList(t)
-	for tmp in S
-		mS = TreeTools.map_splits_to_tree(tmp, t, treesplits)
+	for S in S_array
+		mS = TreeTools.map_splits_to_tree(S, t, treesplits)
 		for s in mS
 			push!(out.splits, s)
 		end

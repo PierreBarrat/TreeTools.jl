@@ -17,7 +17,7 @@ end
 function node2tree!(tree::Tree, root::TreeNode)
 	tree.root = root
 	tree.lnodes = Dict{String, TreeNode}()
-	tree.lleaves = Dict{fieldtype(TreeNode,:label), TreeNode}()
+	tree.lleaves = Dict{String, TreeNode}()
 	node2tree_addnode!(tree, root)
 end
 
@@ -163,7 +163,7 @@ function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 
 	return nothing
 end
-Base.copy(t::Tree, T::DataType = MiscData) = node2tree(_copy(t.root, T))
+Base.copy(t::Tree, T::DataType = EmptyData) = node2tree(_copy(t.root, T))
 
 Base.convert(::Type{Tree{EmptyData}}, t::Tree) = copy(t, EmptyData)
 
