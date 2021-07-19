@@ -343,11 +343,11 @@ end
 
 
 """
-	node_divtime(i_node::TreeNode, j_node::TreeNode)
+	divtime(i_node::TreeNode, j_node::TreeNode)
 
 Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.tau` values.
 """
-function node_divtime(i_node::TreeNode, j_node::TreeNode)
+function divtime(i_node::TreeNode, j_node::TreeNode)
 	a_node = lca(i_node, j_node)
 	tau = 0.
 	ii_node = i_node

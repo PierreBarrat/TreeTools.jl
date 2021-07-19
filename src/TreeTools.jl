@@ -18,7 +18,7 @@ export Tree, TreeNode, TreeNodeData
 export isleaf, isroot
 
 include("methods.jl")
-export lca, map!, node2tree, node2tree!, node_depth, node_divtime, share_labels
+export lca, map!, node2tree, node2tree!, node_depth, divtime, share_labels
 
 include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals
