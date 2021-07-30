@@ -1,6 +1,7 @@
 module TreeTools
 
 using FASTX
+using Random
 
 ## Iteration
 import Base: eltype, iterate, IteratorEltype, IteratorSize, length

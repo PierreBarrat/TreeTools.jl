@@ -140,7 +140,7 @@ end
 """
     create_label(t::Tree, base="NODE")
 
-Create new node label in tree `t` with format `base_i` with `i::Int`.
+Create new node label in tree `t` with format `\$(base)_i` with `i::Int`.
 """
 function create_label(t::Tree, base="NODE")
     label_init = 1
@@ -151,6 +151,14 @@ function create_label(t::Tree, base="NODE")
         end
     end
     return "$(base)_$(label_init)"
+end
+
+function set_unique_label!(node::TreeNode, t::Tree; delim = '|')
+	id = randstring(5)
+	node.label *= delim * id
+	while haskey(t.lnodes, node.label)
+		node.label = node.label[1:end-5] * randstring(5)
+	end
 end
 
 """

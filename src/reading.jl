@@ -151,10 +151,10 @@ function nw_parse_name(s::AbstractString)
 	temp = split(s, ":")
 	if occursin(':', s) # Node has a time
 		if length(temp) == 2 # Node also has a name, return both
-			tau = (tau = tryparse(Float64,temp[2]); typeof(tau)==Nothing ? missing : tau) # Dealing with unparsable times
+			tau = (tau = tryparse(Float64,temp[2]); isnothing(tau) ? missing : tau) # Dealing with unparsable times
 			return string(temp[1]), tau
 		else # Return empty name
-			tau = (tau = tryparse(Float64,temp[1]); typeof(tau)==Nothing ? missing : tau) # Dealing with unparsable times
+			tau = (tau = tryparse(Float64,temp[1]); isnothing(tau) ? missing : tau) # Dealing with unparsable times
 			return "", tau
 		end
 	else # Node does not have a time, return string as name

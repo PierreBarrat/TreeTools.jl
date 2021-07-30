@@ -8,33 +8,37 @@
 
 Create a `Tree` object from `root`.
 """
-function node2tree(root::TreeNode{T}) where T
+function node2tree(root::TreeNode{T}; safe=false) where T
 	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}())
-	node2tree_addnode!(tree, root)
+	node2tree_addnode!(tree, root; safe)
 	return tree
 end
 
-function node2tree!(tree::Tree, root::TreeNode)
+function node2tree!(tree::Tree, root::TreeNode; safe=false)
 	tree.root = root
 	tree.lnodes = Dict{String, TreeNode}()
 	tree.lleaves = Dict{String, TreeNode}()
-	node2tree_addnode!(tree, root)
+	node2tree_addnode!(tree, root; safe)
 end
 
 """
-	function node2tree_addnode!(tree::Tree, node::TreeNode; addchildren = true)
+	function node2tree_addnode!(tree::Tree, node::TreeNode; safe = true)
 
 Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true.
 If `node` is a leaf node, also add it to `tree.lleaves`.
 """
-function node2tree_addnode!(tree::Tree, node::TreeNode; safe = false)
-	if safe
-		if in(node.label, keys(tree.lnodes))
+function node2tree_addnode!(tree::Tree, node::TreeNode; safe=false)
+	if safe && isempty(node.label)
+		error("Adding node with empty label.")
+	end
+	if haskey(tree.lnodes, node.label)
+		if safe
 			error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
-		elseif isempty(node.label)
-			error("Adding node with empty label.")
+		else
+			set_unique_label!(node, tree; delim="__")
 		end
 	end
+
 	tree.lnodes[node.label] = node
 	if node.isleaf
 		tree.lleaves[node.label] = node
