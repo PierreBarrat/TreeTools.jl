@@ -153,7 +153,7 @@ function create_label(t::Tree, base="NODE")
     return "$(base)_$(label_init)"
 end
 
-function set_unique_label!(node::TreeNode, t::Tree; delim = '|')
+function set_unique_label!(node::TreeNode, t::Tree; delim = "__")
 	id = randstring(5)
 	node.label *= delim * id
 	while haskey(t.lnodes, node.label)

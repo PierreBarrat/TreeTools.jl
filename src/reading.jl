@@ -4,27 +4,40 @@ let n::Int64=0
 end
 
 """
-	read_tree(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+	read_tree(
+		nw_file::AbstractString;
+		NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+	)
 
 Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
-`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*. In other words, the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`.
+`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*: the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`.
+Use `force_new_labels=true` to force the renaming of all internal nodes.
 """
-function read_tree(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
-	tree = node2tree(read_newick(nw_file; NodeDataType))
+function read_tree(
+	nw_file::AbstractString;
+	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+)
+	tree = node2tree(read_newick(nw_file; NodeDataType); force_new_labels)
 	check_tree(tree)
 	return tree
 end
 
 """
-	parse_newick_string(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+	parse_newick_string(
+		nw::AbstractString;
+		NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+	)
 
-Parse newick string into a tree.
+Parse newick string into a tree. See `read_tree` for more informations.
 """
-function parse_newick_string(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+function parse_newick_string(
+	nw::AbstractString;
+	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+)
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true
-	tree = node2tree(root)
+	tree = node2tree(root, force_new_labels)
 	check_tree(tree)
 	return tree
 end

@@ -4,21 +4,21 @@
 
 
 """
-	node2tree(root::TreeNode)
+	node2tree(root::TreeNode{T}; force_new_labels=false)
 
 Create a `Tree` object from `root`.
 """
-function node2tree(root::TreeNode{T}; safe=false) where T
+function node2tree(root::TreeNode{T}; force_new_labels=false) where T
 	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}())
-	node2tree_addnode!(tree, root; safe)
+	node2tree_addnode!(tree, root; force_new_labels)
 	return tree
 end
 
-function node2tree!(tree::Tree, root::TreeNode; safe=false)
+function node2tree!(tree::Tree, root::TreeNode; force_new_labels=false)
 	tree.root = root
 	tree.lnodes = Dict{String, TreeNode}()
 	tree.lleaves = Dict{String, TreeNode}()
-	node2tree_addnode!(tree, root; safe)
+	node2tree_addnode!(tree, root; force_new_labels)
 end
 
 """
@@ -27,16 +27,12 @@ end
 Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true.
 If `node` is a leaf node, also add it to `tree.lleaves`.
 """
-function node2tree_addnode!(tree::Tree, node::TreeNode; safe=false)
-	if safe && isempty(node.label)
-		error("Adding node with empty label.")
+function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
+	if node.isleaf && haskey(tree.lnodes, node.label)
+		error("Leaf $(node.label) appears twice in the tree.")
 	end
-	if haskey(tree.lnodes, node.label)
-		if safe
-			error("Trying to add node $(node.label) to an already existing key: $(tree.lnodes[node.label]).")
-		else
-			set_unique_label!(node, tree; delim="__")
-		end
+	if !node.isleaf && (isempty(node.label) || haskey(tree.lnodes, node.label) || force_new_labels)
+		set_unique_label!(node, tree; delim="__")
 	end
 
 	tree.lnodes[node.label] = node
@@ -44,7 +40,7 @@ function node2tree_addnode!(tree::Tree, node::TreeNode; safe=false)
 		tree.lleaves[node.label] = node
 	end
 	for c in node.child
-		node2tree_addnode!(tree, c; safe)
+		node2tree_addnode!(tree, c; force_new_labels)
 	end
 end
 
