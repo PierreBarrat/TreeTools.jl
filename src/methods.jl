@@ -163,6 +163,9 @@ function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 
 	return nothing
 end
+"""
+	copy(t::Tree, T::DataType = EmptyData)
+"""
 Base.copy(t::Tree, T::DataType = EmptyData) = node2tree(_copy(t.root, T))
 
 Base.convert(::Type{Tree{EmptyData}}, t::Tree) = copy(t, EmptyData)
