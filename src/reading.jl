@@ -37,7 +37,7 @@ function parse_newick_string(
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true
-	tree = node2tree(root, force_new_labels)
+	tree = node2tree(root; force_new_labels)
 	check_tree(tree)
 	return tree
 end
@@ -107,7 +107,7 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType)
 		root.isleaf = false
 		if parts[1][1] != '('
 			println(parts[1][1])
-			error("Parenthesis mismatch.")
+			error("Parenthesis mismatch. This may be caused by spaces in the newick string.")
 		else
 			parts[1] = parts[1][2:end] # Removing first bracket
 		end
