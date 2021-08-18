@@ -60,10 +60,13 @@ end
 """
 	write_fasta(file::AbstractString, tree, seqkey = :selfseq ; internal = false)
 """
-function write_fasta(file::AbstractString, tree, seqkey = :selfseq ; internal = false)
+function write_fasta(
+	file::AbstractString, tree, seqkey = :selfseq;
+	internal = false, root=false,
+)
 	open(FASTA.Writer, file) do f
 		for n in nodes(tree)
-			if internal || n.isleaf
+			if internal || (root && n.isroot) || n.isleaf
 				rec = FASTA.Record(n.label, recursive_get(n.data.dat, seqkey))
 				write(f, rec)
 			end
