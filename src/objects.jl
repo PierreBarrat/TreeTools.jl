@@ -54,7 +54,7 @@ function TreeNode(data::T;
 end
 function TreeNode(; data = DEFAULT_NODE_DATATYPE(),
 	anc = nothing,
-	child = Array{TreeNode{DEFAULT_NODE_DATATYPE},1}(undef, 0),
+	child = Array{TreeNode{typeof(data)},1}(undef, 0),
 	isleaf = true,
 	isroot = true,
 	label = "",
