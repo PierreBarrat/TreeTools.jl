@@ -32,13 +32,13 @@ Parse newick string into a tree. See `read_tree` for more informations.
 """
 function parse_newick_string(
 	nw::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false, strict=true,
 )
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true
 	tree = node2tree(root; force_new_labels)
-	check_tree(tree)
+	check_tree(tree; strict)
 	return tree
 end
 
@@ -97,6 +97,8 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType)
 	lab, tau = nw_parse_name(String(parts[end]))
 	if lab == ""
 		lab = "NODE_$(increment_n())"
+	elseif length(lab) > 1 && lab[1:2] == "[&" # Deal with extended newick annotations
+		lab = "NODE_$(increment_n())" * lab
 	end
 
 	root.label, root.tau = (lab,tau)
@@ -135,12 +137,17 @@ Split a string of children in newick format to an array of strings.
 """
 function nw_parse_children(s::AbstractString)
 	parcount = 0
+	annotation = false # For reading extended newick grammar, with [&key=val] after label
 	l_children = []
 	current = ""
 	cstart = 1
 	cend = 1
 	for (i,c) in enumerate("$(s),")
-		if c == ',' && parcount == 0
+		if c == '['
+			annotation = true
+		elseif c == ']'
+			annotation = false
+		elseif c == ',' && parcount == 0 && annotation == false
 			cend = i-1
 			push!(l_children, s[cstart:cend])
 			cstart = i+1

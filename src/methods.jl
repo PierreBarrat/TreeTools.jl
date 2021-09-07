@@ -28,13 +28,16 @@ Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node
 If `node` is a leaf node, also add it to `tree.lleaves`.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
-	if node.isleaf && haskey(tree.lnodes, node.label)
-		error("Leaf $(node.label) appears twice in the tree.")
-	end
-	if !node.isleaf && (isempty(node.label) || haskey(tree.lnodes, node.label) || force_new_labels)
+	# if node.isleaf && haskey(tree.lnodes, node.label)
+	# 	error("Leaf $(node.label) appears twice in the tree.")
+	# end
+	if isempty(node.label) || (haskey(tree.lnodes, node.label) && force_new_labels)
 		set_unique_label!(node, tree; delim="__")
 	end
 
+	if haskey(tree.lnodes, node.label)
+		error("Node $(node.label) appears twice in tree. Use `force_new_labels`.")
+	end
 	tree.lnodes[node.label] = node
 	if node.isleaf
 		tree.lleaves[node.label] = node
