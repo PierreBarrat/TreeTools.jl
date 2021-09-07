@@ -152,6 +152,16 @@ function delete_node!(node::TreeNode; ptau=false)
 	end
 	return out
 end
+"""
+	delete_node!(t::Tree, label; ptau=false)
+"""
+function delete_node!(t::Tree, label; ptau=false)
+	delete_node!(t.lnodes[label]; ptau)
+	delete!(t.lnodes, label)
+	haskey(t.lleaves, label) && delete!(t.lleaves, label)
+	remove_internal_singletons!(t; ptau)
+	return nothing
+end
 
 
 function delete_null_branches!(node::TreeNode; threshold = 1e-10)
