@@ -253,7 +253,7 @@ end
 """
 	node_depth(node::TreeNode)
 
-Distance from `node` to root.
+Topologic distance from `node` to root.
 """
 function node_depth(node::TreeNode)
 	d = 0
@@ -318,6 +318,7 @@ end
 lca(nodelist) = lca(nodelist...)
 """
 	lca(t::Tree, labels::Array{<:AbstractString,1})
+	lca(t::Tree, labels...)
 """
 function lca(t::Tree, labels)
 	ca = t.lnodes[first(labels)]
@@ -328,6 +329,7 @@ function lca(t::Tree, labels)
 	end
 	return ca
 end
+lca(t::Tree, labels::Vararg{<:AbstractString}) = lca(t, collect(labels))
 
 """
 	blca(nodelist::Vararg{<:TreeNode})
