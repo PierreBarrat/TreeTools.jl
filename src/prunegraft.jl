@@ -119,7 +119,7 @@ Graft `n` on `r`.
 """
 function graftnode!(r::TreeNode, n::TreeNode ; tau=n.tau)
 	if !n.isroot || n.anc != nothing
-		@error "Trying to graft non-root node."
+		@error "Trying to graft non-root node $(n)."
 	end
 	push!(r.child, n)
 	r.isleaf = false
@@ -282,4 +282,29 @@ function reroot!(tree::Tree, node::AbstractString)
 	return nothing
 end
 
+"""
+	add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real)
+
+Add internal singleton above `n` and below `a`, at heigh `τ` above `n`.
+Return the singleton.
+"""
+function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label; v = false)
+	# Branch length above n and above the singleton
+	nτ, sτ = n.tau >= τ ? (τ, n.tau - τ) : (n.tau, 0.)
+
+	s = TreeNode(; tau = sτ, label)
+	prunenode!(n)
+	n.tau = nτ
+	graftnode!(a, s)
+	graftnode!(s, n)
+	return s
+end
+function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label; v = false)
+	@assert ismissing(n.tau)
+	prunenode!(n)
+	s = TreeNode(; label)
+	graftnode!(a, s)
+	graftnode!(s, n)
+	return s
+end
 
