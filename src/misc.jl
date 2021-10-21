@@ -135,8 +135,19 @@ function check_tree(tree::Tree; strict=true)
     return flag
 end
 
+make_random_label(base="NODE") = make_random_label(base, 8)
+make_random_label(base, i) = "$(base)_$(randstring(i))"
 
-
+"""
+	label_nodes!(t::Tree)
+"""
+function label_nodes!(t::Tree)
+	for n in internals(t)
+		if isempty(n.label)
+			n.label = make_random_label()
+		end
+	end
+end
 """
     create_label(t::Tree, base="NODE")
 
@@ -154,10 +165,10 @@ function create_label(t::Tree, base="NODE")
 end
 
 function set_unique_label!(node::TreeNode, t::Tree; delim = "__")
-	id = randstring(5)
+	id = randstring(8)
 	node.label *= delim * id
 	while haskey(t.lnodes, node.label)
-		node.label = node.label[1:end-5] * randstring(5)
+		node.label = node.label[1:end-5] * randstring(8)
 	end
 end
 

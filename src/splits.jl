@@ -356,7 +356,6 @@ function _splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
 	if r.isleaf
 		s = Split([leafmap[r.label]])
 	else
-		#s = Split(0)
 		L = 0
 		for c in r.child
 			sc = _splitlist!(S, c, leafmap)
@@ -625,7 +624,8 @@ end
 
 Remove leaf and empty splits according to S.mask. Option to remove root.
 """
-function clean!(S::SplitList, mask=S.mask;
+function clean!(
+	S::SplitList, mask=S.mask;
 	clean_leaves=true, clean_root=false
 )
 	idx = Int64[]
