@@ -34,6 +34,7 @@ function parse_newick_string(
 	nw::AbstractString;
 	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false, strict=true,
 )
+	reset_n()
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true
@@ -65,7 +66,7 @@ function read_newick(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE
 	end
 	nw = nw[1:end-1]
 
-	# reset_n()
+	reset_n()
 	root = parse_newick(nw; NodeDataType)
 	return root
 end
