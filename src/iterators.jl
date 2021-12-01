@@ -11,11 +11,11 @@ Iterator over all nodes / leaves / internal nodes of a tree.
   `length(nodes(t)) - length(leaves(t))`.
 """
 nodes, leaves, internals
-nodes(t) = values(t.lnodes)
-leaves(t) = values(t.lleaves)
-internals(t) = Iterators.filter(x->!x.isleaf, values(t.lnodes))
+nodes(t::Tree) = values(t.lnodes)
+leaves(t::Tree) = values(t.lleaves)
+internals(t::Tree) = Iterators.filter(x->!x.isleaf, values(t.lnodes))
 
-nodes(f::Function, t) = filter(f, values(t.lnodes))
+nodes(f::Function, t::Tree) = filter(f, values(t.lnodes))
 
 
 #=
