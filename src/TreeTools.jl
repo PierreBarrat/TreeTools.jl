@@ -1,6 +1,5 @@
 module TreeTools
 
-using FASTX
 using Random
 
 ## Iteration
