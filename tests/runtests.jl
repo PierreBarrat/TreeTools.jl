@@ -1,5 +1,0 @@
-include("methods/test.jl")
-include("prunegraft/test.jl")
-include("iterators/test.jl")
-include("splits/test.jl")
-include("sequences/test.jl")
