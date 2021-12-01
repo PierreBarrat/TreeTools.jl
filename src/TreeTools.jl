@@ -24,10 +24,6 @@ export lca, map!, node2tree, node2tree!, node_depth, divtime, share_labels
 include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals
 
-include("mutations.jl")
-export Mutation
-export compute_mutations!
-
 include("prunegraft.jl")
 export delete_node!, graftnode!, prunenode!, prunenode, prunesubtree!
 
@@ -46,8 +42,7 @@ export Split, SplitList
 export arecompatible, iscompatible
 export getindex, length, iterate, lastindex, unique, unique!
 
-include("sequences.jl")
-export fasta2tree!
+
 
 
 end
