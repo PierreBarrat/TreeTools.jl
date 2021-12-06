@@ -42,6 +42,10 @@ function write_newick!(s::String, root::TreeNode)
 		s *= ':'
 		s *= string(root.tau)
 	end
+	if root.isroot && ismissing(root.tau)
+		s *= ":0"
+	end
+
 	return s
 end
 
