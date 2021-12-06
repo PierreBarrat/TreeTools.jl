@@ -387,24 +387,3 @@ function isancestor(a::TreeNode, node::TreeNode)
 		end
 	end
 end
-
-
-###############################################################################################################
-######################################## Ladderize ####################################################
-###############################################################################################################
-
-ladderize!(t::Tree) = ladderize!(t.root)
-function ladderize!(n::TreeNode)
-	if n.isleaf
-		return 1
-	else
-		rank = zeros(Int, length(n.child))
-		for (k, c) in enumerate(n.child)
-			rank[k] = ladderize!(c)
-		end
-
-		n.child = n.child[sortperm(rank; rev=true)]
-
-		return sum(rank)
-	end
-end

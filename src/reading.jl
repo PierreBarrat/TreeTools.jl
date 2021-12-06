@@ -81,7 +81,6 @@ function parse_newick(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
-	root.tau = missing
 	return root
 end
 
