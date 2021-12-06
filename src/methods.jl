@@ -412,4 +412,6 @@ function ladderize!(n::TreeNode)
 
 		return sum(rank)
 	end
+
+	return nothing
 end
