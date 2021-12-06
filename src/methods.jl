@@ -393,6 +393,11 @@ end
 ######################################## Ladderize ####################################################
 ###############################################################################################################
 
+"""
+	ladderize!(t::Tree)
+
+Ladderize `t` by placing nodes with largest clades left in the newick string.
+"""
 ladderize!(t::Tree) = ladderize!(t.root)
 function ladderize!(n::TreeNode)
 	if n.isleaf
