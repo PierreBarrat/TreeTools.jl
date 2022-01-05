@@ -25,8 +25,8 @@ write_newick(root::TreeNode) = write_newick!("", root)*";"
 function write_newick!(s::String, root::TreeNode)
 	if !isempty(root.child)
 		s *= '('
-		temp = sort(root.child, by=x->length(POTleaves(x)))
-		for c in temp
+		# temp = sort(root.child, by=x->length(POTleaves(x)))
+		for c in root.child
 			s = write_newick!(s, c)
 			s *= ','
 		end
