@@ -408,7 +408,7 @@ function ladderize!(n::TreeNode)
 			rank[k] = ladderize!(c)
 		end
 
-		n.child = n.child[sortperm(rank; rev=true)]
+		n.child = n.child[reverse(sortperm(rank; rev=true))]
 
 		return sum(rank)
 	end
