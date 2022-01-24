@@ -84,6 +84,9 @@ end
 Parse newick string into a `TreeNode`.
 """
 function parse_newick(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+	if isempty(nw)
+		error("Cannot parse empty Newick string.")
+	end
 	reset_n()
 	root = TreeNode(NodeDataType())
 	parse_newick!(nw, root, NodeDataType)
