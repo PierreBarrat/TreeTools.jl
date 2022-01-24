@@ -3,6 +3,11 @@ let n::Int64=0
 	global reset_n() = (n=0)
 end
 
+let file::String = ""
+	global get_nwk_file() = file
+	global set_nwk_file(s) = (file=s)
+end
+
 """
 	read_tree(
 		nw_file::AbstractString;
@@ -52,6 +57,8 @@ Read Newick file `nw_file` and create a graph of `TreeNode` objects in the proce
 """
 function read_newick(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
 	@assert NodeDataType <: TreeNodeData
+	set_nwk_file(nw_file)
+
 	f = open(nw_file)
 	nw = readlines(f)
 	close(f)
@@ -111,7 +118,8 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType)
 		root.isleaf = false
 		if parts[1][1] != '('
 			println(parts[1][1])
-			error("Parenthesis mismatch. This may be caused by spaces in the newick string.")
+			@error "Parenthesis mismatch around $(parts[1]). This may be caused by spaces in the newick string."
+			error("$(get_nwk_file()): incorrect Newick format.")
 		else
 			parts[1] = parts[1][2:end] # Removing first bracket
 		end
