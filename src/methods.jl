@@ -167,11 +167,13 @@ function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 	return nothing
 end
 """
-	copy(t::Tree, T::DataType = EmptyData)
-"""
-Base.copy(t::Tree, T::DataType = EmptyData) = node2tree(_copy(t.root, T))
+	copy(t::Tree)
 
-Base.convert(::Type{Tree{EmptyData}}, t::Tree) = copy(t, EmptyData)
+Make a copy of `t`. The copy can be modified without changing `t`.
+"""
+Base.copy(t::Tree{T}) where T <: TreeNodeData = node2tree(_copy(t.root, T))
+
+Base.convert(::Type{Tree{T}}, t::Tree) where T <: TreeNodeData = node2tree(_copy(t.root, T))
 
 ###############################################################################################################
 ################################################### Clades ####################################################
