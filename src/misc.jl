@@ -81,12 +81,107 @@ end
 function print_tree(io, node::TreeNode; vindent=2, hindent=5, maxdepth=5)
     print_tree_(io, node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
 end
+
 print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=5) = print_tree(io, t.root; vindent=2, hindent=5, maxdepth=maxdepth)
 
 
+"""
+    print_tree_ascii(io, t::Tree)
 
 
+Julia implementation of Bio.Phylo.draw_ascii function: 
+https://github.com/biopython/biopython/blob/master/Bio/Phylo/_utils.py
+"""
+function print_tree_ascii(io, t::Tree)
+    column_width = 80
+    taxa = [ node.label for node in POTleaves(t)] #need leaves in Post-Order Traversal
+    max_label_width = maximum([length(taxon) for taxon in taxa])
+    drawing_width = column_width - max_label_width - 1
+    drawing_height = 2 * length(taxa) - 1
 
+    function get_col_positions(t::Tree)
+        depths = [distance_from_root(node) for node in values(t.lnodes)]
+        # If there are no branch lengths, assume unit branch lengths
+        if maximum(depths) == 0
+            depths = [node_depth(node) for node in values(t.lnodes)]
+        end
+        # Potential drawing overflow due to rounding -- 1 char per tree layer
+        fudge_margin = ceil(Int64, log2(length(taxa)))
+        cols_per_branch_unit = (drawing_width - fudge_margin) / maximum(depths)
+        return Dict(zip(keys(t.lnodes), round.(Int64,depths*cols_per_branch_unit .+2.0)))
+    end
+
+    function get_row_positions(t::Tree)
+        positions = Dict{Any, Int64}(zip(taxa, 2 *(1:length(taxa)) ) )
+        function calc_row(clade::TreeNode)
+            for subclade in clade.child
+                if !haskey(positions, subclade.label)
+                    calc_row(subclade)
+                end
+            end
+            positions[clade.label] = floor(Int64, (positions[clade.child[1].label] + positions[clade.child[end].label])/2)
+        end
+
+        calc_row(t.root)
+        return positions
+    end
+
+    col_positions = get_col_positions(t)
+    row_positions = get_row_positions(t)
+    char_matrix = [[" " for x in 1:(drawing_width+1)] for y in 1:(drawing_height+1)]
+
+    function draw_clade(clade::TreeNode, startcol::Int64)
+        thiscol = col_positions[clade.label]
+        thisrow = row_positions[clade.label]
+        # Draw a horizontal line
+        for col in startcol:thiscol
+            char_matrix[thisrow][col] = "_"
+        end
+        if !isempty(clade.child)
+            # Draw a vertical line
+            toprow = row_positions[clade.child[1].label]
+            botrow = row_positions[clade.child[end].label]
+            for row in (toprow+1):botrow
+                char_matrix[row][thiscol] = "|"
+            end
+            # NB: Short terminal branches need something to stop rstrip()
+            if (col_positions[clade.child[1].label] - thiscol) < 2
+                char_matrix[toprow][thiscol] = ","
+            end
+            # Draw descendents
+            for child in clade.child
+                draw_clade(child, thiscol + 1)
+            end
+        end
+    end
+    draw_clade(t.root, 1)
+    # Print the complete drawing
+    for i in 1:length(char_matrix)
+        line = join(char_matrix[i])
+        # Add labels for terminal taxa in the right margin
+        if i % 2 == 0
+            line = line * " " * taxa[round(Int64, i/2)]
+        end
+        println(line)
+    end
+end
+
+"""
+    distance_from_root(node::TreeNode)
+
+    in added branch lengths
+"""
+function distance_from_root(node::TreeNode)
+	d = 0
+	_node = node
+	while !_node.isroot
+        if node.tau != Missing
+            d = d +_node.tau 
+        end
+		_node = _node.anc
+	end
+	return d
+end
 
 """
     check_tree(t::Tree; strict=true)
