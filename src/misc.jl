@@ -1,3 +1,4 @@
+
 function showinfo(tree::Tree)
     i = 1
     for n in values(tree.lnodes)
@@ -23,7 +24,7 @@ end
 """
 function Base.show(io::IO, tree::Tree, maxnodes=40; kwargs...)
     if length(tree.lnodes) < maxnodes
-        print_tree(io, tree; kwargs...)
+        print_tree_ascii(io, tree)
     end
 end
 Base.show(t::Tree, maxnodes=40; kwargs...) = show(stdout, t, maxnodes; kwargs...)
@@ -37,7 +38,6 @@ Base.show(n::TreeNode) = show(stdout, n)
 
 """
     nodeinfo(io, node)
-
 Print information about `node`.
 """
 function nodeinfo(io, node)
@@ -81,16 +81,93 @@ end
 function print_tree(io, node::TreeNode; vindent=2, hindent=5, maxdepth=5)
     print_tree_(io, node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
 end
+
 print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=5) = print_tree(io, t.root; vindent=2, hindent=5, maxdepth=maxdepth)
 
 
+"""
+    print_tree_ascii(io, t::Tree)
 
+Julia implementation of Bio.Phylo.draw_ascii function: 
+https://github.com/biopython/biopython/blob/master/Bio/Phylo/_utils.py
+"""
+function print_tree_ascii(io, t::Tree)
+    column_width = 80
+    taxa = [ node.label for node in POTleaves(t)] #need leaves in Post-Order Traversal
+    max_label_width = maximum([length(taxon) for taxon in taxa])
+    drawing_width = column_width - max_label_width - 1
+    drawing_height = 2 * length(taxa) - 1
 
+    function get_col_positions(t::Tree)
+        depths = [divtime(node, t.root) for node in values(t.lnodes)]
+        # If there are no branch lengths, assume unit branch lengths
+        if ismissing(maximum(depths))
+            println("\n not all branch lengths known, assuming identical branch lengths")
+            depths = [node_depth(node) for node in values(t.lnodes)]
+        end
+        # Potential drawing overflow due to rounding -- 1 char per tree layer
+        fudge_margin = ceil(Int64, log2(length(taxa)))
+        cols_per_branch_unit = (drawing_width - fudge_margin) / maximum(depths)
+        return Dict(zip(keys(t.lnodes), round.(Int64,depths*cols_per_branch_unit .+2.0)))
+    end
 
+    function get_row_positions(t::Tree)
+        positions = Dict{Any, Int64}(zip(taxa, 2 *(1:length(taxa)) ) )
+        function calc_row(clade::TreeNode)
+            for subclade in clade.child
+                if !haskey(positions, subclade.label)
+                    calc_row(subclade)
+                end
+            end
+            positions[clade.label] = floor(Int64, (positions[clade.child[1].label] + positions[clade.child[end].label])/2)
+        end
+
+        calc_row(t.root)
+        return positions
+    end
+
+    col_positions = get_col_positions(t)
+    row_positions = get_row_positions(t)
+    char_matrix = [[" " for x in 1:(drawing_width+1)] for y in 1:(drawing_height+1)]
+
+    function draw_clade(clade::TreeNode, startcol::Int64)
+        thiscol = col_positions[clade.label]
+        thisrow = row_positions[clade.label]
+        # Draw a horizontal line
+        for col in startcol:thiscol
+            char_matrix[thisrow][col] = "_"
+        end
+        if !isempty(clade.child)
+            # Draw a vertical line
+            toprow = row_positions[clade.child[1].label]
+            botrow = row_positions[clade.child[end].label]
+            for row in (toprow+1):botrow
+                char_matrix[row][thiscol] = "|"
+            end
+            # Short terminal branches need something to stop rstrip()
+            if (col_positions[clade.child[1].label] - thiscol) < 2
+                char_matrix[toprow][thiscol] = ","
+            end
+            # Draw descendents
+            for child in clade.child
+                draw_clade(child, thiscol + 1)
+            end
+        end
+    end
+    draw_clade(t.root, 1)
+    # Print the complete drawing
+    for i in 1:length(char_matrix)
+        line = rstrip(join(char_matrix[i]))
+        # Add labels for terminal taxa in the right margin
+        if i % 2 == 0
+            line = line * " " * strip(taxa[round(Int64, i/2)]) #remove white space from labels to make more tidy
+        end
+        println(line)
+    end
+end
 
 """
     check_tree(t::Tree; strict=true)
-
 - Every non-leaf node should have at least one child (two if `strict`)
 - Every non-root node should have exactly one ancestor
 - If n.child[...] == c, c.anc == n is true
@@ -150,7 +227,6 @@ function label_nodes!(t::Tree)
 end
 """
     create_label(t::Tree, base="NODE")
-
 Create new node label in tree `t` with format `\$(base)_i` with `i::Int`.
 """
 function create_label(t::Tree, base="NODE")
@@ -174,9 +250,7 @@ end
 
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = nothing)
-
 Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are added to `n.data.dat`.
-
 If `!isnothing(key)`, only a specific key of `dat` is added. It's checked for by `k == key || Symbol(k) == key` for all keys `k` of `dat`.
 If `symbol`, data is added to nodes of `t` with symbols as keys.
 """
@@ -194,7 +268,6 @@ function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = not
 end
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
-
 Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` corresponding to `k` are added to `t.lnodes[k].data.dat[key]`.
 """
 function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
@@ -205,7 +278,6 @@ end
 
 """
     rand_times!(t, p)
-
 Add random branch lengths to tree.
 """
 function rand_times!(t, p)
