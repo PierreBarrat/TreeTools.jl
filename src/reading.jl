@@ -15,7 +15,9 @@ end
 	)
 
 Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
-`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer constructor*: the call `NodeDataType()` must exist and return a valid instance of `NodeDataType`.
+`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer
+constructor*: the call `NodeDataType()` must exist and return a valid instance of
+`NodeDataType`. See `?TreeNodeData` for implemented types.
 Use `force_new_labels=true` to force the renaming of all internal nodes.
 """
 function read_tree(

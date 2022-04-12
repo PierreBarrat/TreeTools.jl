@@ -36,3 +36,25 @@ end
 	@test count(n -> n.label[1] == 'A', t1.lnodes["AB"]) == 2
 end
 
+@testset "Copy" begin
+	t1 = node2tree(root_1)
+	t2 = copy(t1)
+	@test typeof(t1) == typeof(t2)
+	prunesubtree!(t2, ["A"])
+	@test haskey(t1.lnodes, "A")
+	@test !haskey(t2.lnodes, "A")
+end
+
+@testset "Convert" begin
+	t1 = node2tree(root_1)
+	# Converting to EmptyData and back
+	t2 = convert(Tree{TreeTools.EmptyData}, t1)
+	@test typeof(t2) == Tree{TreeTools.EmptyData}
+	@test typeof(convert(Tree{TreeTools.MiscData}, t2)) == Tree{TreeTools.MiscData}
+
+	# Converting to MiscData and back
+	t2 = convert(Tree{TreeTools.MiscData}, t1)
+	@test typeof(t2) == Tree{TreeTools.MiscData}
+	@test typeof(convert(Tree{TreeTools.EmptyData}, t2)) == Tree{TreeTools.EmptyData}
+end
+

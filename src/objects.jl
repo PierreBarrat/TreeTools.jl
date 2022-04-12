@@ -1,13 +1,17 @@
 """
 	abstract type TreeNodeData
 
-Abstract supertype for all data attached to `TreeNode` objects.
+Abstract supertype for data attached to the `dat` field of `TreeNode` objects.
+Implemented concrete types are
+- `EmptyData`: empty struct. Use if you do not have to attach data to nodes.
+- `MiscData`: contains a dictionary for attaching extra data to nodes.
 """
 abstract type TreeNodeData end
 
-
 """
 	struct MiscData <: TreeNodeData
+		dat::Dict{Any,Any}
+	end
 """
 struct MiscData <: TreeNodeData
 	dat::Dict{Any,Any}
@@ -15,10 +19,10 @@ end
 MiscData(; dat=Dict()) = MiscData(dat)
 
 """
+	struct EmptyData <: TreeNodeData
 """
 struct EmptyData <: TreeNodeData
 end
-
 
 const DEFAULT_NODE_DATATYPE = EmptyData
 
