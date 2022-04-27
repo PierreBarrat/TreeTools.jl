@@ -132,7 +132,12 @@ end
 """
 	delete_node!(node::TreeNode; ptau=false)
 
-Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  If `ptau`, branch length above `node` is added to the regrafted branch. Otherwise, the regrafted branch's length is unchanged. Return modified `node.anc`.
+Delete `node`. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  
+If `ptau`, branch length above `node` is added to the regrafted branch. 
+Otherwise, the regrafted branch's length is unchanged. Return modified `node.anc`.
+
+Note that the previous node will still be in the dictionary lnodes and lleaves (if a leaf) and the print function will fail on the tree, 
+to fully remove from the tree and apply the print function use delete_node!(t::Tree, label; ptau=false)
 """
 function delete_node!(node::TreeNode; ptau=false)
 	if node.isroot
@@ -154,6 +159,10 @@ function delete_node!(node::TreeNode; ptau=false)
 end
 """
 	delete_node!(t::Tree, label; ptau=false)
+
+	Delete node with label `label` from Tree `t`, this additionally removes this node from the lnodes dictionary and the lleaves dictionary if necessary. 
+	If it is an internal node, its children are regrafted on `node.anc`, the new `node.anc` is grafted to the output tree
+	If `ptau`, branch length above `node` is added to the regrafted branch. Otherwise, the regrafted branch's length is unchanged.
 """
 function delete_node!(t::Tree, label; ptau=false)
 	delete_node!(t.lnodes[label]; ptau)
