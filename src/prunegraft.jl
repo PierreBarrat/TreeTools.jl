@@ -132,7 +132,12 @@ end
 """
 	delete_node!(node::TreeNode; ptau=false)
 
-Delete `node` from the tree. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  If `ptau`, branch length above `node` is added to the regrafted branch. Otherwise, the regrafted branch's length is unchanged. Return modified `node.anc`.
+Delete `node`. If it is an internal node, its children are regrafted on `node.anc`. Returns the new `node.anc`.  
+If `ptau`, branch length above `node` is added to the regrafted branch. 
+Otherwise, the regrafted branch's length is unchanged. Return modified `node.anc`.
+
+Note that the previous node will still be in the dictionary `lnodes` and `lleaves` (if a leaf) and the print function will fail on the tree, 
+to fully remove from the tree and apply the print function use `delete_node!(t::Tree, label; ptau=false)`
 """
 function delete_node!(node::TreeNode; ptau=false)
 	if node.isroot
@@ -152,9 +157,7 @@ function delete_node!(node::TreeNode; ptau=false)
 	end
 	return out
 end
-"""
-	delete_node!(t::Tree, label; ptau=false)
-"""
+
 function delete_node!(t::Tree, label; ptau=false)
 	delete_node!(t.lnodes[label]; ptau)
 	delete!(t.lnodes, label)
@@ -162,7 +165,6 @@ function delete_node!(t::Tree, label; ptau=false)
 	remove_internal_singletons!(t; ptau)
 	return nothing
 end
-
 
 function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	if !node.isleaf
@@ -181,12 +183,17 @@ function delete_null_branches!(node::TreeNode; threshold = 1e-10)
 	end
 	return node
 end
+
 """
 	delete_null_branches!(tree::Tree; threshold=1e-10)
 
 Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
 - If `node` needs not be deleted, call `delete_null_branches!` on its children
 - If need be, call `delete_null_branches!` on `node.anc.child`
+
+Calling `delete_null_branches!(node::TreeNode; threshold = 1e-10)` on a node deletes null branches recursively from input `node`, nodes with null branchs will still be in 
+`lnodes` and `lleaves` (if a leaf) dictionaries. To print the resulting tree use delete_null_branches!(tree::Tree; threshold=1e-10) to remove all null branches from the tree, 
+or otherwise remove nodes with null branches from `lnodes` and `lleaves`.
 """
 function delete_null_branches!(tree::Tree; threshold=1e-10)
 	delete_null_branches!(tree.root, threshold=threshold)
@@ -220,10 +227,12 @@ function delete_branches!(f, n::TreeNode)
 
 	return n
 end
+
 """
 	delete_branches!(f, tree::Tree)
 
-Delete branch above node `n` if `f(n)` returns `true`. Propagates recursively down the tree.
+Delete branch above node `n` if `f(n)` returns `true` when called on node `n`. When called on `tree` propagates recursively down the tree.
+Only when called on `tree` will nodes be additionally deleted from the `lnodes` and `lleaves` (if a leaf) dictionaries (necessary for printing resulting tree).
 """
 function delete_branches!(f, tree::Tree)
 	delete_branches!(f, tree.root)
