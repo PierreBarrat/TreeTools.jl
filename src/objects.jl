@@ -24,10 +24,12 @@ Base.eltype(::Type{MiscData}) = eltype(Dict{Any,Any})
 Base.length(d::MiscData) = length(d.dat)
 
 Base.getindex(d::MiscData, i) = getindex(d.dat, i)
-Base.setindex!(d::MiscData, i) = setindex!(d.dat, i)
+Base.setindex!(d::MiscData, k, v) = setindex!(d.dat, k, v)
 Base.firstindex(d::MiscData, i) = firstindex(d.dat, i)
 Base.lastindex(d::MiscData, i) = lastindex(d.dat, i)
 Base.get!(d::MiscData, k, v) = get!(d.dat, k, v)
+
+Base.haskey(d::MiscData, k) = haskey(d.dat, k)
 
 """
 	struct EmptyData <: TreeNodeData
