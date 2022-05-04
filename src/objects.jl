@@ -100,4 +100,9 @@ function Tree(root::TreeNode{T};
 end
 Tree() = Tree(TreeNode())
 
+function Base.in(n::AbstractString, t::Tree; exclude_internals=false)
+	exclude_internals ? haskey(t.lleaves, n) : haskey(t.lnodes, n)
+end
+Base.in(n::TreeNode, t::Tree; exclude_internals=false) = in(n.label, t; exclude_internals)
 
+Base.getindex(t::Tree, label) = getindex(t.lnodes, label)
