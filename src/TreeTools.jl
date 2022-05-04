@@ -5,7 +5,7 @@ using Random
 ## Iteration
 import Base: eltype, iterate, IteratorEltype, IteratorSize, length
 ## Indexing
-import Base: eachindex, firstindex, getindex, lastindex, setindex!
+import Base: eachindex, firstindex, get!, getindex, lastindex, setindex!
 
 ## Others
 import Base: ==, cat, convert, copy, count, hash, in, intersect
@@ -14,7 +14,7 @@ import Base: union, union!, unique, unique!
 
 ##
 include("objects.jl")
-export Tree, TreeNode, TreeNodeData
+export Tree, TreeNode, TreeNodeData, MiscData
 export isleaf, isroot
 
 include("methods.jl")

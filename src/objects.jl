@@ -18,6 +18,17 @@ struct MiscData <: TreeNodeData
 end
 MiscData(; dat=Dict()) = MiscData(dat)
 
+Base.iterate(d::MiscData) = iterate(d.dat)
+Base.iterate(d::MiscData, state) = iterate(d.dat, state)
+Base.eltype(::Type{MiscData}) = eltype(Dict{Any,Any})
+Base.length(d::MiscData) = length(d.dat)
+
+Base.getindex(d::MiscData, i) = getindex(d.dat, i)
+Base.setindex!(d::MiscData, i) = setindex!(d.dat, i)
+Base.firstindex(d::MiscData, i) = firstindex(d.dat, i)
+Base.lastindex(d::MiscData, i) = lastindex(d.dat, i)
+Base.get!(d::MiscData, k, v) = get!(d.dat, k, v)
+
 """
 	struct EmptyData <: TreeNodeData
 """
