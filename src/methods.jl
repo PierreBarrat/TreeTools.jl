@@ -9,6 +9,9 @@
 Create a `Tree` object from `root`.
 """
 function node2tree(root::TreeNode{T}; force_new_labels=false) where T
+	if !isroot(root)
+		@warn "Creating a tree from non-root node $(root.label)."
+	end
 	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}())
 	node2tree_addnode!(tree, root; force_new_labels)
 	return tree
@@ -24,14 +27,18 @@ end
 """
 	function node2tree_addnode!(tree::Tree, node::TreeNode; safe = true)
 
-Add existing `node::TreeNode` to `tree::Tree`. Recursively add children of `node` if `addchildren` is true.
+Add existing `node::TreeNode` and all of its children to `tree::Tree`.
 If `node` is a leaf node, also add it to `tree.lleaves`.
+
+## Note on labels
+- throw error if `node.label` already exists in `tree`. Used `force_new_labels` to append\
+	a random string to label, making it unique.
+- if `node.label` is a less than 3 digits number, it is \
+	interpreted as a bootstrap value: a random string is added to act as an actual label.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
-	# if node.isleaf && haskey(tree.lnodes, node.label)
-	# 	error("Leaf $(node.label) appears twice in the tree.")
-	# end
-	if isempty(node.label) || (haskey(tree.lnodes, node.label) && force_new_labels)
+	isbootstrap = !isnothing(match(r"^[0-9]{1,3}$", node.label))
+	if isempty(node.label) || (in(node, tree) && force_new_labels) || isbootstrap
 		set_unique_label!(node, tree; delim="__")
 	end
 
