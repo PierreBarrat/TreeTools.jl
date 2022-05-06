@@ -37,7 +37,7 @@ If `node` is a leaf node, also add it to `tree.lleaves`.
 	interpreted as a bootstrap value: a random string is added to act as an actual label.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
-	isbootstrap = !isnothing(match(r"^[0-9]{1,3}$", node.label))
+	isbootstrap = !isleaf(node) && !isnothing(match(r"^[0-9]{1,3}$", node.label))
 	if isempty(node.label) || (in(node, tree) && force_new_labels) || isbootstrap
 		set_unique_label!(node, tree; delim="__")
 	end
