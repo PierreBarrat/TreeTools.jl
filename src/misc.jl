@@ -107,7 +107,11 @@ function print_tree_ascii(io, t::Tree)
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
         fudge_margin = ceil(Int64, log2(length(taxa)))
-        cols_per_branch_unit = (drawing_width - fudge_margin) / maximum(depths)
+        if maximum(depths)==0
+            cols_per_branch_unit = (drawing_width - fudge_margin)
+        else
+            cols_per_branch_unit = (drawing_width - fudge_margin) / maximum(depths)
+        end
         return Dict(zip(keys(t.lnodes), round.(Int64,depths*cols_per_branch_unit .+2.0)))
     end
 
@@ -119,9 +123,10 @@ function print_tree_ascii(io, t::Tree)
                     calc_row(subclade)
                 end
             end
-            positions[clade.label] = floor(Int64, (positions[clade.child[1].label] + positions[clade.child[end].label])/2)
+            if !haskey(positions, clade.label)
+                positions[clade.label] = floor(Int64, (positions[clade.child[1].label] + positions[clade.child[end].label])/2)
+            end
         end
-
         calc_row(t.root)
         return positions
     end
