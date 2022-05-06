@@ -36,6 +36,14 @@ end
 	@test count(n -> n.label[1] == 'A', t1.lnodes["AB"]) == 2
 end
 
+@testset "Copy type" begin
+	t1 = Tree(TreeNode(MiscData(Dict(1=>2))))
+	tc = copy(t1)
+	@test tc.root.data[1] == 2
+	t1.root.data[1] = 3
+	@test tc.root.data[1] == 2
+end
+
 @testset "Copy" begin
 	t1 = node2tree(root_1)
 	t2 = copy(t1)
@@ -45,16 +53,34 @@ end
 	@test !haskey(t2.lnodes, "A")
 end
 
+
+
 @testset "Convert" begin
-	t1 = node2tree(root_1)
+	t1 = Tree(TreeNode(MiscData(Dict(1=>2))))
+	# No op
+	@test convert(Tree{MiscData}, t1) === t1
+	@test convert(Tree{MiscData}, t1).root.data === t1.root.data
+
 	# Converting to EmptyData and back
 	t2 = convert(Tree{TreeTools.EmptyData}, t1)
+	t3 = convert(Tree{MiscData}, t2)
 	@test typeof(t2) == Tree{TreeTools.EmptyData}
-	@test typeof(convert(Tree{TreeTools.MiscData}, t2)) == Tree{TreeTools.MiscData}
+	@test t2.root.data == TreeTools.EmptyData()
+
+	@test typeof(t3) == Tree{TreeTools.MiscData}
+	@test !haskey(t3.root.data, 1)
+
+	###
+
+	t1 = Tree(TreeNode(TreeTools.EmptyData()))
+	# No op
+	@test convert(Tree{TreeTools.EmptyData}, t1) === t1
 
 	# Converting to MiscData and back
 	t2 = convert(Tree{TreeTools.MiscData}, t1)
 	@test typeof(t2) == Tree{TreeTools.MiscData}
+	@test isempty(t2.root.data)
+
 	@test typeof(convert(Tree{TreeTools.EmptyData}, t2)) == Tree{TreeTools.EmptyData}
 end
 
