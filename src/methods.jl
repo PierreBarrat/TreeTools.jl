@@ -133,7 +133,7 @@ end
 
 function _copy(r::TreeNode, ::Type{T}) where T <: TreeNodeData
 	!r.isroot && error("Copying non-root node.")
-	data = deepcopy(r.data)
+	data = _copy_data(T, r)
 	child = if r.isleaf
 		Array{TreeNode{T}, 1}(undef, 0)
 	else
@@ -154,7 +154,7 @@ end
 Create a copy of `n` with node data type `T` and add it to the children of `an`.
 """
 function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
-	data = deepcopy(n.data)
+	data = _copy_data(T, n)
 	child = if n.isleaf
 		Array{TreeNode{T}, 1}(undef, 0)
 	else
@@ -173,6 +173,9 @@ function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 
 	return nothing
 end
+_copy_data(::Type{T}, n::TreeNode{T}) where T <: TreeNodeData = deepcopy(n.data)
+_copy_data(::Type{T}, n::TreeNode) where T <: TreeNodeData = T()
+
 """
 	copy(t::Tree)
 
@@ -180,6 +183,7 @@ Make a copy of `t`. The copy can be modified without changing `t`.
 """
 Base.copy(t::Tree{T}) where T <: TreeNodeData = node2tree(_copy(t.root, T))
 
+Base.convert(::Type{Tree{T}}, t::Tree{T}) where T <: TreeNodeData = t
 Base.convert(::Type{Tree{T}}, t::Tree) where T <: TreeNodeData = node2tree(_copy(t.root, T))
 
 ###############################################################################################################
