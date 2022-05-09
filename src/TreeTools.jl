@@ -9,7 +9,7 @@ import Base: eachindex, firstindex, get!, getindex, lastindex, setindex!
 
 ## Others
 import Base: ==, cat, convert, copy, count, hash, in, intersect
-import Base: isempty, isequal, map!, setdiff, show, size
+import Base: isempty, isequal, keys, map!, setdiff, show, size
 import Base: union, union!, unique, unique!
 
 ##
