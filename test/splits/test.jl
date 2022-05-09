@@ -35,11 +35,11 @@ s45 = TreeTools.joinsplits(s4,s5)
 end
 
 @testset "3" begin
-	@test !TreeTools.is_root_split(S.splitmap["NODE_4"], S.mask)
-	@test !TreeTools.is_root_split(S.splitmap["NODE_2"], S.mask)
-	@test TreeTools.is_root_split(S.splitmap["NODE_1"], S.mask)
+	@test !TreeTools.isroot(S.splitmap["NODE_4"], S.mask)
+	@test !TreeTools.isroot(S.splitmap["NODE_2"], S.mask)
+	@test TreeTools.isroot(S.splitmap["NODE_1"], S.mask)
 	@testset for n in internals(t)
-		@test !TreeTools.is_leaf_split(S.splitmap[n.label])
+		@test !TreeTools.isleaf(S.splitmap[n.label])
 	end
 end
 
