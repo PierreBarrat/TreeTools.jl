@@ -19,15 +19,43 @@ function showinfo(tree::Tree)
 end
 
 """
-    show(io::IO, tree::Tree, maxnodes=40; kwargs...)
-    show(t::Tree, maxnodes=40; kwargs...)
+    show(io::IO, tree::Tree, maxnodes=40)
+    show(t::Tree, maxnodes=40)
 """
-function Base.show(io::IO, tree::Tree, maxnodes=40; kwargs...)
-    if length(tree.lnodes) < maxnodes
-        print_tree_ascii(io, tree)
+function Base.show(io::IO, t::Tree{T}) where T
+	nn = length(nodes(t))
+	nl = length(leaves(t))
+	long = begin
+		base = "Tree{$T}: "
+		base *= nn > 1 ? "$nn nodes, " : "$nn node, "
+		base *= nl > 1 ? "$nl leaves" : "$nl leaf"
+		base
+	end
+	if length(long) < 0.8*displaysize(io)[2]
+		print(io, long)
+		return nothing
+	end
+
+	short = begin
+		base = "Tree w. "
+		base *= nl > 1 ? "$nl leaves" : "$nl leaf"
+		base
+	end
+	print(io, short)
+	return nothing
+end
+
+function Base.show(io::IO, ::MIME"text/plain", t::Tree; maxnodes=40)
+    if length(nodes(t)) < maxnodes
+        print_tree_ascii(io, t)
+    else
+    	show(io, t)
     end
 end
-Base.show(t::Tree, maxnodes=40; kwargs...) = show(stdout, t, maxnodes; kwargs...)
+
+
+
+
 
 function Base.show(io::IO, n::TreeNode)
     if !get(io, :compact, false)
