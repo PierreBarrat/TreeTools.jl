@@ -10,88 +10,122 @@ end
 
 """
 	read_tree(
-		nw_file::AbstractString;
-		NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+		nwk_filename::AbstractString;
+		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
+	)
+	read_tree(
+		io::IO;
+		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
 	)
 
-Read Newick file `nw_file` and create a `Tree{NodeDataType}` object from it.
-`NodeDataType` must be a subtype of `TreeNodeData`, and must have a *callable default outer
-constructor*: the call `NodeDataType()` must exist and return a valid instance of
-`NodeDataType`. See `?TreeNodeData` for implemented types.
+Read Newick file and create a `Tree{node_data_type}` object from it. The input file can \
+contain multiple Newick strings on different lines. The output will then be an array of \
+`Tree` objects.
+
+`node_data_type` must be a subtype of `TreeNodeData`, and must have a *callable default outer
+constructor*: the call `node_data_type()` must exist and return a valid instance of
+`node_data_type`. See `?TreeNodeData` for implemented types.
+
 Use `force_new_labels=true` to force the renaming of all internal nodes.
+
+If you have a variable containing a Newick string and want to build a tree from it,
+use `parse_newick_string` instead.
+
+## Note on labels
+The `Tree` type identifies nodes by their labels. This means that labels have to be unique.
+For this reason, the following is done when reading a tree:
+- if an internal node does not have a label, a unique one will be created of the form \
+	`"NODE_i"`
+- if a node has a label that was already found before in the tree, a random identifier \
+	will be appended to it to make it unique. Note that the identifier is created using \
+	`randstring(8)`, unicity is technically not guaranteed.
+- if `force_new_labels` is used, a unique identifier is appended to node labels
+- if node labels in the Newick file are identified as confidence/bootstrap values, a random \
+	identifier is appended to them, even if they're unique in the tree. See \
+	`?TreeTools.isbootstrap` to see which labels are identified as confidence values.
 """
 function read_tree(
-	nw_file::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+	io::IO;
+	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
 )
-	tree = node2tree(read_newick(nw_file; NodeDataType); force_new_labels)
-	check_tree(tree)
-	return tree
+	trees = map(eachline(io)) do line
+		t = parse_newick_string(line; node_data_type, force_new_labels)
+		check_tree(t)
+		t
+	end
+	return length(trees) == 1 ? trees[1] : trees
 end
-
+function read_tree(
+	nwk_filename::AbstractString;
+	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
+)
+	return open(nwk_filename, "r") do io
+		read_tree(io; node_data_type, force_new_labels)
+	end
+end
 """
 	parse_newick_string(
 		nw::AbstractString;
-		NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false
+		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
 	)
 
 Parse newick string into a tree. See `read_tree` for more informations.
 """
 function parse_newick_string(
 	nw::AbstractString;
-	NodeDataType=DEFAULT_NODE_DATATYPE, force_new_labels=false, strict=true,
+	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false,
 )
 	reset_n()
-	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType)
+	root = TreeNode(node_data_type())
+	parse_newick!(nw, root, node_data_type)
 	root.isroot = true
 	tree = node2tree(root; force_new_labels)
-	check_tree(tree; strict)
+	check_tree(tree)
 	return tree
 end
 
 """
-	read_newick(nw_file::AbstractString)
+	read_newick(nwk_filename::AbstractString)
 
-Read Newick file `nw_file` and create a graph of `TreeNode` objects in the process.
+Read Newick file `nwk_filename` and create a graph of `TreeNode` objects in the process.
   Return the root of said graph.
   `node2tree` or `read_tree` must be called to obtain a `Tree` object.
 """
-function read_newick(nw_file::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
-	@assert NodeDataType <: TreeNodeData
-	set_nwk_file(nw_file)
+function read_newick(nwk_filename::AbstractString; node_data_type=DEFAULT_NODE_DATATYPE)
+	@assert node_data_type <: TreeNodeData
+	set_nwk_file(nwk_filename)
 
-	f = open(nw_file)
+	f = open(nwk_filename)
 	nw = readlines(f)
 	close(f)
 	if length(nw) > 1
-		error("File $nw_file has more than one line.")
+		error("File $nwk_filename has more than one line.")
 	elseif length(nw) == 0
-		error("File $nw_file is empty")
+		error("File $nwk_filename is empty")
 	end
 	nw = nw[1]
 	if nw[end] != ';'
-		error("File $nw_file does not end with ';'")
+		error("File $nwk_filename does not end with ';'")
 	end
 	nw = nw[1:end-1]
 
 	reset_n()
-	root = parse_newick(nw; NodeDataType)
+	root = parse_newick(nw; node_data_type)
 	return root
 end
 
 """
-	parse_newick(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+	parse_newick(nw::AbstractString; node_data_type=DEFAULT_NODE_DATATYPE)
 
 Parse newick string into a `TreeNode`.
 """
-function parse_newick(nw::AbstractString; NodeDataType=DEFAULT_NODE_DATATYPE)
+function parse_newick(nw::AbstractString; node_data_type=DEFAULT_NODE_DATATYPE)
 	if isempty(nw)
 		error("Cannot parse empty Newick string.")
 	end
 	reset_n()
-	root = TreeNode(NodeDataType())
-	parse_newick!(nw, root, NodeDataType)
+	root = TreeNode(node_data_type())
+	parse_newick!(nw, root, node_data_type)
 	root.isroot = true # Rooting the tree with outer-most node of the newick string
 	root.tau = missing
 	return root
@@ -102,7 +136,7 @@ end
 
 Parse the tree contained in Newick string `nw`, rooting it at `root`.
 """
-function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType)
+function parse_newick!(nw::AbstractString, root::TreeNode, node_data_type)
 
 	# Setting isroot to false. Special case of the root is handled in main calling function
 	root.isroot = false
@@ -132,8 +166,8 @@ function parse_newick!(nw::AbstractString, root::TreeNode, NodeDataType)
 		l_children = nw_parse_children(children) # List of children (array of strings)
 
 		for sc in l_children
-			nc = TreeNode(NodeDataType())
-			parse_newick!(sc, nc, NodeDataType) # Will set everything right for subtree corresponding to nc
+			nc = TreeNode(node_data_type())
+			parse_newick!(sc, nc, node_data_type) # Will set everything right for subtree corresponding to nc
 			nc.anc = root
 			push!(root.child, nc)
 		end
