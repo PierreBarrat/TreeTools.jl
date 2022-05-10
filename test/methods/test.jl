@@ -96,6 +96,10 @@ nwk = "(A:3,(B:1,C:1):2)"
 	@test distance(t.root, t.lnodes["A"]; topological=true) == 1
 	@test distance(t, "A", "B"; topological=true) == distance(t, "A", "C"; topological=true)
 	@test distance(t, "A", "B"; topological=true) == 3
+	for n in nodes(t)
+		@test distance(t[n.label], t[n.label]; topological=true) == 0
+		@test distance(t[n.label], t[n.label]; topological=false) == 0
+	end
 	# tests below can be removed when `divtime` is removed
 	@test divtime(t.lnodes["A"], t.lnodes["B"]) == 6
 	@test divtime(t.root, t.lnodes["A"]) == 3
