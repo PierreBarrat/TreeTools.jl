@@ -130,7 +130,7 @@ function print_tree_ascii(io, t::Tree)
         depths = [divtime(node, t.root) for node in values(t.lnodes)]
         # If there are no branch lengths, assume unit branch lengths
         if ismissing(maximum(depths))
-            println("\n not all branch lengths known, assuming identical branch lengths")
+            println(io, "\n not all branch lengths known, assuming identical branch lengths")
             depths = [node_depth(node) for node in values(t.lnodes)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
@@ -195,7 +195,7 @@ function print_tree_ascii(io, t::Tree)
         if i % 2 == 0
             line = line * " " * strip(taxa[round(Int64, i/2)]) #remove white space from labels to make more tidy
         end
-        println(line)
+        println(io, line)
     end
 end
 
