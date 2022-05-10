@@ -216,6 +216,16 @@ make_random_label(base="NODE") = make_random_label(base, 8)
 make_random_label(base, i) = "$(base)_$(randstring(i))"
 
 """
+	label_nodes!(t::Tree)
+"""
+function label_nodes!(t::Tree)
+	for n in internals(t)
+		if isempty(n.label)
+			n.label = make_random_label()
+		end
+	end
+end
+"""
     create_label(t::Tree, base="NODE")
 Create new node label in tree `t` with format `\$(base)_i` with `i::Int`.
 """

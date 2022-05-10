@@ -10,55 +10,25 @@ end
 
 """
 	read_tree(
-		nwk_filename::AbstractString;
-		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
-	)
-	read_tree(
-		io::IO;
+		nw_file::AbstractString;
 		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
 	)
 
-Read Newick file and create a `Tree{node_data_type}` object from it.
-
+Read Newick file `nw_file` and create a `Tree{node_data_type}` object from it.
 `node_data_type` must be a subtype of `TreeNodeData`, and must have a *callable default outer
 constructor*: the call `node_data_type()` must exist and return a valid instance of
 `node_data_type`. See `?TreeNodeData` for implemented types.
-
 Use `force_new_labels=true` to force the renaming of all internal nodes.
-
-## Note on labels
-The `Tree` type identifies nodes by their labels. This means that labels have to be unique.
-For this reason, the following is done when reading a tree:
-- if an internal node does not have a label, a unique one will be created of the form\
-	`"NODE_i"`
-- if a node has a label that was already found before in the tree,
-
-- throw error if `node.label` already exists in `tree`. Used `force_new_labels` to append\
-	a random string to label, making it unique.
-- if `node.label` can be \
-	interpreted as a bootstrap value, a random string is added to act as an actual label. \
-	See `?TreeTools.isbootstrap` for labels interpreted as bootstrap. \
-	This is only applied to internal nodes.
 """
 function read_tree(
-	io::IO;
+	nw_file::AbstractString;
 	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
 )
-	trees = map(eachline(io)) do line
-		t = parse_newick_string(line; node_data_type, force_new_labels)
-		check_tree(t)
-		t
-	end
-	return length(trees) == 1 ? trees[1] : trees
+	tree = node2tree(read_newick(nw_file; node_data_type); force_new_labels)
+	check_tree(tree)
+	return tree
 end
-function read_tree(
-	nwk_filename::AbstractString;
-	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
-)
-	return open(nwk_filename, "r") do io
-		read_tree(io; node_data_type, force_new_labels)
-	end
-end
+
 """
 	parse_newick_string(
 		nw::AbstractString;
@@ -69,39 +39,39 @@ Parse newick string into a tree. See `read_tree` for more informations.
 """
 function parse_newick_string(
 	nw::AbstractString;
-	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false,
+	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false, strict=true,
 )
 	reset_n()
 	root = TreeNode(node_data_type())
 	parse_newick!(nw, root, node_data_type)
 	root.isroot = true
 	tree = node2tree(root; force_new_labels)
-	check_tree(tree)
+	check_tree(tree; strict)
 	return tree
 end
 
 """
-	read_newick(nwk_filename::AbstractString)
+	read_newick(nw_file::AbstractString)
 
-Read Newick file `nwk_filename` and create a graph of `TreeNode` objects in the process.
+Read Newick file `nw_file` and create a graph of `TreeNode` objects in the process.
   Return the root of said graph.
   `node2tree` or `read_tree` must be called to obtain a `Tree` object.
 """
-function read_newick(nwk_filename::AbstractString; node_data_type=DEFAULT_NODE_DATATYPE)
+function read_newick(nw_file::AbstractString; node_data_type=DEFAULT_NODE_DATATYPE)
 	@assert node_data_type <: TreeNodeData
-	set_nwk_file(nwk_filename)
+	set_nwk_file(nw_file)
 
-	f = open(nwk_filename)
+	f = open(nw_file)
 	nw = readlines(f)
 	close(f)
 	if length(nw) > 1
-		error("File $nwk_filename has more than one line.")
+		error("File $nw_file has more than one line.")
 	elseif length(nw) == 0
-		error("File $nwk_filename is empty")
+		error("File $nw_file is empty")
 	end
 	nw = nw[1]
 	if nw[end] != ';'
-		error("File $nwk_filename does not end with ';'")
+		error("File $nw_file does not end with ';'")
 	end
 	nw = nw[1:end-1]
 
