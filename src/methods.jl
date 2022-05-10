@@ -61,7 +61,7 @@ end
 
 `label` is interpreted as a bootstrap value if
 - `label` can be parsed as a <= 100 integer (*e.g.* `"87"` or `"100"`)
-- `label can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
+- `label` can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
 """
 function isbootstrap(label::AbstractString)
 	if occursin(r"^[0-9]{1,3}$", label)
