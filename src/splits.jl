@@ -54,11 +54,6 @@ Base.isequal(s::Split, t::Split) = (s.dat == t.dat)
 Base.hash(s::Split, h::UInt) = hash(s.dat, h)
 
 
-"""
-	is_root_split(s::Split, mask::Array{Bool,1})
-
-Check if `s` is the root split when restricted to `mask`.
-"""
 function is_root_split(s::Split, mask::Array{Bool,1})
 	Lmask = sum(mask)
 	Ls = 0
@@ -70,13 +65,13 @@ function is_root_split(s::Split, mask::Array{Bool,1})
 
 	return Ls == Lmask
 end
-
 """
-	is_leaf_split(s)
-	is_leaf_split(s::Split, mask::Array{Bool,1})
+	isroot(s::Split, mask::Array{Bool,1})
 
-Check if `s` is a leaf split.
+Check if `s` is the root split when restricted to `mask`.
 """
+isroot(s::Split, mask) = is_root_split(s, mask)
+
 function is_leaf_split(s::Split, mask::Array{Bool,1})
 	Ls = 0
 	for i in s
@@ -90,6 +85,14 @@ function is_leaf_split(s::Split, mask::Array{Bool,1})
 	return true
 end
 is_leaf_split(s) = (length(s) == 1)
+"""
+	isleaf(s::Split)
+	isleaf(s::Split, mask::Array{Bool,1})
+
+Check if `s` is a leaf split.
+"""
+isleaf(s::Split) = is_leaf_split(s)
+isleaf(s::Split, mask) = is_leaf_split(s, mask)
 
 """
 	isempty(s::Split, mask::Array{Bool,1})
@@ -276,6 +279,7 @@ Base.firstindex(S::SplitList) = firstindex(S.splits)
 Base.lastindex(S::SplitList) = lastindex(S.splits)
 Base.eachindex(S::SplitList) = eachindex(S.splits)
 Base.isempty(S::SplitList) = isempty(S.splits)
+Base.keys(S::SplitList) = LinearIndices(S.splits)
 
 # Equality
 function Base.:(==)(S::SplitList, T::SplitList)
@@ -296,6 +300,13 @@ function Base.cat(aS::Vararg{SplitList{T}}) where T
 	unique!(catS.splits)
 	return catS
 end
+
+"""
+	isroot(S::SplitList, i)
+
+Is `S[i]` the root?
+"""
+isroot(S::SplitList, i) = isroot(S[i], S.mask)
 
 """
 	leaves(S::SplitList, i)
@@ -505,8 +516,8 @@ function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
 	U = SplitList(S.leaves)
 	for s in S
 		if (!in(s, T, m; usemask) &&
-			!is_root_split(s, m) &&
-			!is_leaf_split(s, m) &&
+			!isroot(s, m) &&
+			!isleaf(s, m) &&
 			!isempty(s,m)
 		)
 			push!(U.splits, s)
@@ -630,9 +641,9 @@ function clean!(
 )
 	idx = Int64[]
 	for (i,s) in enumerate(S)
-		if clean_leaves && is_leaf_split(s, mask)
+		if clean_leaves && isleaf(s, mask)
 			push!(idx, i)
-		elseif clean_root &&  is_root_split(s, mask)
+		elseif clean_root &&  isroot(s, mask)
 			push!(idx, i)
 		elseif isempty(s, mask)
 			push!(idx, i)

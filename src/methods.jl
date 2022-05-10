@@ -33,12 +33,14 @@ If `node` is a leaf node, also add it to `tree.lleaves`.
 ## Note on labels
 - throw error if `node.label` already exists in `tree`. Used `force_new_labels` to append\
 	a random string to label, making it unique.
-- if `node.label` is a less than 3 digits number, it is \
-	interpreted as a bootstrap value: a random string is added to act as an actual label.
+- if `node.label` can be \
+	interpreted as a bootstrap value, a random string is added to act as an actual label. \
+	See `?TreeTools.isbootstrap` for labels interpreted as bootstrap. \
+	This is only applied to internal nodes.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
-	isbootstrap = !isleaf(node) && !isnothing(match(r"^[0-9]{1,3}$", node.label))
-	if isempty(node.label) || (in(node, tree) && force_new_labels) || isbootstrap
+	isbb = !isleaf(node) && isbootstrap(node.label)
+	if isempty(node.label) || (in(node, tree) && force_new_labels) || isbb
 		set_unique_label!(node, tree; delim="__")
 	end
 
@@ -52,6 +54,42 @@ function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
 	for c in node.child
 		node2tree_addnode!(tree, c; force_new_labels)
 	end
+end
+
+"""
+	isbootstrap(label::AbstractString)
+
+`label` is interpreted as a bootstrap value if
+- `label` can be parsed as a <= 100 integer (*e.g.* `"87"` or `"100"`)
+- `label can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
+"""
+function isbootstrap(label::AbstractString)
+	if occursin(r"^[0-9]{1,3}$", label)
+		return true
+	elseif occursin(r"^100$", label)
+		return true
+	elseif occursin(r"^0\.[0-9]*$", label)
+		return true
+	elseif occursin(r"^1\.0*$", label)
+		return true
+	end
+	return false
+end
+
+"""
+	parse_bootstrap(label::AbstractString)
+
+**NOT IMPLEMENTED YET**
+
+Parse and return confidence value for `label`. Return `missing` if nothing could be parsed.
+`label` is interpreted as a bootstrap value if
+- `label` can be parsed as a <= 100 integer (*e.g.* `"87"` or `"100"`)
+- `label can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
+If label is of one of these forms and followed by a string of the form `__NAME`, it is also\
+parsed.
+"""
+function parse_bootstrap(label::AbstractString)
+	return missing
 end
 
 """
