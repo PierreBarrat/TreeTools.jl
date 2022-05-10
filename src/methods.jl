@@ -364,7 +364,8 @@ end
 
 
 """
-	distance(n1::TreeNode, n2::TreeNode)
+	distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
+	distance(n1::TreeNode, n2::TreeNode; topological=false)
 
 Compute branch length distance between `n1` and `n2` by summing the `TreeNode.tau` values.
 If `topological`, the value `1` is summed instead of `TreeNode.tau`.
@@ -384,7 +385,11 @@ function distance(i_node::TreeNode, j_node::TreeNode; topological=false)
 	end
 	return tau
 end
+function distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
+	return distance(t.lnodes[n1], t.lnodes[n2]; topological)
+end
 
+# for convenience with old functions -- should be removed eventually
 divtime(i_node, j_node) = distance(i_node, j_node)
 
 """

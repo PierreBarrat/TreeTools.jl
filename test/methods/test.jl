@@ -84,3 +84,19 @@ end
 	@test typeof(convert(Tree{TreeTools.EmptyData}, t2)) == Tree{TreeTools.EmptyData}
 end
 
+nwk = "(A:3,(B:1,C:1):2)"
+@testset "Distance" begin
+	t = parse_newick_string(nwk)
+	# Branch length
+	@test distance(t, "A", "B") == 6
+	@test distance(t.lnodes["A"], t.lnodes["B"]) == 6
+	@test distance(t, "A", "B") == distance(t, "A", "C")
+	@test distance(t.root, t.lnodes["A"]) == 3
+	# Topological
+	@test distance(t.root, t.lnodes["A"]; topological=true) == 1
+	@test distance(t, "A", "B"; topological=true) == distance(t, "A", "C"; topological=true)
+	@test distance(t, "A", "B"; topological=true) == 3
+	# tests below can be removed when `divtime` is removed
+	@test divtime(t.lnodes["A"], t.lnodes["B"]) == 6
+	@test divtime(t.root, t.lnodes["A"]) == 3
+end
