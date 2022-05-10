@@ -324,12 +324,12 @@ function SplitList(t::Tree, mask=ones(Bool, length(t.lleaves)))
 	return SplitList(t.root, leaves, mask, leafmap)
 end
 function SplitList(r::TreeNode, leaves)
-	!issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
+	leaves_srt = !issorted(leaves) ? sort(leaves) :  leaves
 	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves_srt))
 	# Compute mask : leaves that are descendents or `r`
 	mask = zeros(Bool, length(leaves_srt))
-	tmp(n) = if n.isleaf mask[leafmap[n.label]] = true end
-	map!(tmp, r)
+	set_mask(n) = if n.isleaf mask[leafmap[n.label]] = true end
+	map!(set_mask, r)
 	#
 	S = SplitList(
 		leaves_srt,

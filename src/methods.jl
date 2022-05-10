@@ -132,9 +132,12 @@ function share_labels(tree1, tree2)
 end
 
 """
+	Base.map!(f, t::Tree)
 	Base.map!(f, r::TreeNode)
 
-Call `f(n)` on each node in the clade below `r`, `r` included. Return `nothing`.
+In the `Tree` version, call `f(n)` on all nodes of `t`.
+In the `TreeNode` version, call `f(n)` on each node in the clade below `r`, `r` included.
+Useful if `f` changes its input. Return `nothing`.
 """
 function Base.map!(f, r::TreeNode)
 	for c in r.child
@@ -143,6 +146,7 @@ function Base.map!(f, r::TreeNode)
 	f(r)
 	return nothing
 end
+Base.map!(f, t::Tree) = map!(f, t.root)
 
 """
 	Base.count(f, r::TreeNode)
