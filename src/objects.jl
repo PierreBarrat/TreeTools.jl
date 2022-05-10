@@ -81,9 +81,6 @@ function TreeNode(;
 )
 	return TreeNode(anc, child, isleaf, isroot, label, tau, data)
 end
-isleaf(n) = n.isleaf
-isroot(n) = n.isroot
-
 
 """
 	==(x::TreeNode, y::TreeNode)
@@ -96,6 +93,11 @@ end
 Base.:(==)(x::TreeNode, y::TreeNode) = isequal(x,y)
 Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 
+children(n::TreeNode) = n.child
+ancestor(n::TreeNode) = n.anc
+branch_length(n::TreeNode) = n.tau
+isleaf(n) = n.isleaf
+isroot(n) = n.isroot
 
 """
 	mutable struct Tree{T <: TreeNodeData}
