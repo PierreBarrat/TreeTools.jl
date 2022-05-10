@@ -15,7 +15,7 @@ import Base: union, union!, unique, unique!
 ##
 include("objects.jl")
 export Tree, TreeNode, TreeNodeData, MiscData
-export isleaf, isroot
+export isleaf, isroot, ancestor, children, branch_length
 
 include("methods.jl")
 export lca, node2tree, node2tree!, node_depth, distance, divtime, share_labels
