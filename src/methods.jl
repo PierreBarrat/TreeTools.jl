@@ -406,25 +406,33 @@ end
 
 
 """
-	divtime(i_node::TreeNode, j_node::TreeNode)
+	distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
+	distance(n1::TreeNode, n2::TreeNode; topological=false)
 
-Compute divergence time between `i_node` and `j_node` by summing the `TreeNode.tau` values.
+Compute branch length distance between `n1` and `n2` by summing the `TreeNode.tau` values.
+If `topological`, the value `1` is summed instead of `TreeNode.tau`.
 """
-function divtime(i_node::TreeNode, j_node::TreeNode)
+function distance(i_node::TreeNode, j_node::TreeNode; topological=false)
 	a_node = lca(i_node, j_node)
 	tau = 0.
 	ii_node = i_node
 	jj_node = j_node
 	while ii_node != a_node
-		tau += ii_node.tau
+		tau += topological ? 1. : ii_node.tau
 		ii_node = ii_node.anc
 	end
 	while jj_node != a_node
-		tau += jj_node.tau
+		tau += topological ? 1. : jj_node.tau
 		jj_node = jj_node.anc
 	end
 	return tau
 end
+function distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
+	return distance(t.lnodes[n1], t.lnodes[n2]; topological)
+end
+
+# for convenience with old functions -- should be removed eventually
+divtime(i_node, j_node) = distance(i_node, j_node)
 
 """
 	isancestor(a:::TreeNode, node::TreeNode)
