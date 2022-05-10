@@ -34,13 +34,10 @@ export write_newick, write_fasta
 
 include("misc.jl")
 export print_tree, check_tree, print_tree_ascii
-export show
 
 include("splits.jl")
 export Split, SplitList
 export arecompatible, iscompatible
-export getindex, length, iterate, lastindex, unique, unique!
-
 
 
 
