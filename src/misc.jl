@@ -1,27 +1,17 @@
-
-function showinfo(tree::Tree)
-    i = 1
-    for n in values(tree.lnodes)
-        println("Node $i: $(n.label)")
-        n.isroot ? println("Root") : println("Ancestor: $(n.anc.label)")
-        if n.isleaf
-            println("Leaf")
-        else
-            print("Children: ")
-            for c in n.child
-                print(" $(c.label), ")
-            end
-            println()
-        end
-        i+=1
-        println()
+function Base.show(io::IO, ::MIME"text/plain", node::TreeNode)
+    if !get(io, :compact, false)
+        node.isroot ? println(io, "Node $(node.label) (root)") : println(io, "Node $(node.label): ")
+        node.isroot ? println(io, "Ancestor : `nothing` (root)") : println(io, "Ancestor: $(node.anc.label), branch length = $(node.tau)")
+        print(io, "$(length(node.child)) children: $([x.label for x in node.child])")
     end
+    return nothing
+end
+function Base.show(io::IO, node::TreeNode)
+	print(io, "$(typeof(node)): $(node.label)")
+	node.isroot && print(io, " (root)")
+	return nothing
 end
 
-"""
-    show(io::IO, tree::Tree, maxnodes=40)
-    show(t::Tree, maxnodes=40)
-"""
 function Base.show(io::IO, t::Tree{T}) where T
 	nn = length(nodes(t))
 	nl = length(leaves(t))
@@ -44,7 +34,6 @@ function Base.show(io::IO, t::Tree{T}) where T
 	print(io, short)
 	return nothing
 end
-
 function Base.show(io::IO, ::MIME"text/plain", t::Tree; maxnodes=40)
     if length(nodes(t)) < maxnodes
         print_tree_ascii(io, t)
@@ -52,28 +41,6 @@ function Base.show(io::IO, ::MIME"text/plain", t::Tree; maxnodes=40)
     	show(io, t)
     end
 end
-
-
-
-
-
-function Base.show(io::IO, n::TreeNode)
-    if !get(io, :compact, false)
-        nodeinfo(io, n)
-    end
-end
-Base.show(n::TreeNode) = show(stdout, n)
-
-"""
-    nodeinfo(io, node)
-Print information about `node`.
-"""
-function nodeinfo(io, node)
-    println(io, "Node $(node.label): ")
-    node.isroot ? println(io, "Ancestor : none (root)") : println(io, "Ancestor: $(node.anc.label), tau = $(node.tau)")
-    println(io, "$(length(node.child)) children: $([x.label for x in node.child])")
-end
-
 
 function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth=5)
     hspace = ""
@@ -322,51 +289,3 @@ function rand_times!(t, p)
 end
 
 
-##################################################
-##### Utilities for dicts with nested keys #######
-##################################################
-function recursive_key_init!(dat, key, ks...)
-    if !haskey(dat, key)
-        dat[key] = Dict()
-    end
-    recursive_key_init!(dat[key], ks...)
-end
-recursive_key_init!(dat) = nothing
-function recursive_get(dat, key, ks...)
-    if isempty(ks)
-        return dat[key]
-    else
-        return recursive_get(dat[key], ks...)
-    end
-end
-recursive_get(dat, key::Tuple) = recursive_get(dat, key...)
-function recursive_set!(dat, value, key, ks...)
-    if isempty(ks)
-        dat[key] = value
-    else
-        if !haskey(dat, key)
-            dat[key] = Dict()
-        end
-        recursive_set!(dat[key], value, ks...)
-    end
-    dat
-end
-recursive_set!(dat, value, key::Tuple) = recursive_set!(dat, value, key...)
-function recursive_push!(dat, value, key, ks...)
-    if isempty(ks)
-        push!(dat[key], value)
-    else
-        recursive_push!(dat[key], value, ks...)
-    end
-    dat
-end
-recursive_push!(dat, value, key::Tuple) = recursive_push!(dat, value, key...)
-function recursive_haskey(dat, key, ks...)
-    if !haskey(dat, key)
-        return false
-    elseif isempty(ks)
-        return true
-    else
-        return recursive_haskey(dat[key], ks...)
-    end
-end
