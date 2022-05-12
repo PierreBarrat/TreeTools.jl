@@ -96,6 +96,7 @@ Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 children(n::TreeNode) = n.child
 ancestor(n::TreeNode) = n.anc
 branch_length(n::TreeNode) = n.tau
+label(n::TreeNode) = n.label
 isleaf(n) = n.isleaf
 isroot(n) = n.isroot
 
