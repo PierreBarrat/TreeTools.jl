@@ -59,22 +59,23 @@ end
 """
 	isbootstrap(label::AbstractString)
 
-`label` is interpreted as a bootstrap value if
-- `label` can be parsed as a <= 100 integer (*e.g.* `"87"` or `"100"`)
-- `label` can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
+`label` is interpreted as a confidence value if `label` can be parsed as a
+decimal number (*e.g.* `"87"`, `"100"`, `"76.8"`, `"0.87"`" or `"1.0"`)
+
+Multiple confidence values separated by a `/` are also interpreted as such.
+- `"87.7/32"` will be interpreted as a confidence value
+- `"87.7/cool_node"` will not
 """
 function isbootstrap(label::AbstractString)
-	if occursin(r"^[0-9]{1,3}$", label)
-		return true
-	elseif occursin(r"^100$", label)
-		return true
-	elseif occursin(r"^0\.[0-9]*$", label)
-		return true
-	elseif occursin(r"^1\.0*$", label)
-		return true
+	elements = split(label, '/')
+	for e in elements
+		if isnothing(tryparse(Float64, e))
+			return false
+		end
 	end
-	return false
+	return true
 end
+
 
 """
 	parse_bootstrap(label::AbstractString)
