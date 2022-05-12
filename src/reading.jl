@@ -75,9 +75,11 @@ function parse_newick_string(
 	nw::AbstractString;
 	node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false,
 )
+	@assert nw[end] == ';' "Newick string does not end with ';'"
+
 	reset_n()
 	root = TreeNode(node_data_type())
-	parse_newick!(nw, root, node_data_type)
+	parse_newick!(nw[1:end-1], root, node_data_type)
 	root.isroot = true
 	tree = node2tree(root; force_new_labels)
 	check_tree(tree)
