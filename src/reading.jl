@@ -18,8 +18,8 @@ end
 		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
 	)
 
-Read Newick file and create a `Tree{node_data_type}` object from it. The input file can \
-contain multiple Newick strings on different lines. The output will then be an array of \
+Read Newick file and create a `Tree{node_data_type}` object from it. The input file can
+contain multiple Newick strings on different lines. The output will then be an array of
 `Tree` objects.
 
 `node_data_type` must be a subtype of `TreeNodeData`, and must have a *callable default outer
@@ -34,14 +34,14 @@ use `parse_newick_string` instead.
 ## Note on labels
 The `Tree` type identifies nodes by their labels. This means that labels have to be unique.
 For this reason, the following is done when reading a tree:
-- if an internal node does not have a label, a unique one will be created of the form \
+- if an internal node does not have a label, a unique one will be created of the form
 	`"NODE_i"`
-- if a node has a label that was already found before in the tree, a random identifier \
-	will be appended to it to make it unique. Note that the identifier is created using \
+- if a node has a label that was already found before in the tree, a random identifier
+	will be appended to it to make it unique. Note that the identifier is created using
 	`randstring(8)`, unicity is technically not guaranteed.
 - if `force_new_labels` is used, a unique identifier is appended to node labels
-- if node labels in the Newick file are identified as confidence/bootstrap values, a random \
-	identifier is appended to them, even if they're unique in the tree. See \
+- if node labels in the Newick file are identified as confidence/bootstrap values, a random
+	identifier is appended to them, even if they're unique in the tree. See
 	`?TreeTools.isbootstrap` to see which labels are identified as confidence values.
 """
 function read_tree(
