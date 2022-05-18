@@ -86,7 +86,7 @@ Parse and return confidence value for `label`. Return `missing` if nothing could
 `label` is interpreted as a bootstrap value if
 - `label` can be parsed as a <= 100 integer (*e.g.* `"87"` or `"100"`)
 - `label can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
-If label is of one of these forms and followed by a string of the form `__NAME`, it is also\
+If label is of one of these forms and followed by a string of the form `__NAME`, it is also
 parsed.
 """
 function parse_bootstrap(label::AbstractString)
