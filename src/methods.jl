@@ -31,11 +31,11 @@ Add existing `node::TreeNode` and all of its children to `tree::Tree`.
 If `node` is a leaf node, also add it to `tree.lleaves`.
 
 ## Note on labels
-- throw error if `node.label` already exists in `tree`. Used `force_new_labels` to append\
+- throw error if `node.label` already exists in `tree`. Used `force_new_labels` to append
 	a random string to label, making it unique.
-- if `node.label` can be \
-	interpreted as a bootstrap value, a random string is added to act as an actual label. \
-	See `?TreeTools.isbootstrap` for labels interpreted as bootstrap. \
+- if `node.label` can be
+	interpreted as a bootstrap value, a random string is added to act as an actual label.
+	See `?TreeTools.isbootstrap` for labels interpreted as bootstrap.
 	This is only applied to internal nodes.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
