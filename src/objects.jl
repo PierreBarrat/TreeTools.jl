@@ -108,12 +108,15 @@ mutable struct Tree{T <: TreeNodeData}
 	root::Union{Nothing, TreeNode{T}}
 	lnodes::Dict{String, TreeNode{T}}
 	lleaves::Dict{fieldtype(TreeNode{T}, :label), TreeNode{T}}
+	label::String
 end
-function Tree(root::TreeNode{T};
-		lnodes = Dict{String, TreeNode{T}}(root.label => root),
-		lleaves = Dict{fieldtype(TreeNode{T},:label), TreeNode{T}}(root.label => root)
-	) where T
-	return Tree(root, lnodes, lleaves)
+function Tree(
+	root::TreeNode{T};
+	lnodes = Dict{String, TreeNode{T}}(root.label => root),
+	lleaves = Dict{fieldtype(TreeNode{T}, :label), TreeNode{T}}(root.label => root),
+	label = default_tree_label()
+) where T
+	return Tree(root, lnodes, lleaves, label)
 end
 Tree() = Tree(TreeNode())
 
@@ -123,3 +126,7 @@ end
 Base.in(n::TreeNode, t::Tree; exclude_internals=false) = in(n.label, t; exclude_internals)
 
 Base.getindex(t::Tree, label) = getindex(t.lnodes, label)
+
+default_tree_label(n=10) = randstring(n)
+label(t::Tree) = t.label
+label!(t::Tree, label::AbstractString) = (t.label = label)

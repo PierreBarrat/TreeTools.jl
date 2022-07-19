@@ -84,7 +84,7 @@ end
 	@test typeof(convert(Tree{TreeTools.EmptyData}, t2)) == Tree{TreeTools.EmptyData}
 end
 
-nwk = "(A:3,(B:1,C:1):2)"
+nwk = "(A:3,(B:1,C:1):2);"
 @testset "Distance" begin
 	t = parse_newick_string(nwk)
 	# Branch length
