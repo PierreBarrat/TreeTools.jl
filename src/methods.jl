@@ -4,15 +4,19 @@
 
 
 """
-	node2tree(root::TreeNode{T}; force_new_labels=false)
+	node2tree(root::TreeNode{T}; label = default_tree_label(), force_new_labels=false)
 
-Create a `Tree` object from `root`.
+Create a `Tree` object from `root` with name `label`. If `force_new_labels`, a random
+string is added to node labels to make them unique.
 """
-function node2tree(root::TreeNode{T}; force_new_labels=false) where T
+function node2tree(
+	root::TreeNode{T};
+	label = default_tree_label(), force_new_labels = false
+) where T
 	if !isroot(root)
 		@warn "Creating a tree from non-root node $(root.label)."
 	end
-	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}())
+	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}(), label)
 	node2tree_addnode!(tree, root; force_new_labels)
 	return tree
 end
