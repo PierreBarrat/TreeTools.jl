@@ -202,20 +202,17 @@ function delete_null_branches!(tree::Tree; threshold=1e-10)
 end
 
 
-function delete_branches!(f, n::TreeNode)
+function delete_branches!(f, n::TreeNode; keep_time=false)
 	if !n.isroot && f(n)
 		if !n.isleaf
 			# if `n` is an internal node, delete it and the branch above.
-			if !ismissing(n.tau)
-				for c in n.child
-					if !ismissing(c.tau)
-						c.tau += n.tau
-					end
+			child_list, ntau = copy(n.child), branch_length(n)
+			delete_node!(n)
+			for c in child_list
+				if keep_time && !ismissing(ntau) && !ismissing(branch_length(c))
+					c.tau += ntau
 				end
-			end
-			nr = delete_node!(n)
-			for c in nr.child
-				delete_branches!(f, c)
+				delete_branches!(f, c; keep_time)
 			end
 		else
 			# if `n` is a leaf, set its branch length to 0
@@ -223,7 +220,7 @@ function delete_branches!(f, n::TreeNode)
 		end
 	else
 		for c in n.child
-			delete_branches!(f, c)
+			delete_branches!(f, c; keep_time)
 		end
 	end
 
@@ -236,8 +233,9 @@ end
 
 Delete branch above node `n` if `f(n)` returns `true` when called on node `n`. When called on a `Tree` propagates recursively down the tree.
 Only when called on a `Tree` will nodes be additionally deleted from the `lnodes` and `lleaves` dictionaries.
+If `keep_time`, the branch length of the deleted branches will be added to child branches.
 """
-function delete_branches!(f, tree::Tree)
+function delete_branches!(f, tree::Tree; keep_time=false)
 	delete_branches!(f, tree.root)
 	remove_internal_singletons!(tree)
 	node2tree!(tree, tree.root)
