@@ -205,6 +205,7 @@ end
 function delete_branches!(f, n::TreeNode)
 	if !n.isroot && f(n)
 		if !n.isleaf
+			# if `n` is an internal node, delete it and the branch above.
 			if !ismissing(n.tau)
 				for c in n.child
 					if !ismissing(c.tau)
@@ -217,6 +218,7 @@ function delete_branches!(f, n::TreeNode)
 				delete_branches!(f, c)
 			end
 		else
+			# if `n` is a leaf, set its branch length to 0
 			n.tau = ismissing(n.tau) ? missing : 0.
 		end
 	else
@@ -230,9 +232,10 @@ end
 
 """
 	delete_branches!(f, tree::Tree)
+	delete_branches!(f, n::TreeNode)
 
-Delete branch above node `n` if `f(n)` returns `true` when called on node `n`. When called on `tree` propagates recursively down the tree.
-Only when called on `tree` will nodes be additionally deleted from the `lnodes` and `lleaves` (if a leaf) dictionaries (necessary for printing resulting tree).
+Delete branch above node `n` if `f(n)` returns `true` when called on node `n`. When called on a `Tree` propagates recursively down the tree.
+Only when called on a `Tree` will nodes be additionally deleted from the `lnodes` and `lleaves` dictionaries.
 """
 function delete_branches!(f, tree::Tree)
 	delete_branches!(f, tree.root)
