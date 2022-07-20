@@ -166,40 +166,12 @@ function delete_node!(t::Tree, label; ptau=false)
 	return nothing
 end
 
-function delete_null_branches!(node::TreeNode; threshold = 1e-10)
-	if !node.isleaf
-		if !ismissing(node.tau) && node.tau < threshold && !node.isroot
-			nr = delete_node!(node)
-			for c in nr.child
-				delete_null_branches!(c, threshold=threshold)
-			end
-		else
-			for c in node.child
-				delete_null_branches!(c,threshold=threshold)
-			end
-		end
-	elseif !ismissing(node.tau) && node.tau < threshold && !node.isroot
-		node.tau = 0.
-	end
-	return node
-end
-
 """
 	delete_null_branches!(tree::Tree; threshold=1e-10)
 
 Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
-- If `node` needs not be deleted, call `delete_null_branches!` on its children
-- If need be, call `delete_null_branches!` on `node.anc.child`
-
-Calling `delete_null_branches!(node::TreeNode; threshold = 1e-10)` on a node deletes null branches recursively from input `node`, nodes with null branchs will still be in 
-`lnodes` and `lleaves` (if a leaf) dictionaries. To print the resulting tree use delete_null_branches!(tree::Tree; threshold=1e-10) to remove all null branches from the tree, 
-or otherwise remove nodes with null branches from `lnodes` and `lleaves`.
 """
-function delete_null_branches!(tree::Tree; threshold=1e-10)
-	delete_null_branches!(tree.root, threshold=threshold)
-	node2tree!(tree, tree.root)
-	return nothing
-end
+delete_null_branches!(tree::Tree; threshold=1e-10) = delete_branches!(n -> branch_length(n) < threshold)
 
 
 function delete_branches!(f, n::TreeNode; keep_time=false)
