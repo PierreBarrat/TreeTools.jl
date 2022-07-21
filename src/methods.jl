@@ -224,11 +224,19 @@ _copy_data(::Type{T}, n::TreeNode{T}) where T <: TreeNodeData = deepcopy(n.data)
 _copy_data(::Type{T}, n::TreeNode) where T <: TreeNodeData = T()
 
 """
-	copy(t::Tree)
+	copy(t::Tree; force_new_tree_label = false)
 
-Make a copy of `t`. The copy can be modified without changing `t`.
+Make a copy of `t`. The copy can be modified without changing `t`, by default `tree.label`
+is also copied, if this is not desired `force_new_tree_label=true` will create create a copy 
+of the tree with a new label
 """
-Base.copy(t::Tree{T}) where T <: TreeNodeData = node2tree(_copy(t.root, T))
+function Base.copy(t::Tree{T}; force_new_tree_label = false) where T <: TreeNodeData
+	if force_new_tree_label
+		node2tree(_copy(t.root, T))
+	else
+		node2tree(_copy(t.root, T), label=t.label)
+	end
+end
 
 Base.convert(::Type{Tree{T}}, t::Tree{T}) where T <: TreeNodeData = t
 Base.convert(::Type{Tree{T}}, t::Tree) where T <: TreeNodeData = node2tree(_copy(t.root, T))

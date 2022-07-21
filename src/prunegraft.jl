@@ -171,7 +171,7 @@ end
 
 Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
 """
-delete_null_branches!(tree::Tree; threshold=1e-10) = delete_branches!(n -> branch_length(n) < threshold)
+delete_null_branches!(tree::Tree; threshold=1e-10) = delete_branches!(n -> branch_length(n) < threshold, tree.root)
 
 
 function delete_branches!(f, n::TreeNode; keep_time=false)

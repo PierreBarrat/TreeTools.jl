@@ -47,12 +47,14 @@ end
 @testset "Copy" begin
 	t1 = node2tree(root_1)
 	t2 = copy(t1)
+	t3 = copy(t1, force_new_tree_label=true)
 	@test typeof(t1) == typeof(t2)
 	prunesubtree!(t2, ["A"])
 	@test haskey(t1.lnodes, "A")
 	@test !haskey(t2.lnodes, "A")
+	@test t1.label == t2.label
+	@test t1.label != t3.label
 end
-
 
 
 @testset "Convert" begin
