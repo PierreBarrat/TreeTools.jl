@@ -32,7 +32,7 @@ end
 
 @testset "Deleting branches" begin
     root = TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/prunegraft/tree_testnullbranches.nwk")
-    TreeTools.delete_null_branches!(root)
+    TreeTools.delete_null_branches!(node2tree(root))
     @test root == TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/prunegraft/tree_testnullbranches_.nwk")
 end
 
