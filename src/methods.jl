@@ -466,7 +466,7 @@ end
 
 
 ###############################################################################################################
-######################################## Ladderize ####################################################
+######################################## Other ####################################################
 ###############################################################################################################
 
 """
@@ -491,3 +491,27 @@ function ladderize!(n::TreeNode)
 
 	return nothing
 end
+
+"""
+	branches_of_spanning_tree(t::Tree, leaves...)
+
+Return the set of branches of `t` spanning `leaves`.  The output is a `Vector{String}`
+containing labels of nodes. The branch above each of these nodes is in the spanning tree.
+"""
+function branches_in_spanning_tree(t::Tree{T}, leaves::Vararg{String}) where T
+	R = lca(t, leaves...) # root of the spanning tree
+	visited = Dict{String, Bool}()
+	for n in leaves
+		a = t[n]
+		while !haskey(visited, a.label) && a != R
+			visited[a.label] = true
+			a = t[a.label].anc
+		end
+	end
+	return collect(keys(visited))
+end
+branches_in_spanning_tree(t, leaves::Vector{String}) = branches_in_spanning_tree(t, leaves...)
+function branches_in_spanning_tree(t, leaves::Vararg{TreeNode})
+	return branches_in_spanning_tree(t, Iterators.map(x->x.label, leaves)...)
+end
+
