@@ -106,3 +106,21 @@ nwk = "(A:3,(B:1,C:1):2);"
 	@test divtime(t.lnodes["A"], t.lnodes["B"]) == 6
 	@test divtime(t.root, t.lnodes["A"]) == 3
 end
+
+## The tests below depend on the way internal nodes are labelled
+## They may need to be rewritten
+nwk = "(A,(B,C));"
+@testset "Spanning tree 1" begin
+	t = parse_newick_string(nwk)
+	@test isempty(TreeTools.branches_in_spanning_tree(t, "A"))
+	@test sort(TreeTools.branches_in_spanning_tree(t, "A", "B")) == sort(["A", "B", "NODE_2"])
+	@test sort(TreeTools.branches_in_spanning_tree(t, "B", "C")) == sort(["B", "C"])
+end
+
+nwk = "((A,B),(D,(E,F,G)));"
+@testset "Spanning tree 2" begin
+	t = parse_newick_string(nwk)
+	tmp = sort(TreeTools.branches_in_spanning_tree(t, "A", "E", "F"))
+	@test tmp == sort(["A", "NODE_2", "E", "F", "NODE_4", "NODE_3"])
+	@test isempty(TreeTools.branches_in_spanning_tree(t, "E"))
+end
