@@ -1,7 +1,7 @@
 name = "TreeTools"
 uuid = "62f0eae3-8c0e-4032-a621-7756092209e5"
 authors = ["PierreBarrat <p.barrat@live.fr>"]
-version = "0.4.7"
+version = "0.4.8"
 
 [deps]
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
