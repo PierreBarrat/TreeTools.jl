@@ -230,11 +230,14 @@ Make a copy of `t`. The copy can be modified without changing `t`, by default `t
 is also copied, if this is not desired `force_new_tree_label=true` will create create a copy 
 of the tree with a new label
 """
-function Base.copy(t::Tree{T}; force_new_tree_label = false) where T <: TreeNodeData
+function Base.copy(t::Tree{T}; force_new_tree_label = false, label=nothing) where T <: TreeNodeData
 	if force_new_tree_label
 		node2tree(_copy(t.root, T))
 	else
-		node2tree(_copy(t.root, T), label=t.label)
+		if isnothing(label)
+			label = t.label
+		end
+		node2tree(_copy(t.root, T), label=label)
 	end
 end
 
