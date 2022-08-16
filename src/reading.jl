@@ -11,11 +11,11 @@ end
 """
 	read_tree(
 		nwk_filename::AbstractString;
-		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
+		node_data_type=DEFAULT_NODE_DATATYPE, label=default_tree_label(), force_new_labels=false
 	)
 	read_tree(
 		io::IO;
-		node_data_type=DEFAULT_NODE_DATATYPE, force_new_labels=false
+		node_data_type=DEFAULT_NODE_DATATYPE, label=default_tree_label(), force_new_labels=false
 	)
 
 Read Newick file and create a `Tree{node_data_type}` object from it. The input file can
@@ -27,6 +27,8 @@ constructor*: the call `node_data_type()` must exist and return a valid instance
 `node_data_type`. See `?TreeNodeData` for implemented types.
 
 Use `force_new_labels=true` to force the renaming of all internal nodes.
+By default the tree will be assigned a `default_tree_label()`, however the label of the 
+tree can also be assigned with the `label` parameter. 
 
 If you have a variable containing a Newick string and want to build a tree from it,
 use `parse_newick_string` instead.
