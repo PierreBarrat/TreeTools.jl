@@ -242,7 +242,7 @@ function Base.copy(t::Tree{T}; force_new_tree_label = false, label=nothing) wher
 end
 
 Base.convert(::Type{Tree{T}}, t::Tree{T}) where T <: TreeNodeData = t
-Base.convert(::Type{Tree{T}}, t::Tree) where T <: TreeNodeData = node2tree(_copy(t.root, T))
+Base.convert(::Type{Tree{T}}, t::Tree; label=t.label) where T <: TreeNodeData = node2tree(_copy(t.root, T), label=label)
 
 ###############################################################################################################
 ################################################### Clades ####################################################

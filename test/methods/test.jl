@@ -87,6 +87,17 @@ end
 	@test isempty(t2.root.data)
 
 	@test typeof(convert(Tree{TreeTools.EmptyData}, t2)) == Tree{TreeTools.EmptyData}
+
+	##check convert will keep tree labels by default
+	t3 = Tree(TreeNode(TreeTools.EmptyData()))
+	t3.label = "tree3"
+	#while converting to MiscData and back
+	@test convert(Tree{TreeTools.MiscData}, t3).label === "tree3"
+	@test convert(Tree{TreeTools.EmptyData}, t3).label === "tree3"
+	##check label can be changed if specified
+	t3 = Tree(TreeNode(TreeTools.EmptyData()))
+	t3.label = "tree3"
+	@test convert(Tree{TreeTools.MiscData}, t3; label="tree4").label === "tree4"
 end
 
 nwk = "(A:3,(B:1,C:1):2);"
