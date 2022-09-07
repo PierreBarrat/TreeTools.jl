@@ -212,6 +212,8 @@ function check_tree(tree::Tree; strict=true)
     return flag
 end
 
+default_tree_label(n=10) = randstring(n)
+
 make_random_label(base="NODE") = make_random_label(base, 8)
 make_random_label(base, i) = "$(base)_$(randstring(i))"
 
