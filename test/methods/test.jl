@@ -48,12 +48,15 @@ end
 	t1 = node2tree(root_1)
 	t2 = copy(t1)
 	t3 = copy(t1, force_new_tree_label=true)
+	t4 = copy(t1, label="tree_4")
 	@test typeof(t1) == typeof(t2)
 	prunesubtree!(t2, ["A"])
 	@test haskey(t1.lnodes, "A")
 	@test !haskey(t2.lnodes, "A")
 	@test t1.label == t2.label
 	@test t1.label != t3.label
+	@test t1.label != t4.label
+	@test t4.label == "tree_4"
 end
 
 
@@ -84,6 +87,17 @@ end
 	@test isempty(t2.root.data)
 
 	@test typeof(convert(Tree{TreeTools.EmptyData}, t2)) == Tree{TreeTools.EmptyData}
+
+	##check convert will keep tree labels by default
+	t3 = Tree(TreeNode(TreeTools.EmptyData()))
+	t3.label = "tree3"
+	#while converting to MiscData and back
+	@test convert(Tree{TreeTools.MiscData}, t3).label === "tree3"
+	@test convert(Tree{TreeTools.EmptyData}, t3).label === "tree3"
+	##check label can be changed if specified
+	t3 = Tree(TreeNode(TreeTools.EmptyData()))
+	t3.label = "tree3"
+	@test convert(Tree{TreeTools.MiscData}, t3; label="tree4").label === "tree4"
 end
 
 nwk = "(A:3,(B:1,C:1):2);"

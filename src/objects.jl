@@ -127,6 +127,5 @@ Base.in(n::TreeNode, t::Tree; exclude_internals=false) = in(n.label, t; exclude_
 
 Base.getindex(t::Tree, label) = getindex(t.lnodes, label)
 
-default_tree_label(n=10) = randstring(n)
 label(t::Tree) = t.label
 label!(t::Tree, label::AbstractString) = (t.label = label)
