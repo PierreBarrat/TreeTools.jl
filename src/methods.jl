@@ -476,17 +476,23 @@ Ladderize `t` by placing nodes with largest clades left in the newick string.
 """
 ladderize!(t::Tree) = ladderize!(t.root)
 function ladderize!(n::TreeNode)
+	function _isless(v1::Tuple{Int, String}, v2::Tuple{Int, String})
+		if (v1[1] < v2[1]) || (v1[1] == v2[1] && v1[2] < v2[2])
+			return true
+		else 
+			return false
+		end
+	end
 	if n.isleaf
-		return 1
+		return (1, n.label)
 	else
-		rank = zeros(Int, length(n.child))
+		rank = Array{Any}(undef, length(n.child))
 		for (k, c) in enumerate(n.child)
 			rank[k] = ladderize!(c)
 		end
+		n.child = n.child[sortperm(rank; lt= _isless)]
 
-		n.child = n.child[sortperm(rank; rev=false)]
-
-		return sum(rank)
+		return sum([r[1] for r in rank]), n.label
 	end
 
 	return nothing

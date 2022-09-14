@@ -138,3 +138,9 @@ nwk = "((A,B),(D,(E,F,G)));"
 	@test tmp == sort(["A", "NODE_2", "E", "F", "NODE_4", "NODE_3"])
 	@test isempty(TreeTools.branches_in_spanning_tree(t, "E"))
 end
+
+@testset "ladderize alphabetically" begin
+	t1 = node2tree(TreeTools.parse_newick("((D,A,B),C)"; node_data_type=TreeTools.MiscData); label="t1")
+	TreeTools.ladderize!(t1)
+	@test write_newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
+end
