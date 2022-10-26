@@ -552,7 +552,7 @@ end
 """
 	root!(tree::Tree, node::AbstractString)
 
-root `tree` at `tree.lnodes[node]`.
+root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting. 
 """
 function root!(tree::Tree, node::AbstractString)
 	_root!(tree.lnodes[node])
@@ -560,8 +560,19 @@ function root!(tree::Tree, node::AbstractString)
 	remove_internal_singletons!(tree)
 	return nothing
 end
+"""
+	root!(tree; method=:midpoint, topological = true)
 
+Root tree using `method`. Only implemented method is `:midpoint`. 
 
+# Methods
+
+## `:midpoint`
+
+Distance between nodes can be either topological (number of branches) or based on branch length. 
+
+**Warning**: Only the `topological=true` condition has been tested!.
+"""
 function root!(tree; method=:midpoint, topological = true)
 	if method == :midpoint
 		root_midpoint!(tree; topological)
