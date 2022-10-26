@@ -214,56 +214,6 @@ function delete_branches!(f, tree::Tree; keep_time=false)
 	return nothing
 end
 
-#=
-Reroot the tree to which `node` belongs at `node`.
-- If `node.isroot`,
-- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc; node)`.
-- Else, call `reroot!(node.anc; node)`, then change the ancestor of `node` to be `newroot`.
-=#
-function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
-	# Breaking cases
-	if node.anc == nothing || node.isroot
-		if !(node.anc == nothing && node.isroot)
-			@warn "There was a problem with input tree: previous root node has an ancestor."
-		elseif newroot != nothing
-			i = findfirst(c->c.label==newroot.label, node.child)
-			deleteat!(node.child, i)
-			node.anc = newroot
-			node.tau = newroot.tau
-			node.isroot = false
-		end
-	else # Recursion
-		if newroot == nothing
-			if node.isleaf
-				@warn "Rooting on a leaf node..."
-			end
-			node.isroot = true
-			reroot!(node.anc, newroot=node)
-			push!(node.child, node.anc)
-			node.anc = nothing
-			node.tau = missing
-		else
-			i = findfirst(c->c.label==newroot.label, node.child)
-			deleteat!(node.child, i)
-			reroot!(node.anc, newroot=node)
-			push!(node.child, node.anc)
-			node.anc = newroot
-			node.tau = newroot.tau
-		end
-	end
-end
-"""
-	reroot!(tree::Tree, node::AbstractString)
-
-Reroot `tree` at `tree.lnodes[node]`.
-"""
-function reroot!(tree::Tree, node::AbstractString)
-	reroot!(tree.lnodes[node])
-	tree.root = tree.lnodes[node]
-
-	return nothing
-end
-
 """
 	add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real)
 

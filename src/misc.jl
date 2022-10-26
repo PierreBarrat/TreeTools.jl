@@ -269,8 +269,9 @@ function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
 end
 
 """
-    rand_times!(t, p)
-Add random branch lengths to tree.
+    rand_times!(t[, p])
+
+Add random branch lengths to tree distributed according to `p` (default [0,1]).
 """
 function rand_times!(t, p)
     for n in values(t.lnodes)
@@ -278,6 +279,17 @@ function rand_times!(t, p)
             n.tau = rand(p)
         end
     end
+
+    return nothing
+end
+function rand_times!(t)
+    for n in values(t.lnodes)
+        if !n.isroot
+            n.tau = rand()
+        end
+    end
+
+    return nothing
 end
 
 

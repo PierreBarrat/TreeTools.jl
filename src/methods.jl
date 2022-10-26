@@ -466,8 +466,172 @@ end
 
 
 ###############################################################################################################
-######################################## Other ####################################################
+######################################## Topology: root, binarize, ladderize... ####################################################
 ###############################################################################################################
+
+
+"""
+	binarize!(t::Tree; τ=0.)
+
+Make `t` binary by adding arbitrary internal nodes with branch length `τ`.
+"""
+function binarize!(t::Tree; mode = :balanced, τ = 0.)
+	# I would like to implement `mode = :random` too in the future
+	z = binarize!(t.root; mode, τ)
+	node2tree!(t, t.root)
+	return z
+end
+function binarize!(n::TreeNode{T}; mode = :balanced, τ = 0.) where T
+	z = 0
+	if length(n.child) > 2
+		c_left, c_right = _partition(n.child, mode)
+		for part in (c_left, c_right)
+			if length(part) > 1
+				z += 1
+				nc = TreeNode(T(), label=make_random_label("BINARIZE"))
+				for c in part
+					prunenode!(c)
+					graftnode!(nc, c)
+				end
+				graftnode!(n, nc; tau=τ)
+			end
+		end
+	end
+
+	for c in n.child
+		z += binarize!(c; mode, τ)
+	end
+
+	return z
+end
+function _partition(X, mode)
+	# for now mode==:balanced all the time, so it's simple
+	L = length(X)
+	half = div(L,2) + mod(L,2)
+	return X[1:half], X[(half+1):end]
+end
+
+#=
+root the tree to which `node` belongs at `node`. Base function for rooting.
+- If `node.isroot`,
+- Else if `newroot == nothing`, root the tree defined by `node` at `node`. Call `root!(node.anc; node)`.
+- Else, call `root!(node.anc; node)`, then change the ancestor of `node` to be `newroot`.
+=#
+function _root!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
+	# Breaking cases
+	if node.anc == nothing || node.isroot
+		if !(node.anc == nothing && node.isroot)
+			@warn "There was a problem with input tree: previous root node has an ancestor."
+		elseif newroot != nothing
+			i = findfirst(c->c.label==newroot.label, node.child)
+			deleteat!(node.child, i)
+			node.anc = newroot
+			node.tau = newroot.tau
+			node.isroot = false
+		end
+	else # Recursion
+		if newroot == nothing
+			if node.isleaf
+				error("Cannot root on a leaf node")
+			end
+			node.isroot = true
+			_root!(node.anc, newroot=node)
+			push!(node.child, node.anc)
+			node.anc = nothing
+			node.tau = missing
+		else
+			i = findfirst(c->c.label==newroot.label, node.child)
+			deleteat!(node.child, i)
+			_root!(node.anc, newroot=node)
+			push!(node.child, node.anc)
+			node.anc = newroot
+			node.tau = newroot.tau
+		end
+	end
+end
+"""
+	root!(tree::Tree, node::AbstractString)
+
+root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting. 
+"""
+function root!(tree::Tree, node::AbstractString)
+	_root!(tree.lnodes[node])
+	tree.root = tree.lnodes[node]
+	remove_internal_singletons!(tree)
+	return nothing
+end
+"""
+	root!(tree; method=:midpoint, topological = true)
+
+Root tree using `method`. Only implemented method is `:midpoint`. 
+
+# Methods
+
+## `:midpoint`
+
+Distance between nodes can be either topological (number of branches) or based on branch length. 
+
+**Warning**: Only the `topological=true` condition has been tested!.
+"""
+function root!(tree; method=:midpoint, topological = true)
+	if method == :midpoint
+		root_midpoint!(tree; topological)
+	end
+	return nothing
+end
+
+function root_midpoint!(t::Tree; topological = true)
+	r = find_midpoint!(t::Tree; topological)
+	root!(t, r)
+	return nothing
+end
+
+function find_midpoint!(t::Tree{T}; topological = true) where T
+	# Find pair of leaves with largest distance
+	max_dist = 0
+	L1 = ""
+	L2 = ""
+	for n1 in leaves(t), n2 in leaves(t)
+		d = distance(n1, n2; topological)
+		if d > max_dist
+			max_dist = d
+			L1, L2 = (n1.label, n2.label)
+		end
+	end
+	@debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
+
+	# Find middle branch: go up from leaf furthest from lca(L1, L2)
+	A = lca(t, L1, L2).label
+	d1 = distance(t, L1, A; topological)
+	d2 = distance(t, L2, A; topological)
+	@assert d1 + d2 == max_dist # you never know ... 
+
+	n = d1 > d2 ? t[L1] : t[L2]
+	x = 0
+	it = 0
+	while x < div(max_dist, 2) && it < 1e5
+		it += 1
+		n = n.anc
+		x += topological ? 1. : branch_length(n)
+		@assert n != A
+	end
+	it >= 1e4 && error("Tree too large to midpoint root (>1e5 levels) (or there was a bug)")
+
+	# two cases
+	## if n is equidistant from L1 & L2, n should be the root
+	## if not, the root should be the point on the branch above `n` that is equidistant
+	if distance(n, t[L1]; topological) == distance(n, t[L2]; topological)
+		@debug "Midpoint found exactly on node $(n.label) -- Extremal leaves $L1 & $L2"
+		return n.label
+	else
+		@debug "Midpoint found on the branch above $(n.label) -- Extremal leaves $L1 & $L2"
+		τ = ismissing(n.tau) ? missing : n.tau/2
+		R = add_internal_singleton!(n, n.anc, τ, make_random_label("MIDPOINT_ROOT"))
+		node2tree!(t, t.root)
+		return R.label
+	end
+end
+
 
 """
 	ladderize!(t::Tree)
@@ -497,6 +661,12 @@ function ladderize!(n::TreeNode)
 
 	return nothing
 end
+
+
+###############################################################################################################
+######################################## Other ####################################################
+###############################################################################################################
+
 
 """
 	branches_of_spanning_tree(t::Tree, leaves...)
