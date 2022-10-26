@@ -157,3 +157,61 @@ nwk = "(A,(B,C,D,E,(F,G,H)));"
 	@test length(SplitList(t)) == 7
 	@test bl(t) == L
 end
+
+
+
+@testset "Midpoint rooting" begin
+	nwk = "(A,(B,(C,(D,(E,F)))));"
+	@testset "1" begin
+		t = parse_newick_string(nwk)
+		TreeTools.rand_times!(t)
+		TreeTools.root!(t, method=:midpoint, topological=true)
+		@test t["C"].anc == t.root
+		for n in nodes(t)
+			@test (n.isroot && ismissing(n.tau)) || (!n.isroot && !ismissing(n.tau))
+		end
+	end
+
+	nwk = "(A,(B,(C,(D,E))));"
+	@testset "2" begin
+		t = parse_newick_string(nwk)
+		TreeTools.rand_times!(t)
+		TreeTools.root!(t, method=:midpoint, topological=true)
+		@test t["C"].anc.anc == t.root
+		for n in nodes(t)
+			@test (n.isroot && ismissing(n.tau)) || (!n.isroot && !ismissing(n.tau))
+		end
+		@test distance(t.root, t["A"]; topological=true) == 2 || distance(t.root, t["D"]; topological=true) == 2
+	end
+
+
+	nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
+	@testset "2" begin
+		t = parse_newick_string(nwk)
+		TreeTools.rand_times!(t)
+		TreeTools.root!(t, method = :midpoint)
+		@test t["A"].anc == t.root
+		@test t["E"].anc == t.root
+		@test t["F"].anc == t.root
+	end
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
