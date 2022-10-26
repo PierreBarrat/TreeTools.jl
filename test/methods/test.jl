@@ -144,3 +144,16 @@ end
 	TreeTools.ladderize!(t1)
 	@test write_newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
 end
+
+
+nwk = "(A,(B,C,D,E,(F,G,H)));"
+@testset "binarize" begin
+	t = parse_newick_string(nwk)
+	TreeTools.rand_times!(t)
+	bl(t) = sum(skipmissing(map(x -> x.tau, nodes(t)))) # branch length should stay unchanged
+	L = bl(t)
+	z = TreeTools.binarize!(t; mode=:balanced)
+	@test z == 4
+	@test length(SplitList(t)) == 7
+	@test bl(t) == L
+end

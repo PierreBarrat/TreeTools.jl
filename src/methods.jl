@@ -466,8 +466,101 @@ end
 
 
 ###############################################################################################################
-######################################## Other ####################################################
+######################################## Topology: reroot, binarize, ladderize... ####################################################
 ###############################################################################################################
+
+
+"""
+	binarize!(t::Tree)
+
+Make `t` binary by adding arbitrary internal nodes.
+"""
+function binarize!(t::Tree; mode = :balanced)
+	# I would like to implement `mode = :random` too in the future
+	z = binarize!(t.root; mode)
+	node2tree!(t, t.root)
+	return z
+end
+function binarize!(n::TreeNode{T}; mode = :balanced) where T
+	z = 0
+
+	if length(n.child) > 2
+		c_left, c_right = _partition(n.child, mode)
+		for part in (c_left, c_right)
+			if length(part) > 1
+				z += 1
+				nc = TreeNode(T(), label=make_random_label("BINARIZE"))
+				for c in part
+					prunenode!(c)
+					graftnode!(nc, c)
+				end
+				graftnode!(n, nc; tau=0)
+			end
+		end
+	end
+
+	for c in n.child
+		z += binarize!(c; mode)
+	end
+
+	return z
+end
+function _partition(X, mode)
+	# for now mode==:balanced all the time, so it's simple
+	L = length(X)
+	half = div(L,2) + mod(L,2)
+	return X[1:half], X[(half+1):end]
+end
+
+#=
+Reroot the tree to which `node` belongs at `node`.
+- If `node.isroot`,
+- Else if `newroot == nothing`, reroot the tree defined by `node` at `node`. Call `reroot!(node.anc; node)`.
+- Else, call `reroot!(node.anc; node)`, then change the ancestor of `node` to be `newroot`.
+=#
+function reroot!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
+	# Breaking cases
+	if node.anc == nothing || node.isroot
+		if !(node.anc == nothing && node.isroot)
+			@warn "There was a problem with input tree: previous root node has an ancestor."
+		elseif newroot != nothing
+			i = findfirst(c->c.label==newroot.label, node.child)
+			deleteat!(node.child, i)
+			node.anc = newroot
+			node.tau = newroot.tau
+			node.isroot = false
+		end
+	else # Recursion
+		if newroot == nothing
+			if node.isleaf
+				@warn "Rooting on a leaf node..."
+			end
+			node.isroot = true
+			reroot!(node.anc, newroot=node)
+			push!(node.child, node.anc)
+			node.anc = nothing
+			node.tau = missing
+		else
+			i = findfirst(c->c.label==newroot.label, node.child)
+			deleteat!(node.child, i)
+			reroot!(node.anc, newroot=node)
+			push!(node.child, node.anc)
+			node.anc = newroot
+			node.tau = newroot.tau
+		end
+	end
+end
+"""
+	reroot!(tree::Tree, node::AbstractString)
+
+Reroot `tree` at `tree.lnodes[node]`.
+"""
+function reroot!(tree::Tree, node::AbstractString)
+	reroot!(tree.lnodes[node])
+	tree.root = tree.lnodes[node]
+
+	return nothing
+end
 
 """
 	ladderize!(t::Tree)
@@ -497,6 +590,12 @@ function ladderize!(n::TreeNode)
 
 	return nothing
 end
+
+
+###############################################################################################################
+######################################## Other ####################################################
+###############################################################################################################
+
 
 """
 	branches_of_spanning_tree(t::Tree, leaves...)
