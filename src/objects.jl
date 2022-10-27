@@ -97,6 +97,7 @@ Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 children(n::TreeNode) = n.child
 ancestor(n::TreeNode) = n.anc
 branch_length(n::TreeNode) = n.tau
+branch_length!(n::TreeNode, τ::Union{Missing, Real}) = (n.tau = τ)
 label(n::TreeNode) = n.label
 isleaf(n) = n.isleaf
 isroot(n) = n.isroot
@@ -128,4 +129,4 @@ Base.in(n::TreeNode, t::Tree; exclude_internals=false) = in(n.label, t; exclude_
 Base.getindex(t::Tree, label) = getindex(t.lnodes, label)
 
 label(t::Tree) = t.label
-label!(t::Tree, label::AbstractString) = (t.label = label)
+label!(t::Tree, label::AbstractString) = (t.label = string(label))
