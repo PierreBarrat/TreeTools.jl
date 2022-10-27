@@ -168,7 +168,7 @@ end
 		TreeTools.root!(t, method=:midpoint, topological=true)
 		@test t["C"].anc == t.root
 		for n in nodes(t)
-			@test (n.isroot && ismissing(n.tau)) || (!n.isroot && !ismissing(n.tau))
+			@test (n.isroot && ismissing(branch_length(n))) || (!n.isroot && !ismissing(branch_length(n)))
 		end
 	end
 
@@ -179,20 +179,30 @@ end
 		TreeTools.root!(t, method=:midpoint, topological=true)
 		@test t["C"].anc.anc == t.root
 		for n in nodes(t)
-			@test (n.isroot && ismissing(n.tau)) || (!n.isroot && !ismissing(n.tau))
+			@test (n.isroot && ismissing(branch_length(n))) || (!n.isroot && !ismissing(branch_length(n)))
 		end
 		@test distance(t.root, t["A"]; topological=true) == 2 || distance(t.root, t["D"]; topological=true) == 2
 	end
 
 
 	nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
-	@testset "2" begin
+	@testset "3" begin
 		t = parse_newick_string(nwk)
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method = :midpoint)
 		@test t["A"].anc == t.root
 		@test t["E"].anc == t.root
 		@test t["F"].anc == t.root
+	end
+
+	# Some Kingman tree
+	nwk = "((3:42.39239447896236,9:42.39239447896236)internal_7:184.59454190028205,(((7:5.386265198881789,(4:3.4161799796066714,6:3.4161799796066714)internal_1:1.970085219275118)internal_3:13.350057070009068,(2:5.857739627778067,5:5.857739627778067)internal_4:12.878582641112791)internal_5:27.712331677710498,(10:33.43880444968331,(1:4.740041795143892,8:4.740041795143892)internal_2:28.69876265453942)internal_6:13.009849496918044)internal_8:180.53828243264306)internal_9:0;"
+	@testset "4" begin
+		t = parse_newick_string(nwk)
+		TreeTools.root!(t; method=:midpoint)
+		for n in nodes(t)
+			@test isroot(n) || !ismissing(branch_length(n))
+		end
 	end
 end
 
