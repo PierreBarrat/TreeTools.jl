@@ -30,7 +30,7 @@ include("reading.jl")
 export parse_newick_string, read_tree
 
 include("writing.jl")
-export write_newick, write_fasta, newick
+export write_newick, newick
 
 include("misc.jl")
 export print_tree, check_tree, print_tree_ascii
