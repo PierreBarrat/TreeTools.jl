@@ -146,16 +146,31 @@ end
 end
 
 
-nwk = "(A,(B,C,D,E,(F,G,H)));"
-@testset "binarize" begin
-	t = parse_newick_string(nwk)
-	TreeTools.rand_times!(t)
+@testset "Binarize" begin
 	bl(t) = sum(skipmissing(map(x -> x.tau, nodes(t)))) # branch length should stay unchanged
-	L = bl(t)
-	z = TreeTools.binarize!(t; mode=:balanced)
-	@test z == 4
-	@test length(SplitList(t)) == 7
-	@test bl(t) == L
+
+	nwk = "(A,(B,C,D,E,(F,G,H)));"
+	@testset "1" begin
+		t = parse_newick_string(nwk)
+		TreeTools.rand_times!(t)
+		L = bl(t)
+		z = TreeTools.binarize!(t; mode=:balanced)
+		@test z == 4
+		@test length(SplitList(t)) == 7
+		@test bl(t) == L
+	end
+
+	nwk = "(8:571.0,(((10:0.0,17:0.0)internal_1:12.8,(12:0.0,19:0.0)internal_2:12.5)internal_11:80.7,((6:26.3,(4:0.0,5:0.0)internal_7:22.0)internal_14:22.4,(1:12.5,3:12.5)internal_10:36.1,((11:0.0,20:0.0)internal_5:16.5,7:11.2,16:11.2,9:0.0,13:0.0,18:0.0,15:0.0)internal_13:23.1,(2:0.0,14:0.0)internal_4:42.1)internal_17:43.0)internal_18:477.0)internal_19:0;"
+	@testset "2" begin
+		t = parse_newick_string(nwk)
+		L = bl(t)
+		z = TreeTools.binarize!(t; mode=:balanced)
+		@test length(nodes(t)) == 2*length(leaves(t)) - 1
+		for n in nodes(t)
+			@test length(children(n)) == 2 || isleaf(n)
+		end
+	end
+
 end
 
 
