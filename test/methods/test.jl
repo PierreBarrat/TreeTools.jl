@@ -176,38 +176,45 @@ end
 
 
 @testset "Midpoint rooting" begin
-	nwk = "(A,(B,(C,(D,(E,F)))));"
 	@testset "1" begin
+		nwk = "(A,(B,(C,(D,(E,F)))));"
 		t = parse_newick_string(nwk)
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method=:midpoint, topological=true)
-		@test t["C"].anc == t.root
 		for n in nodes(t)
 			@test (n.isroot && ismissing(branch_length(n))) || (!n.isroot && !ismissing(branch_length(n)))
 		end
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=true) + 1
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=true) + 1
+		@test d1 == d2 || abs(d1-d2) == 1
 	end
 
-	nwk = "(A,(B,(C,(D,E))));"
+
 	@testset "2" begin
+		nwk = "(A,(B,(C,(D,E))));"
 		t = parse_newick_string(nwk)
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method=:midpoint, topological=true)
-		@test t["C"].anc.anc == t.root
 		for n in nodes(t)
 			@test (n.isroot && ismissing(branch_length(n))) || (!n.isroot && !ismissing(branch_length(n)))
 		end
-		@test distance(t.root, t["A"]; topological=true) == 2 || distance(t.root, t["D"]; topological=true) == 2
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=true) + 1
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=true) + 1
+		@test d1 == d2 || abs(d1-d2) == 1
 	end
 
 
-	nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
 	@testset "3" begin
-		t = parse_newick_string(nwk)
+		nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
+		t = parse_newick_string(nwk);
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method = :midpoint)
-		@test t["A"].anc == t.root
-		@test t["E"].anc == t.root
-		@test t["F"].anc == t.root
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=false) + t.root.child[1].tau
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) + t.root.child[2].tau
+		@test isapprox(d1, d2, rtol = 1e-10)
 	end
 
 	# Some Kingman tree
@@ -218,6 +225,10 @@ end
 		for n in nodes(t)
 			@test isroot(n) || !ismissing(branch_length(n))
 		end
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=false) + t.root.child[1].tau
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) + t.root.child[2].tau
+		@test isapprox(d1, d2, rtol = 1e-10)
 	end
 end
 
