@@ -230,6 +230,25 @@ end
 		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) + t.root.child[2].tau
 		@test isapprox(d1, d2, rtol = 1e-10)
 	end
+
+
+	# Some sick tree by Marco
+	@testset "5" begin
+		nwk = "(A:0.0,B:0.0,C:0.0,D:0.0,E:0.0,F:0.0,G:0.0,H:0.0,I:0.0,J:0.0)ROOT;"
+		t = parse_newick_string(nwk)
+		@test_logs (:warn, r"") match_mode=:any TreeTools.root!(t; method=:midpoint) # should warn and do nothing
+		@test label(t.root) == "ROOT"
+
+		TreeTools.root!(t; method=:midpoint, topological=true) # should do nothing since root is already midpoint
+		@test label(t.root) == "ROOT"
+
+		branch_length!(t["A"], 1.)
+		TreeTools.root!(t; method=:midpoint)
+		@test length(children(t.root)) == 2
+		@test in(t["A"], children(t.root))
+	end
+
+
 end
 
 

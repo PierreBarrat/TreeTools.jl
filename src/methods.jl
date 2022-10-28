@@ -579,7 +579,12 @@ Root tree using `method`. Only implemented method is `:midpoint`.
 
 Distance between nodes can be either topological (number of branches) or based on branch
 length. Does not create a polytomy at the root: if the midpoint is an already existing
-internal node, creates a new root node at infinitesimal distance from it.
+internal node (not the root), creates a new root node at infinitesimal distance below it.
+
+Midpoint rooting will exist without doing anything if
+- the distance between the two farthest leaves is `0`. This happens is branch length
+   are 0.
+- the current root is already the midpoint.
 """
 function root!(tree; method=:midpoint, topological = false)
 	if method == :midpoint
@@ -589,37 +594,52 @@ function root!(tree; method=:midpoint, topological = false)
 end
 
 function root_midpoint!(t::Tree; topological = false)
-	@assert length(leaves(t)) > 2 "Can't midpoint root tree with less than 3 leaves."
+	exit_warning = "Failed to midpoint root, tree unchanged"
+	if length(leaves(t)) == 1
+		@warn "Can't midpoint root tree with only one leaf"
+		@warn exit_warning
+		return nothing
+	end
+
 	# Find the good branch
-	b_l, b_h, L1, L2 = find_midpoint(t; topological)
+	b_l, b_h, L1, L2, fail = find_midpoint(t; topological)
+	fail && (@warn exit_warning; return nothing)
 	# The midpoint is between b_l and b_r == b_l.anc
 	# It's on the side of L1
-	# Even if the midpoint is exactly on b_h, we introduce a singleton below to root on.
+	# If the midpoint is exactly on b_h and b_h is not the root, we introduce a singleton below to root on.
 
-	# Introducing a singleton that will act as the new root.
 	d1 = distance(b_l, L1; topological)
 	d2 = distance(b_l, L2; topological)
-	τ = if topological
-		# root halfway along the branch
-		ismissing(b_l) ? missing : b_l.tau/2
+	if  isroot(b_h) && abs(d1-d2) == 2*distance(b_l, b_h; topological)
+		# The root is already the midpoint
+		@debug "Distances to previous root: $(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))"
+		@debug "Previous root was already midpoint, exiting."
 	else
-		d2 - (d1+d2)/2
+		# Introducing a singleton that will act as the new root.
+		τ = if topological
+			# root halfway along the branch
+			ismissing(b_l) ? missing : b_l.tau/2
+		else
+			d2 - (d1+d2)/2
+		end
+		@assert ismissing(τ) || 0 <= τ <= b_l.tau "Issue with time on the branch above midpoint"
+
+		R = add_internal_singleton!(b_l, b_h, τ, make_random_label("MIDPOINT_ROOT"))
+		node2tree!(t, t.root)
+
+		@debug "Introducing new root between $(b_l.label) and $(b_h.label)"
+		@debug "Distances to R: $(L1.label) --> $(distance(R, L1; topological)) / $(L2.label) --> $(distance(R, L2; topological))"
+
+		# Rooting on R
+		root!(t, R.label)
 	end
-	@assert ismissing(τ) || 0 <= τ <= b_l.tau "Issue with time on the branch above midpoint"
-	R = add_internal_singleton!(b_l, b_h, τ, make_random_label("MIDPOINT_ROOT"))
-	node2tree!(t, t.root)
 
-	@debug "Introducing new root between $(b_l.label) and $(b_h.label)"
-	@debug "Distances to R: $(L1.label) --> $(distance(R, L1; topological)) / $(L2.label) --> $(distance(R, L2; topological))"
-
-	# Rooting on R
-	root!(t, R.label)
 	return nothing
 end
 
 function find_midpoint(t::Tree{T}; topological = false) where T
 	# Find pair of leaves with largest distance
-	max_dist = 0
+	max_dist = -Inf
 	L1 = ""
 	L2 = ""
 	for n1 in leaves(t), n2 in leaves(t)
@@ -632,6 +652,12 @@ function find_midpoint(t::Tree{T}; topological = false) where T
 	end
 	@debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
 	@assert L1 != L2 "Issue: farthest apart leaves have the same label."
+	(isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has empty label."
+
+	if max_dist == 0 || ismissing(max_dist)
+		@warn "Null or missing branch lengths: cannot midpoint root."
+		return first(nodes(t)), first(nodes(t)), first(nodes(t)), first(nodes(t)), true
+	end
 
 	# Find leaf farthest away from lca(L1, L2)
 	A = lca(t, L1, L2).label
@@ -651,13 +677,13 @@ function find_midpoint(t::Tree{T}; topological = false) where T
 		d += topological ? 1. : branch_length(b_h)
 		b_l = isnothing(b_l) ? b_h : b_l.anc
 		b_h = b_h.anc
-		@assert b_h != A
+		@assert b_h != A "Issue during midpoint rooting."
 		it += 1
 	end
 	it >= 1e5 && error("Tree too large to midpoint root (>1e5 levels) (or there was a bug)")
 
 	@debug "Midpoint found between $(b_l.label) and $(b_h.label)"
-	return b_l, b_h, L_ref, L_other
+	return b_l, b_h, L_ref, L_other, false
 end
 
 
