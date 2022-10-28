@@ -129,4 +129,29 @@ Base.in(n::TreeNode, t::Tree; exclude_internals=false) = in(n.label, t; exclude_
 Base.getindex(t::Tree, label) = getindex(t.lnodes, label)
 
 label(t::Tree) = t.label
+"""
+	label!(t::Tree, label::AbstractString)
+
+Change the label of the `Tree` to `label`.
+"""
 label!(t::Tree, label::AbstractString) = (t.label = string(label))
+"""
+	label!(t::Tree, node::TreeNode, new_label::AbstractString)
+	label!(t::Tree, old_label, new_label)
+
+Change the label of a `TreeNode` to `new_label`.
+"""
+function label!(tree::Tree, node::TreeNode, label::AbstractString)
+	@assert in(node, tree) "Node $(node.label) is not in tree."
+	@assert !in(label, tree) "Node $(label) is already in tree: can't rename $(node.label) like this."
+	tree.lnodes[label] = node
+	delete!(tree.lnodes, node.label)
+	if node.isleaf
+		tree.lleaves[label] = node
+		delete!(tree.lleaves, node.label)
+	end
+	node.label = label
+
+	return nothing
+end
+label!(t::Tree, old_label, new_label) = label!(t, t[old_label], new_label)
