@@ -464,6 +464,14 @@ function isancestor(a::TreeNode, node::TreeNode)
 	end
 end
 
+"""
+	distance_to_deepest_leaf(n::TreeNode; topological=false)
+
+Distance from `n` to the deepest leaf below `n`.
+"""
+function distance_to_deepest_leaf(n::TreeNode; topological=false)
+	maximum(l -> distance(n, l; topological), POT(n))
+end
 
 ###############################################################################################################
 ######################################## Topology: root, binarize, ladderize... ####################################################
@@ -557,11 +565,11 @@ root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting.
 function root!(tree::Tree, node::AbstractString)
 	_root!(tree.lnodes[node])
 	tree.root = tree.lnodes[node]
-	remove_internal_singletons!(tree)
+	remove_internal_singletons!(tree) # old root is potentially a singleton
 	return nothing
 end
 """
-	root!(tree; method=:midpoint, topological = true)
+	root!(tree; method=:midpoint, topological = false)
 
 Root tree using `method`. Only implemented method is `:midpoint`. 
 
@@ -569,67 +577,113 @@ Root tree using `method`. Only implemented method is `:midpoint`.
 
 ## `:midpoint`
 
-Distance between nodes can be either topological (number of branches) or based on branch length. 
+Distance between nodes can be either topological (number of branches) or based on branch
+length. Does not create a polytomy at the root: if the midpoint is an already existing
+internal node (not the root), creates a new root node at infinitesimal distance below it.
 
-**Warning**: Only the `topological=true` condition has been tested!.
+Midpoint rooting will exist without doing anything if
+- the distance between the two farthest leaves is `0`. This happens is branch length
+   are 0.
+- the current root is already the midpoint.
 """
-function root!(tree; method=:midpoint, topological = true)
+function root!(tree; method=:midpoint, topological = false)
 	if method == :midpoint
 		root_midpoint!(tree; topological)
 	end
 	return nothing
 end
 
-function root_midpoint!(t::Tree; topological = true)
-	r = find_midpoint!(t::Tree; topological)
-	root!(t, r)
+function root_midpoint!(t::Tree; topological = false)
+	exit_warning = "Failed to midpoint root, tree unchanged"
+	if length(leaves(t)) == 1
+		@warn "Can't midpoint root tree with only one leaf"
+		@warn exit_warning
+		return nothing
+	end
+
+	# Find the good branch
+	b_l, b_h, L1, L2, fail = find_midpoint(t; topological)
+	fail && (@warn exit_warning; return nothing)
+	# The midpoint is between b_l and b_r == b_l.anc
+	# It's on the side of L1
+	# If the midpoint is exactly on b_h and b_h is not the root, we introduce a singleton below to root on.
+
+	d1 = distance(b_l, L1; topological)
+	d2 = distance(b_l, L2; topological)
+	if  isroot(b_h) && abs(d1-d2) == 2*distance(b_l, b_h; topological)
+		# The root is already the midpoint
+		@debug "Distances to previous root: $(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))"
+		@debug "Previous root was already midpoint, exiting."
+	else
+		# Introducing a singleton that will act as the new root.
+		τ = if topological
+			# root halfway along the branch
+			ismissing(b_l) ? missing : b_l.tau/2
+		else
+			d2 - (d1+d2)/2
+		end
+		@assert ismissing(τ) || 0 <= τ <= b_l.tau "Issue with time on the branch above midpoint"
+
+		R = add_internal_singleton!(b_l, b_h, τ, make_random_label("MIDPOINT_ROOT"))
+		node2tree!(t, t.root)
+
+		@debug "Introducing new root between $(b_l.label) and $(b_h.label)"
+		@debug "Distances to R: $(L1.label) --> $(distance(R, L1; topological)) / $(L2.label) --> $(distance(R, L2; topological))"
+
+		# Rooting on R
+		root!(t, R.label)
+	end
+
 	return nothing
 end
 
-function find_midpoint!(t::Tree{T}; topological = true) where T
+function find_midpoint(t::Tree{T}; topological = false) where T
 	# Find pair of leaves with largest distance
-	max_dist = 0
+	max_dist = -Inf
 	L1 = ""
 	L2 = ""
 	for n1 in leaves(t), n2 in leaves(t)
 		d = distance(n1, n2; topological)
-		if d > max_dist
+		ismissing(d) && (@error "Can't midpoint root for tree with missing branch length."; error())
+		if d > max_dist && n1 != n2
 			max_dist = d
 			L1, L2 = (n1.label, n2.label)
 		end
 	end
 	@debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
+	@assert L1 != L2 "Issue: farthest apart leaves have the same label."
+	(isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has empty label."
 
-	# Find middle branch: go up from leaf furthest from lca(L1, L2)
+	if max_dist == 0 || ismissing(max_dist)
+		@warn "Null or missing branch lengths: cannot midpoint root."
+		return first(nodes(t)), first(nodes(t)), first(nodes(t)), first(nodes(t)), true
+	end
+
+	# Find leaf farthest away from lca(L1, L2)
 	A = lca(t, L1, L2).label
 	d1 = distance(t, L1, A; topological)
 	d2 = distance(t, L2, A; topological)
-	@assert d1 + d2 == max_dist # you never know ... 
+	@assert isapprox(d1 + d2, max_dist; rtol = 1e-10) # you never know ...
+	L_ref = d1 > d2 ? t[L1] : t[L2]
+	L_other = d1 > d2 ? t[L2] : t[L1]
 
-	n = d1 > d2 ? t[L1] : t[L2]
-	x = 0
+	# Find middle branch: go up from leaf furthest from lca(L1, L2)
+	# midpoint is between b_l and b_h
+	b_l = nothing
+	b_h = L_ref
+	d = 0
 	it = 0
-	while x < div(max_dist, 2) && it < 1e5
+	while d < max_dist/2 && it < 1e5
+		d += topological ? 1. : branch_length(b_h)
+		b_l = isnothing(b_l) ? b_h : b_l.anc
+		b_h = b_h.anc
+		@assert b_h != A "Issue during midpoint rooting."
 		it += 1
-		n = n.anc
-		x += topological ? 1. : branch_length(n)
-		@assert n != A
 	end
-	it >= 1e4 && error("Tree too large to midpoint root (>1e5 levels) (or there was a bug)")
+	it >= 1e5 && error("Tree too large to midpoint root (>1e5 levels) (or there was a bug)")
 
-	# two cases
-	## if n is equidistant from L1 & L2, n should be the root
-	## if not, the root should be the point on the branch above `n` that is equidistant
-	if distance(n, t[L1]; topological) == distance(n, t[L2]; topological)
-		@debug "Midpoint found exactly on node $(n.label) -- Extremal leaves $L1 & $L2"
-		return n.label
-	else
-		@debug "Midpoint found on the branch above $(n.label) -- Extremal leaves $L1 & $L2"
-		τ = ismissing(n.tau) ? missing : n.tau/2
-		R = add_internal_singleton!(n, n.anc, τ, make_random_label("MIDPOINT_ROOT"))
-		node2tree!(t, t.root)
-		return R.label
-	end
+	@debug "Midpoint found between $(b_l.label) and $(b_h.label)"
+	return b_l, b_h, L_ref, L_other, false
 end
 
 

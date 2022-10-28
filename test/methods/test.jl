@@ -146,54 +146,109 @@ end
 end
 
 
-nwk = "(A,(B,C,D,E,(F,G,H)));"
-@testset "binarize" begin
-	t = parse_newick_string(nwk)
-	TreeTools.rand_times!(t)
+@testset "Binarize" begin
 	bl(t) = sum(skipmissing(map(x -> x.tau, nodes(t)))) # branch length should stay unchanged
-	L = bl(t)
-	z = TreeTools.binarize!(t; mode=:balanced)
-	@test z == 4
-	@test length(SplitList(t)) == 7
-	@test bl(t) == L
+
+	nwk = "(A,(B,C,D,E,(F,G,H)));"
+	@testset "1" begin
+		t = parse_newick_string(nwk)
+		TreeTools.rand_times!(t)
+		L = bl(t)
+		z = TreeTools.binarize!(t; mode=:balanced)
+		@test z == 4
+		@test length(SplitList(t)) == 7
+		@test bl(t) == L
+	end
+
+	nwk = "(8:571.0,(((10:0.0,17:0.0)internal_1:12.8,(12:0.0,19:0.0)internal_2:12.5)internal_11:80.7,((6:26.3,(4:0.0,5:0.0)internal_7:22.0)internal_14:22.4,(1:12.5,3:12.5)internal_10:36.1,((11:0.0,20:0.0)internal_5:16.5,7:11.2,16:11.2,9:0.0,13:0.0,18:0.0,15:0.0)internal_13:23.1,(2:0.0,14:0.0)internal_4:42.1)internal_17:43.0)internal_18:477.0)internal_19:0;"
+	@testset "2" begin
+		t = parse_newick_string(nwk)
+		L = bl(t)
+		z = TreeTools.binarize!(t; mode=:balanced)
+		@test length(nodes(t)) == 2*length(leaves(t)) - 1
+		for n in nodes(t)
+			@test length(children(n)) == 2 || isleaf(n)
+		end
+	end
+
 end
 
 
 
 @testset "Midpoint rooting" begin
-	nwk = "(A,(B,(C,(D,(E,F)))));"
 	@testset "1" begin
+		nwk = "(A,(B,(C,(D,(E,F)))));"
 		t = parse_newick_string(nwk)
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method=:midpoint, topological=true)
-		@test t["C"].anc == t.root
 		for n in nodes(t)
-			@test (n.isroot && ismissing(n.tau)) || (!n.isroot && !ismissing(n.tau))
+			@test (n.isroot && ismissing(branch_length(n))) || (!n.isroot && !ismissing(branch_length(n)))
 		end
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=true) + 1
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=true) + 1
+		@test d1 == d2 || abs(d1-d2) == 1
 	end
 
-	nwk = "(A,(B,(C,(D,E))));"
+
 	@testset "2" begin
+		nwk = "(A,(B,(C,(D,E))));"
 		t = parse_newick_string(nwk)
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method=:midpoint, topological=true)
-		@test t["C"].anc.anc == t.root
 		for n in nodes(t)
-			@test (n.isroot && ismissing(n.tau)) || (!n.isroot && !ismissing(n.tau))
+			@test (n.isroot && ismissing(branch_length(n))) || (!n.isroot && !ismissing(branch_length(n)))
 		end
-		@test distance(t.root, t["A"]; topological=true) == 2 || distance(t.root, t["D"]; topological=true) == 2
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=true) + 1
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=true) + 1
+		@test d1 == d2 || abs(d1-d2) == 1
 	end
 
 
-	nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
-	@testset "2" begin
-		t = parse_newick_string(nwk)
+	@testset "3" begin
+		nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
+		t = parse_newick_string(nwk);
 		TreeTools.rand_times!(t)
 		TreeTools.root!(t, method = :midpoint)
-		@test t["A"].anc == t.root
-		@test t["E"].anc == t.root
-		@test t["F"].anc == t.root
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=false) + t.root.child[1].tau
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) + t.root.child[2].tau
+		@test isapprox(d1, d2, rtol = 1e-10)
 	end
+
+	# Some Kingman tree
+	nwk = "((3:42.39239447896236,9:42.39239447896236)internal_7:184.59454190028205,(((7:5.386265198881789,(4:3.4161799796066714,6:3.4161799796066714)internal_1:1.970085219275118)internal_3:13.350057070009068,(2:5.857739627778067,5:5.857739627778067)internal_4:12.878582641112791)internal_5:27.712331677710498,(10:33.43880444968331,(1:4.740041795143892,8:4.740041795143892)internal_2:28.69876265453942)internal_6:13.009849496918044)internal_8:180.53828243264306)internal_9:0;"
+	@testset "4" begin
+		t = parse_newick_string(nwk)
+		TreeTools.root!(t; method=:midpoint)
+		for n in nodes(t)
+			@test isroot(n) || !ismissing(branch_length(n))
+		end
+		@test length(children(t.root)) == 2
+		d1 = TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=false) + t.root.child[1].tau
+		d2 = TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) + t.root.child[2].tau
+		@test isapprox(d1, d2, rtol = 1e-10)
+	end
+
+
+	# Some sick tree by Marco
+	@testset "5" begin
+		nwk = "(A:0.0,B:0.0,C:0.0,D:0.0,E:0.0,F:0.0,G:0.0,H:0.0,I:0.0,J:0.0)ROOT;"
+		t = parse_newick_string(nwk)
+		@test_logs (:warn, r"") match_mode=:any TreeTools.root!(t; method=:midpoint) # should warn and do nothing
+		@test label(t.root) == "ROOT"
+
+		TreeTools.root!(t; method=:midpoint, topological=true) # should do nothing since root is already midpoint
+		@test label(t.root) == "ROOT"
+
+		branch_length!(t["A"], 1.)
+		TreeTools.root!(t; method=:midpoint)
+		@test length(children(t.root)) == 2
+		@test in(t["A"], children(t.root))
+	end
+
+
 end
 
 
