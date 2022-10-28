@@ -51,7 +51,7 @@ write labels of internal nodes in the string.
 newick(tree::Tree; internal_labels=true) = newick(tree.root; internal_labels)
 write_newick(tree::Tree; internal_labels=true) = newick(tree; internal_labels)
 
-
+write_newick(node::TreeNode) = newick(node)
 newick(root::TreeNode; internal_labels = true) = _newick!("", root, internal_labels)*";"
 function _newick!(s::String, root::TreeNode, internal_labels)
 	if !isempty(root.child)
