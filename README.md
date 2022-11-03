@@ -1,3 +1,5 @@
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://pierrebarrat.github.io/TreeTools.jl)
+
 # TreeTools
 
 Tools for handling phylogenetic or genealogic trees with Julia. 

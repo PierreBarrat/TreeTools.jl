@@ -11,3 +11,6 @@ using Pkg
 Pkg.add("TreeTools")
 ```
 You should now be able to use `using TreeKnit` from inside julia and follow the rest of the documentation. 
+
+!!! info
+    The documentation is being written: more things to come! 
