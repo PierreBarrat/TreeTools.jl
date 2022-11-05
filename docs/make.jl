@@ -6,7 +6,10 @@ makedocs(
     format = Documenter.HTML(),
     modules = [TreeTools],
     pages = [
-    	"Index" => "index.md",
+    	"Home" => "index.md",
+    	"Basic concepts" => "basic_concepts.md",
+    	"Reading and writing" => "IO.md",
+    	"Iteration" => "Iteration.md",
     ]
 )
 

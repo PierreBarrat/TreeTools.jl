@@ -1,6 +1,6 @@
 # TreeTools.jl
 
-TreeTools is a package to allow manipulation and simple operations on phylogenetic or genealogic trees. 
+TreeTools is a package to allow manipulation and simple operations on *rooted* phylogenetic or genealogic trees. 
 It started off as a dependency of another package [TreeKnit](https://github.com/PierreBarrat/TreeKnit.jl), but can in principle be used for any problem involving trees. 
 
 ## Installation
