@@ -101,6 +101,13 @@ branch_length!(n::TreeNode, τ::Union{Missing, Real}) = (n.tau = τ)
 label(n::TreeNode) = n.label
 isleaf(n) = n.isleaf
 isroot(n) = n.isroot
+data(n::TreeNode) = n.data
+"""
+	data!(n::TreeNode{T}, dat::T)
+
+Set the the data field of `n` to `dat`.
+"""
+data!(n::TreeNode{T}, dat::T) where T = (n.data = dat)
 
 """
 	mutable struct Tree{T <: TreeNodeData}
@@ -155,3 +162,5 @@ function label!(tree::Tree, node::TreeNode, label::AbstractString)
 	return nothing
 end
 label!(t::Tree, old_label, new_label) = label!(t, t[old_label], new_label)
+
+root(t::Tree) = t.root
