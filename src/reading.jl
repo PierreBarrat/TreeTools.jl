@@ -22,9 +22,8 @@ Read Newick file and create a `Tree{node_data_type}` object from it. The input f
 contain multiple Newick strings on different lines. The output will then be an array of
 `Tree` objects.
 
-`node_data_type` must be a subtype of `TreeNodeData`, and must have a *callable default outer
-constructor*: the call `node_data_type()` must exist and return a valid instance of
-`node_data_type`. See `?TreeNodeData` for implemented types.
+`node_data_type` must be a subtype of `TreeNodeData`, and the call `node_data_type()` must
+return a valid instance of `node_data_type`. See `?TreeNodeData` for implemented types.
 
 Use `force_new_labels=true` to force the renaming of all internal nodes.
 By default the tree will be assigned a `default_tree_label()`, however the label of the 
@@ -37,20 +36,20 @@ use `parse_newick_string` instead.
 The `Tree` type identifies nodes by their labels. This means that labels have to be unique.
 For this reason, the following is done when reading a tree:
 - if an internal node does not have a label, a unique one will be created of the form
-	`"NODE_i"`
+   `"NODE_i"`
 - if a node has a label that was already found before in the tree, a random identifier
-	will be appended to it to make it unique. Note that the identifier is created using
-	`randstring(8)`, unicity is technically not guaranteed.
+   will be appended to it to make it unique. Note that the identifier is created using
+   `randstring(8)`, unicity is technically not guaranteed.
 - if `force_new_labels` is used, a unique identifier is appended to node labels
 - if node labels in the Newick file are identified as confidence/bootstrap values, a random
-	identifier is appended to them, even if they're unique in the tree. See
-	`?TreeTools.isbootstrap` to see which labels are identified as confidence values.
+   identifier is appended to them, even if they're unique in the tree. See
+   `?TreeTools.isbootstrap` to see which labels are identified as confidence values.
 """
 function read_tree(
 	io::IO;
 	node_data_type=DEFAULT_NODE_DATATYPE, label=default_tree_label(), force_new_labels=false
 )
-	trees = map(eachline(io)) do line
+	trees = map(Iterators.filter(!isempty, eachline(io))) do line
 		t = parse_newick_string(line; node_data_type, label, force_new_labels)
 		check_tree(t)
 		t
@@ -217,7 +216,8 @@ end
 """
 	nw_parse_name(s::AbstractString)
 
-Parse Newick string of child into name and time to ancestor. Default value for missing time is `missing`.
+Parse Newick string of child into name and time to ancestor.
+Default value for missing time is `missing`.
 """
 function nw_parse_name(s::AbstractString)
 	temp = split(s, ":")

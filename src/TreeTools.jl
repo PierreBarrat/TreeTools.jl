@@ -22,7 +22,7 @@ include("methods.jl")
 export lca, node2tree, node2tree!, node_depth, distance, divtime, share_labels
 
 include("iterators.jl")
-export POT, POTleaves, nodes, leaves, internals
+export POT, nodes, leaves, internals
 
 include("prunegraft.jl")
 export delete_node!, graftnode!, prunenode!, prunenode, prunesubtree!

@@ -34,7 +34,7 @@ provided, return the Newick string. If `internal_labels == false`, do not
 write labels of internal nodes in the string.
 """
 function write_newick(io::IO, tree::Tree; internal_labels=true)
-	return write(io, newick(tree; internal_labels))
+	return write(io, newick(tree; internal_labels) * "\n")
 end
 function write_newick(filename::AbstractString, tree::Tree, mode="w"; internal_labels=true)
 	return open(filename, mode) do io
