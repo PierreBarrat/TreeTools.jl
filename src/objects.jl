@@ -97,6 +97,11 @@ Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 children(n::TreeNode) = n.child
 ancestor(n::TreeNode) = n.anc
 branch_length(n::TreeNode) = n.tau
+"""
+	branch_length!(n::TreeNode, τ)
+
+Set the branch length above `n` to `τ`.
+"""
 branch_length!(n::TreeNode, τ::Union{Missing, Real}) = (n.tau = τ)
 label(n::TreeNode) = n.label
 isleaf(n) = n.isleaf

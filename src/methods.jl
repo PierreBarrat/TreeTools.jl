@@ -137,8 +137,15 @@ function share_labels(tree1, tree2)
 end
 
 """
-	Base.map!(f, t::Tree)
-	Base.map!(f, r::TreeNode)
+	map(f, t::Tree)
+	map(f, r::TreeNode)
+"""
+Base.map(f, r::TreeNode) = map(f, POT(r))
+Base.map(f, t::Tree) = map(f, t.root)
+
+"""
+	map!(f, t::Tree)
+	map!(f, r::TreeNode)
 
 In the `Tree` version, call `f(n)` on all nodes of `t`.
 In the `TreeNode` version, call `f(n)` on each node in the clade below `r`, `r` included.
@@ -154,7 +161,7 @@ end
 Base.map!(f, t::Tree) = map!(f, t.root)
 
 """
-	Base.count(f, r::TreeNode)
+	count(f, r::TreeNode)
 
 Call `f(n)` on each node in the clade below `r` and return the number of time it returns
   `true`.
