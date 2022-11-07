@@ -24,7 +24,7 @@ At the basic level, the tree is represented by a set of linked `TreeNode` struct
 	TreeTools generally uses the label of nodes as an identifier. This is visible in the `Tree` structure which uses node labels for indexing. Another example is the equality between `TreeNode` objects `n1 == n2`, which simply falls back to `label(n1) == label(n2)`. For this reason, it is **strongly discouraged** to directly change the label of a node, *e.g.* by doing something like `n.label = mylabel`. A function `label!` is provided for that, called like this: `label!(tree, n, mylabel)`.
 
 !!! danger "Loops in the tree"
-	explain that it's possible to build trees with loops if one tries hard enough. This will result in code failing badly, maybe infinite loops and such. Reaching such a state should not be possible using only API functions (I hope :-D). 
+	TreeTools does not actively enforce the fact that trees do not have loops. That is, if you try hard enough, you can perfectly create a state where *e.g.* a node is its own ancestor. This will of course result in many of TreeTools functions to fail badly. Reaching such a state should not be possible using only API functions (at least I hope :-D). 
 
 The illustration below is a summary of the `TreeNode` object. 
 ![TreeNode_illustration](../TreeNode_illustration.png)

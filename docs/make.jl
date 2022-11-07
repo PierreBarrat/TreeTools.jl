@@ -1,6 +1,8 @@
 using Documenter
 using TreeTools
 
+using BenchmarkTools
+
 makedocs(
     sitename = "TreeTools",
     format = Documenter.HTML(),
