@@ -384,7 +384,7 @@ function lca(nodelist::Vararg{<:TreeNode})
 	# Getting any element to start with
 	ca = first(nodelist)
 	for node in nodelist
-		if !isancestor(ca, node)
+		if !is_ancestor(ca, node)
 			ca = lca(ca, node)
 		end
 	end
@@ -398,7 +398,7 @@ lca(nodelist) = lca(nodelist...)
 function lca(t::Tree, labels)
 	ca = t.lnodes[first(labels)]
 	for l in labels
-		if !isancestor(ca, t.lnodes[l])
+		if !is_ancestor(ca, t.lnodes[l])
 			ca = lca(ca, t.lnodes[l])
 		end
 	end
@@ -429,8 +429,9 @@ end
 	distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
 	distance(n1::TreeNode, n2::TreeNode; topological=false)
 
-Compute branch length distance between `n1` and `n2` by summing the `TreeNode.tau` values.
-If `topological`, the value `1` is summed instead of `TreeNode.tau`.
+Compute branch length distance between `n1` and `n2` by summing the `branch_length` values.
+If `topological`, the value `1.` is summed instead, counting the number of branches
+separating the two nodes (*Note*: the output is not an `Int`!).
 """
 function distance(i_node::TreeNode, j_node::TreeNode; topological=false)
 	a_node = lca(i_node, j_node)
@@ -455,21 +456,18 @@ end
 divtime(i_node, j_node) = distance(i_node, j_node)
 
 """
-	isancestor(a:::TreeNode, node::TreeNode)
+	is_ancestor(t::Tree, a::AbstractString, n::AbstractString)
 
 Check if `a` is an ancestor of `node`.
 """
-function isancestor(a::TreeNode, node::TreeNode)
-	if a==node
+function is_ancestor(a::TreeNode, node::TreeNode)
+	if a == node
 		return true
 	else
-		if node.isroot
-			return false
-		else
-			return isancestor(a, node.anc)
-		end
+		return isroot(node) ? false : is_ancestor(a, ancestor(node))
 	end
 end
+is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[n1], t[n2])
 
 """
 	distance_to_deepest_leaf(n::TreeNode; topological=false)
