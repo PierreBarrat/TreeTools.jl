@@ -12,6 +12,8 @@ makedocs(
     	"Basic concepts" => "basic_concepts.md",
     	"Reading and writing" => "IO.md",
     	"Iteration" => "Iteration.md",
+    	"Useful functions" => "useful_functions.md",
+    	"Modifying the tree" => "modifying_the_tree.md",
     ]
 )
 

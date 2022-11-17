@@ -21,10 +21,10 @@ At the basic level, the tree is represented by a set of linked `TreeNode` struct
 
 
 !!! warning "Node labels"
-	TreeTools generally uses the label of nodes as an identifier. This is visible in the `Tree` structure which uses node labels for indexing. Another example is the equality between `TreeNode` objects `n1 == n2`, which simply falls back to `label(n1) == label(n2)`. For this reason, it is **strongly discouraged** to directly change the label of a node, *e.g.* by doing something like `n.label = mylabel`. A function `label!` is provided for that, called like this: `label!(tree, n, mylabel)`.
+	TreeTools generally uses the label of nodes as an identifier. This is visible in the `Tree` structure which uses node labels for indexing. Another example is the equality between `TreeNode` objects `n1 == n2`, which simply falls back to `label(n1) == label(n2)`. For this reason, it is **strongly discouraged** to directly change the label of a node, *e.g.* by doing something like `n.label = mylabel`. A function `label!` is provided for that, called like this: `label!(tree, n, mylabel)`. This makes sure that the struct `tree` is informed about the label change. 
 
 !!! danger "Loops in the tree"
-	TreeTools does not actively enforce the fact that trees do not have loops. That is, if you try hard enough, you can perfectly create a state where *e.g.* a node is its own ancestor. This will of course result in many of TreeTools functions to fail badly. Reaching such a state should not be possible using only API functions (at least I hope :-D). 
+	TreeTools does not actively enforce the fact that trees do not have loops. That is, if you try to, you can perfectly create a state where *e.g.* a node is its own ancestor. This will of course result in a lot of issues. I'd like to enforce the absence of loops at some point, but for now it's up to the user to be careful.  
 
 The illustration below is a summary of the `TreeNode` object. 
 ![TreeNode_illustration](../TreeNode_illustration.png)
@@ -53,6 +53,7 @@ println("The distance from $(label(AB)) to $(label(ancestor(AB))) is now $(branc
 	TreeTools has no structure or type to represent branches. 
 	Since only rooted trees are considered, it is natural for each node to "own" the branch above it. 
 	As a result, informations about branches are expected  to be stored on the node below, as is the case for the branch length.
+
 
 ## TreeNodeData
 
@@ -135,10 +136,4 @@ tree2 = node2tree(R)
 !!! warning "Copying a tree"
 	The call `tree2 = node2tree(tree.root)` will produce another tree that shares nodes with `tree`.. This is usually not a good way to copy a tree, since the actual tree nodes are not copied. Any modification of the nodes of `tree` will also modify those of `tree2`. To make an independent copy, simply call `copy(tree)`. 
 
-
-Internally, a `Tree` objects has the following fields that can be accessed if needed.
-- `lnodes`: a `Dict` mapping labels to nodes. 
-- `lleave`: a `Dict` mapping labels leaves. Naturally, this is a subset of `lnodes`.
-- `root`: the root node. 
-- `label`: a name for the tree.
  

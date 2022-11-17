@@ -17,8 +17,9 @@ for n in POT(tree)
 end
 ```
 
-If you want to access only leaves, you can always filter the results: 
+If you want to access only leaves, you can use `POTleaves`, or simply filter the results: 
 ```@repl iteration_1
+[label(n) for n in POTleaves(tree["AB"])]
 for n in Iterators.filter(isleaf, POT(tree))
 	println("$(label(n)) is a leaf")
 end
@@ -73,9 +74,9 @@ map(label, nodes(tree)) == union(
 )
 ```
 
-## A note on efficiency
+## A note on speed
 
-Iterating through nodes using `nodes` will be faster than using `POT`. This is mainly because of my inability to write an efficient iterator: currently, `POT` will allocate a number of times that is proportional to the size of the tree. Below is a simple example where we define functions that count the number of nodes in a tree:
+Iterating through `tree` using `nodes(tree)` will be faster than using `POT(tree)`. This is mainly because of my inability to write an efficient iterator: currently, `POT` will allocate a number of times that is proportional to the size of the tree. Below is a simple example where we define functions that count the number of nodes in a tree:
 
 ```@example iteration_2
 using TreeTools # hide
@@ -97,16 +98,18 @@ If a fast post-order is needed, the only solution in the current state of TreeTo
 The code below defines a more efficient to count nodes, traversing the tree in post-order. 
 
 ```@example iteration_2
-function count_nodes_eff_pot(n::TreeNode, cnt = 0) # this counts the number of nodes below `n`
+function count_nodes_eff_pot(n::TreeNode) # this counts the number of nodes below `n`
+	cnt = 0
 	for c in children(n)
-		cnt += count_nodes_eff_pot(c, 0) # 
+		cnt += count_nodes_eff_pot(c) # 
 	end
 	return cnt + 1
 end
 
 function count_nodes_eff_pot(tree::Tree)
-	return count_nodes_eff_pot(tree.root, 0)
+	return count_nodes_eff_pot(tree.root)
 end
+nothing # hide
 ```
 
 This will run faster than `count_nodes_pot`, and does not allocate. 
