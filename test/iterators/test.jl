@@ -11,7 +11,7 @@ begin
 
 	@testset "1" begin
 		@test sort([x.label for x in POT(tree)]) == tnodes
-		@test sort([x.label for x in POTleaves(tree)]) == tleaves
+		@test sort([x.label for x in TreeTools.POTleaves(tree)]) == tleaves
 	end
 
 	@testset "in" begin
