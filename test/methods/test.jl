@@ -251,6 +251,28 @@ end
 
 end
 
+println("##### Tree Measures #####")
+
+nwk1 = "((A,B),C);"
+nwk2 = "(A,(B,C));"
+nwk3 = "((A,B,D),C);"
+nwk4 = "(((A,B),D),C);"
+
+t1 = node2tree(TreeTools.parse_newick(nwk1), label = "a")
+t2 = node2tree(TreeTools.parse_newick(nwk2), label = "b")
+t3 = node2tree(TreeTools.parse_newick(nwk3), label = "c")
+t4 = node2tree(TreeTools.parse_newick(nwk4), label = "d")
+
+@testset "RF distance" begin
+	@test TreeTools.RF_distance(t1, t2) ==2
+    @test TreeTools.RF_distance(t3, t4) ==1
+end
+
+@testset "resolution value" begin
+	@test TreeTools.resolution_value(t3) == (2/3)
+    @test TreeTools.resolution_value(t4) == 1
+end
+
 
 
 
