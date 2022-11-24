@@ -746,27 +746,54 @@ function branches_in_spanning_tree(t, leaves::Vararg{TreeNode})
 end
 
 """
-resolution_value(t::Tree)
+	resolution_value(t::Tree)
 
-Resolution measure, ranges from 0 to 1, where 1 is a fully resolved tree and 0 is a tree with no internal nodes. 
-In a fully resolved tree with n leaves, there are (n-1) internal nodes. 
+Compute a measure of how resolved `t` is: `R = I / (L-1)` where `I` is the number of
+internal nodes and `L` the number of leaves.
+A fully resolved tree has `R=1`.
+Trees with only one leaf are also considered fully resolved.
 """
 function resolution_value(t::Tree)
     if length(keys(t.lleaves))==1 # if tree only contains 1 node it is resolved by definition
         return 1
     else
-        return (length(keys(t.lnodes)) - length(keys(t.lleaves)))/ (length(keys(t.lleaves)) -1)
+        return (length(nodes(t)) - length(leaves(t)))/ (length(leaves(t)) - 1)
     end
 end
 
+const tree_distance_types = (:RF,)
 """
-RF_distance(t1::Tree, t2::Tree)
+	distance(t1::Tree, t2::Tree; type = :RF, scale = false)
 
-Compute the Robinson–Foulds metric, or distance between two trees defined as the number of partitions 
-implied by tree 1 and not tree 2 plus the number of partitions implied by tree 2 and not tree 1
+Compute distance between two trees.
+See `TreeTools.tree_distance_types` for allowed types.
+If `scale`, the distance is scaled to `[0,1]`.
 """
-function RF_distance(t1::Tree, t2::Tree)
+function distance(t1::Tree, t2::Tree; type = :RF, scale = false)
+	if Symbol(type) == :RF
+		return RF_distance(t1, t2; scale)
+	else
+		error("Unknown distance type $(type) - see `TreeTools.tree_distance_types`")
+	end
+end
+
+"""
+	RF_distance(t1::Tree, t2::Tree; scale=false)
+
+Compute the Robinson–Foulds distance between `t1` and `t2`.
+RF distance is the sum of the number of splits present in `t1` and not `t2` and in `t2`
+and not `t1`.
+If `scale`, the distance is scaled to `[0,1]`.
+"""
+function RF_distance(t1::Tree, t2::Tree; scale=false)
+	@assert share_labels(t1, t2) "Cannot compute RF distance for trees that do not share leaves"
     s1 = SplitList(t1)
     s2 = SplitList(t2)
-    return length(s1) + length(s2) - 2*length(TreeTools.intersect(s1, s2))
+    d = length(s1) + length(s2) - 2*length(TreeTools.intersect(s1, s2))
+    if !scale || (length(s1) + length(s2) < 3)
+    	# can't scale if both trees have only the root split
+    	return d
+    else
+    	return d / (length(s1) + length(s2) - 2)
+    end
 end

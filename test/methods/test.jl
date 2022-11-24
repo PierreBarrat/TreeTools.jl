@@ -264,8 +264,11 @@ t3 = node2tree(TreeTools.parse_newick(nwk3), label = "c")
 t4 = node2tree(TreeTools.parse_newick(nwk4), label = "d")
 
 @testset "RF distance" begin
-	@test TreeTools.RF_distance(t1, t2) ==2
-    @test TreeTools.RF_distance(t3, t4) ==1
+	@test TreeTools.RF_distance(t1, t2) == 2
+    @test TreeTools.RF_distance(t3, t4) == 1
+    @test TreeTools.RF_distance(t1, t2; scale=true) == 1
+    @test TreeTools.RF_distance(t3, t4; scale=true) == 1/3
+    @test_throws AssertionError TreeTools.RF_distance(t1, t3)
 end
 
 @testset "resolution value" begin
