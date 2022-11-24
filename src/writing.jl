@@ -16,13 +16,30 @@ function write(io::IO, t::Tree; style=:newick, internal_labels=true)
 	end
 end
 function write(
-	filename::AbstractString, t::Tree, mode="w";
+	filename::AbstractString, t::Tree, mode::AbstractString = "w";
 	style=:newick, internal_labels=true
 )
 	return open(filename, mode) do io
 		write(io, t; style, internal_labels)
 	end
 end
+"""
+	write(filename, trees...; style=:newick, internal_labels=true)
+
+Write each tree in `trees` in `filename`, separated by a newline '\n' character.
+"""
+function write(
+	filename::AbstractString, trees::Vararg{Tree};
+	style=:newick, internal_labels=true
+)
+	return open(filename, "w") do io
+		for (i,t) in enumerate(trees)
+			write(io, t; style, internal_labels)
+			i < length(trees) && write(io, '\n')
+		end
+	end
+end
+
 
 """
 	write_newick(io::IO, tree::Tree; internal_labels=true)
@@ -36,7 +53,10 @@ write labels of internal nodes in the string.
 function write_newick(io::IO, tree::Tree; internal_labels=true)
 	return write(io, newick(tree; internal_labels))
 end
-function write_newick(filename::AbstractString, tree::Tree, mode="w"; internal_labels=true)
+function write_newick(
+	filename::AbstractString, tree::Tree, mode::AbstractString = "w";
+	internal_labels=true
+)
 	return open(filename, mode) do io
 		write_newick(io, tree; internal_labels)
 	end
