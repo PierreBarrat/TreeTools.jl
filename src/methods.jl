@@ -746,20 +746,21 @@ function branches_in_spanning_tree(t, leaves::Vararg{TreeNode})
 end
 
 """
-	resolution_value(t::Tree)
+	resolution_index(t::Tree)
 
 Compute a measure of how resolved `t` is: `R = I / (L-1)` where `I` is the number of
 internal nodes and `L` the number of leaves.
 A fully resolved tree has `R=1`.
 Trees with only one leaf are also considered fully resolved.
 """
-function resolution_value(t::Tree)
+function resolution_index(t::Tree)
     if length(keys(t.lleaves))==1 # if tree only contains 1 node it is resolved by definition
         return 1
     else
         return (length(nodes(t)) - length(leaves(t)))/ (length(leaves(t)) - 1)
     end
 end
+resolution_value(t::Tree) = resolution_index(t::Tree)
 
 const tree_distance_types = (:RF,)
 """
