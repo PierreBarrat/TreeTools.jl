@@ -70,24 +70,15 @@ end
 
 
 """
-	prunesubtree!(tree, r::TreeNode)
-	prunesubtree!(tree, labellist)
+	prunesubtree!(tree, node)
+	prunesubtree!(tree, labels)
 
-Prune and subtree corresponding to the MRCA of labels in `labellist`.
-Return the root of the subtree as a `TreeNode` as well as its previous direct ancestor.
+Same as `prune!`, but returns the pruned node as a `TreeNode` and its previous ancestor.
 """
-function prunesubtree!(tree, labellist; clade_only=true)
-	if clade_only && !isclade(labellist, tree)
-		error("Can't prune non-clade $labellist")
-	end
-	r = lca(tree, labellist)
-	return prunesubtree!(tree, r)
-end
+
 
 function prunesubtree!(tree, r::TreeNode; remove_singletons=true)
-	if r.isroot
-		@error "Trying to prune root"
-	end
+	r.isroot && error("Trying to prune root in tree $(label(tree))")
 
 	a = r.anc
 	delnode(n) = begin
@@ -103,10 +94,33 @@ function prunesubtree!(tree, r::TreeNode; remove_singletons=true)
 	end
 	return r, a
 end
+prunesubtree!(t, r::AbstractString; kwargs...) = prunesubtree!(t, t[r]; kwargs...)
 
-function prune!(t, r; return_tree=true, kwargs...)
+function prunesubtree!(tree, labels::AbstractArray; clade_only=true, kwargs...)
+	if clade_only && !isclade(labels, tree)
+		error("Can't prune non-clade $labels")
+	end
+	r = lca(tree, labels)
+	return prunesubtree!(tree, r; kwargs...)
+end
+
+"""
+	prune!(tree, node; kwargs...)
+	prune!(tree, labels)
+
+Prune `node` from `tree`.
+`node` can be a label or a `TreeNode`.
+Return the subtree defined by `node` as a `Tree` object.
+
+If a list of labels is provided, the MRCA of the corresponding nodes is pruned.
+
+## kwargs
+- `remove_singletons`: remove singletons (internals with one child) in the tree after pruning. Default `true`.
+- `clade_only`: if a list of labels is provided, check that it corresponds to a clade before pruning. Default `true`.
+"""
+function prune!(t, r; kwargs...)
 	r, a = prunesubtree!(t, r; kwargs...)
-	return return_tree ? node2tree(r) : r
+	return node2tree(r)
 end
 
 
@@ -157,7 +171,8 @@ graft!(t, n::TreeNode, r::AbstractString; kwargs...) = graft!(t, n, t[r]; kwargs
 graft!(t1, t2::Tree, r; kwargs...) = graft!(t1, copy(t2).root, r; kwargs...)
 
 
-function subtree_prune_regraft!(
+#= NOT TESTED -- TODO =#
+function __subtree_prune_regraft!(
 	t::Tree, p::AbstractString, g::AbstractString;
 	remove_singletons = true, graft_on_leaf = false, create_new_leaf = false,
 )

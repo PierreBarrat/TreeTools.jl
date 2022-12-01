@@ -62,16 +62,54 @@ end
 	# 3
 	E = node2tree(TreeNode(label = "E", tau = 5.))
 	tc = copy(t)
-	graft!(tc, E, "AB") # will copy E
-	@test sort(map(label, children(tc["AB"]))) == ["A","B","E"]
+	graft!(tc, E, "A", graft_on_leaf=true) # will copy E
+	@test sort(map(label, children(tc["A"]))) == ["E"]
 	@test isnothing(ancestor(E.root))
 	@test check_tree(E)
 	@test in("E", tc)
-	@test in("E", map(label, children(tc["AB"])))
 	@test_throws ErrorException graft!(tc, E, "CD")
 end
 
 @testset "Pruning" begin
+	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
+	t = parse_newick_string(nwk)
+
+	# 1
+	tc = copy(t)
+	r, a = prunesubtree!(tc, "AB")
+	@test !in("AB", tc)
+	@test !in("A", tc)
+	@test isroot(a)
+	@test isroot(r)
+	@test check_tree(tc)
+	@test sort(map(label, children(a))) == ["C", "D"]
+	@test label(a) == "R"
+	@test sort(map(label, children(r))) == ["A", "B"]
+
+	# 2
+	tc = copy(t)
+	@test_throws ErrorException prunesubtree!(tc, "R")
+	@test_throws KeyError prunesubtree!(tc, "X")
+	@test_throws ErrorException prune!(tc, ["A", "C"])
+	prunesubtree!(tc, ["A", "B"])
+	@test_throws KeyError prunesubtree!(tc, "A")
+
+	# 3
+	tc = copy(t)
+	tp = prune!(tc, ["A","B"]; remove_singletons = false)
+	@test !in("AB", tc)
+	@test !in("A", tc)
+	@test in("AB", tp)
+	@test in("A", tp)
+	@test check_tree(tp) # tc has singletons so check_tree will fail
+	@test sort(map(label, children(tc.root))) == ["CD"]
+
+	# 4
+	t = parse_newick_string("(A,(B,(C,(D))));")
+	tp = prune!(t, ["B","D"], clade_only=false)
+	@test length(leaves(t)) == 1
+	@test length(leaves(tp)) == 3
+	@test sort(map(label, leaves(tp))) == ["B","C","D"]
 end
 
 @testset "Deleting branches" begin
