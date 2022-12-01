@@ -27,7 +27,7 @@ using TreeTools
 
 	@testset "Deleting" begin
 		root = deepcopy(root_1)
-		temp = delete_node!(root.child[1])
+		temp = TreeTools.delete_node!(root.child[1])
 		@test temp == root && root == TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/prunegraft/tree_del1.nwk")
 	end
 end
@@ -76,13 +76,13 @@ end
 
 	# 1
 	tc = copy(t)
-	r, a = prunesubtree!(tc, "AB")
+	r, a = prunesubtree!(tc, "AB"; remove_singletons = true)
 	@test !in("AB", tc)
 	@test !in("A", tc)
 	@test isroot(a)
 	@test isroot(r)
 	@test check_tree(tc)
-	@test sort(map(label, children(a))) == ["C", "D"]
+	@test tc.root.label == "CD"
 	@test label(a) == "R"
 	@test sort(map(label, children(r))) == ["A", "B"]
 
@@ -110,6 +110,58 @@ end
 	@test length(leaves(t)) == 1
 	@test length(leaves(tp)) == 3
 	@test sort(map(label, leaves(tp))) == ["B","C","D"]
+end
+
+@testset "Insert" begin
+	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
+	t = parse_newick_string(nwk)
+
+	# 1
+	tc = copy(t)
+	@test_throws ErrorException insert!(tc, "A"; time = 2.)
+	@test_throws ErrorException insert!(tc, "A"; time = missing)
+	@test_throws ErrorException insert!(tc, "A"; name = "B")
+	@test_throws ErrorException insert!(tc, "R"; time = 1.)
+
+	# 2
+	tc = copy(t)
+	s = insert!(tc, "A"; time = 0.25)
+	@test in(label(s), tc)
+	@test ancestor(tc["A"]) == s
+	@test map(label, children(s)) == ["A"]
+	@test ancestor(s) == t["AB"]
+	@test branch_length(s) == 0.75
+	@test branch_length(s) + branch_length(tc["A"]) == 1.
+end
+
+@testset "Delete" begin
+	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
+	t = parse_newick_string(nwk)
+
+	# 1
+	tc = copy(t)
+	@test_throws ErrorException delete!(tc, "R")
+	delete!(tc, "AB")
+	@test sort(map(label, children(tc["R"]))) == ["A", "B", "CD"]
+	@test branch_length(tc["A"]) == 3
+	@test ancestor(tc["A"]) == tc["R"]
+end
+
+@testset "Remove internal singletons" begin
+	nwk = "(((C:1,((D2:1,D3:1)D1:1)D:1)B:1)A:1)R:1;"
+	t = parse_newick_string(nwk, strict_check=false)
+	dmat = Dict(
+		(n1.label, n2.label) => distance(n1, n2) for n1 in leaves(t) for n2 in leaves(t)
+	)
+
+	tc = copy(t)
+	TreeTools.remove_internal_singletons!(tc)
+	@test isempty(Iterators.filter(x -> length(children(x)) == 1, nodes(tc)))
+	dmat2 = Dict(
+		(n1.label, n2.label) => distance(n1, n2) for n1 in leaves(tc) for n2 in leaves(tc)
+	)
+	@test dmat == dmat2
+
 end
 
 @testset "Deleting branches" begin

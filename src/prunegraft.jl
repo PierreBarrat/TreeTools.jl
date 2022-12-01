@@ -90,7 +90,7 @@ function prunesubtree!(tree, r::TreeNode; remove_singletons=true)
 	map!(delnode, r)
 	prunenode!(r)
 	if remove_singletons
-		remove_internal_singletons!(tree, ptau=true)
+		remove_internal_singletons!(tree, delete_time=true)
 	end
 	return r, a
 end
@@ -206,7 +206,7 @@ end
 Add internal singleton above `n` and below `a`, at heigh `τ` above `n`.
 Return the singleton.
 """
-function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label; v = false)
+function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label)
 	# Branch length above n and above the singleton
 	nτ, sτ = n.tau >= τ ? (τ, n.tau - τ) : (n.tau, 0.)
 
@@ -217,7 +217,7 @@ function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label; v = 
 	graftnode!(s, n)
 	return s
 end
-function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label; v = false)
+function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label)
 	@assert ismissing(n.tau)
 	prunenode!(n)
 	s = TreeNode(; label)
@@ -225,48 +225,83 @@ function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label; v
 	graftnode!(s, n)
 	return s
 end
+"""
+Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`
+"""
+function _insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, t::Missing)
+	@assert ancestor(c) == a
+	@assert ismissing(branch_length(c))
+	@assert ismissing(branch_length(a))
+	@assert ismissing(branch_length(s))
 
-# function insert_node!(n::TreeNode, label, tau = zero(branch_length(n)))
-# 	nτ = branch_length(n)
-# 	if ismissing(nτ) != ismissing(tau) || tau > nτ
-# 		error("Cannot insert node at height $tau on branch with length $nτ")
-# 	end
+	prunenode!(c)
+	graftnode!(a, s)
+	graftnode!(s, c)
+	return nothing
+end
+function _insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, t::Number)
+	@assert ancestor(c) == a
+	@assert branch_length(s) == branch_length(c) - t
+	@assert branch_length(c) >= t
 
-# 	# Branch length above n and above the singleton
-# 	# ancestor(n) -- τ2 --> s -- tau --> n
-# 	τ2 = nτ - tau
-# 	s = TreeNode(; tau = tau, label)
+	prunenode!(c)
+	branch_length!(c, t)
+	graftnode!(a, s)
+	graftnode!(s, c)
 
-# end
+	return s
+end
 
-# """
-# 	insert_node!(t::Tree, n::AbstractString; tau = 0.)
+"""
+	insert_node!(tree, node; name, time)
 
-# Insert a node on the branch above `n`, at distance `tau` from `n`.
-# """
-# function insert_node!(t::Tree, n::AbstractString; tau = 0.)
+Insert a singleton named `name` above `node`, at height `time` on the branch.
+`time` can be a `Number` or `missing`.
+"""
+function insert!(
+	t::Tree,
+	n::TreeNode;
+	name = get_unique_label(t),
+	time = zero(branch_length(n)),
+)
 
-# end
+	# Checks
+	nτ = branch_length(n)
+	if isroot(n)
+		error("Cannot insert node above root in tree $(label(t))")
+	elseif ismissing(time) != ismissing(nτ) || (!ismissing(time) && time > nτ)
+		error("Cannot insert node at height $time on branch with length $nτ")
+	elseif in(name, t)
+		error("node $name is already in tree $(label(t))")
+	end
 
+	#
+	sτ = nτ - time
+	s = TreeNode(; label=name, tau = sτ)
+	_insert_node!(n, ancestor(n), s, time)
+	t.lnodes[name] = s
+
+	return s
+end
+insert!(t::Tree, n::AbstractString; kwargs...) = insert!(t, t[n]; kwargs...)
 
 
 
 """
-	delete_node!(node::TreeNode; ptau=false)
+	delete_node!(node::TreeNode; delete_time = false)
 
 Delete `node`. If it is an internal node, its children are regrafted on `node.anc`.
 Returns the new `node.anc`.
-If `ptau`, branch length above `node` is added to the regrafted branch.
+If `delete_time`, branch length above `node` is not added to the regrafted branch.
 Otherwise, the regrafted branch's length is unchanged. Return modified `node.anc`.
 
 Note that the previous node will still be in the dictionary `lnodes` and `lleaves` (if a leaf) and the print function will fail on the tree,
-to fully remove from the tree and apply the print function use `delete_node!(t::Tree, label; ptau=false)`
+to fully remove from the tree and apply the print function use `delete_node!(t::Tree, label)`
 """
-function delete_node!(node::TreeNode; ptau=false)
-	if node.isroot
-		@error "Cannot delete root node"
-		error()
-	end
+function delete_node!(node::TreeNode; delete_time = false)
+	node.isroot && error("Cannot delete root node")
+
+	ptau = !delete_time
 	out = node.anc
 	if node.isleaf
 		prunenode!(node)
@@ -281,11 +316,21 @@ function delete_node!(node::TreeNode; ptau=false)
 	return out
 end
 
-function delete_node!(t::Tree, label; ptau=false)
-	delete_node!(t.lnodes[label]; ptau)
+"""
+	delete!(tree::Tree, label; delete_time = false, remove_internal_singletons = true)
+
+Delete node `label` from `tree`.
+Children of `label` are regrafted onto its ancestor.
+
+If `delete_time`, the branch length above deleted node is also deleted,
+otherwise it is added to the regrafted branch.
+If `remove_internal_singletons`, internal singletons are removed after node is deleted.
+"""
+function delete!(t::Tree, label; delete_time = false, remove_internal_singletons = true)
+	delete_node!(t.lnodes[label]; delete_time)
 	delete!(t.lnodes, label)
 	haskey(t.lleaves, label) && delete!(t.lleaves, label)
-	remove_internal_singletons!(t; ptau)
+	remove_internal_singletons!(t; delete_time)
 	return nothing
 end
 
@@ -339,30 +384,40 @@ end
 
 
 """
-	remove_internal_singletons!(tree; ptau=true)
+	remove_internal_singletons!(tree; delete_time = false)
 
 Remove nodes with one child. Root node is left as is.
-If `ptau`, the length of branches above removed nodes is added to the branch length above
-their children.
+If `delete_time` is set to `false`, the length of branches above removed nodes
+is added to the branch length above their children.
 """
-function remove_internal_singletons!(tree; ptau=true)
+function remove_internal_singletons!(tree; delete_time = false)
 	root = tree.root
-	for n in values(tree.lnodes)
+	for n in nodes(tree)
 		if length(n.child) == 1
 			if !n.isroot
-				delete_node!(n, ptau=ptau)
+				delete_node!(n; delete_time)
 				delete!(tree.lnodes, n.label)
 			end
 		end
 	end
-	# If root itself is a singleton, delete its child and regraft onto it.
+	# If root itself is a singleton, prune its child
 	if length(tree.root.child) == 1 && !tree.root.child[1].isleaf
-		n = tree.root.child[1]
-		delete_node!(n, ptau=ptau)
-		delete!(tree.lnodes, n.label)
+		r = tree.root
+		n = r.child[1]
+
+		#
+		n.anc = nothing
+		n.isroot = true
+		tree.root = n
+
+		#
+		for i in eachindex(children(r))
+			pop!(r.child)
+		end
+		delete!(tree.lnodes, label(r))
 	end
-	#
-	#node2tree!(tree, root)
+
+	return nothing
 end
 
 
