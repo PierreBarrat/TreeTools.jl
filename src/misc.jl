@@ -214,11 +214,26 @@ end
 
 default_tree_label(n=10) = randstring(n)
 
-make_random_label(base="NODE") = make_random_label(base, 8)
-make_random_label(base, i) = "$(base)_$(randstring(i))"
+make_random_label(base="NODE"; delim = "_") = make_random_label(base, 8; delim)
+make_random_label(base, i; delim = "_") = base * delim * randstring(i)
+
+function get_unique_label(t::Tree, base = "NODE"; delim = "_")
+	label = make_random_label(base; delim)
+	while haskey(t.lnodes, label)
+		label = make_random_label(base; delim)
+	end
+	return label
+end
+
+function set_unique_label!(node::TreeNode, t::Tree; delim = "_")
+	base = label(node)
+	new_label = get_unique_label(t, base; delim)
+	node.label = new_label
+end
 
 """
     create_label(t::Tree, base="NODE")
+
 Create new node label in tree `t` with format `\$(base)_i` with `i::Int`.
 """
 function create_label(t::Tree, base="NODE")
@@ -232,16 +247,12 @@ function create_label(t::Tree, base="NODE")
     return "$(base)_$(label_init)"
 end
 
-function set_unique_label!(node::TreeNode, t::Tree; delim = "__")
-	id = randstring(8)
-	node.label *= delim * id
-	while haskey(t.lnodes, node.label)
-		node.label = node.label[1:end-5] * randstring(8)
-	end
-end
+
+
 
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = nothing)
+
 Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat`. Entries of `dat` should be dictionaries, or iterable similarly, and are added to `n.data.dat`.
 If `!isnothing(key)`, only a specific key of `dat` is added. It's checked for by `k == key || Symbol(k) == key` for all keys `k` of `dat`.
 If `symbol`, data is added to nodes of `t` with symbols as keys.
