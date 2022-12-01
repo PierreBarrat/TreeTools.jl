@@ -110,7 +110,8 @@ end
 
 Prune `node` from `tree`.
 `node` can be a label or a `TreeNode`.
-Return the subtree defined by `node` as a `Tree` object.
+Return the subtree defined by `node` as a `Tree` object as well as the previous
+ancestor of `node`.
 
 If a list of labels is provided, the MRCA of the corresponding nodes is pruned.
 
@@ -120,7 +121,7 @@ If a list of labels is provided, the MRCA of the corresponding nodes is pruned.
 """
 function prune!(t, r; kwargs...)
 	r, a = prunesubtree!(t, r; kwargs...)
-	return node2tree(r)
+	return node2tree(r), a
 end
 
 

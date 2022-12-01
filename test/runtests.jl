@@ -1,4 +1,5 @@
 using TreeTools
+using Test
 
 @testset verbose=true "TreeTools" begin
 

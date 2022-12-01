@@ -96,7 +96,7 @@ end
 
 	# 3
 	tc = copy(t)
-	tp = prune!(tc, ["A","B"]; remove_singletons = false)
+	tp, _ = prune!(tc, ["A","B"]; remove_singletons = false)
 	@test !in("AB", tc)
 	@test !in("A", tc)
 	@test in("AB", tp)
@@ -105,8 +105,8 @@ end
 	@test sort(map(label, children(tc.root))) == ["CD"]
 
 	# 4
-	t = parse_newick_string("(A,(B,(C,(D))));")
-	tp = prune!(t, ["B","D"], clade_only=false)
+	t = parse_newick_string("(A,(B,(C,D)));")
+	tp, _ = prune!(t, ["B","D"], clade_only=false)
 	@test length(leaves(t)) == 1
 	@test length(leaves(tp)) == 3
 	@test sort(map(label, leaves(tp))) == ["B","C","D"]
