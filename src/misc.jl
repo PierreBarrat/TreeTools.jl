@@ -177,7 +177,7 @@ function check_tree(tree::Tree; strict=true)
     labellist = Dict{String, Int64}()
     nroot = 0
     flag = true
-    for n in values(tree.lnodes)
+    for n in nodes(tree)
         if !n.isleaf && length(n.child)==0
         	(flag = false) || (@warn "Node $(n.label) is non-leaf and has no child.")
         elseif !n.isroot && n.anc == nothing

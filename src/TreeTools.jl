@@ -24,7 +24,7 @@ include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals
 
 include("prunegraft.jl")
-export delete_node!, graftnode!, prunenode!, prunenode, prunesubtree!
+export graft!, prune!, delete_node!, prunesubtree!
 
 include("reading.jl")
 export parse_newick_string, read_tree
