@@ -74,11 +74,23 @@ end
 	prunesubtree!(tree, labels)
 
 Same as `prune!`, but returns the pruned node as a `TreeNode` and its previous ancestor.
+See `prune!` for details on `kwargs`.
 """
 
 
-function prunesubtree!(tree, r::TreeNode; remove_singletons=true)
-	r.isroot && error("Trying to prune root in tree $(label(tree))")
+function prunesubtree!(tree, r::TreeNode; remove_singletons=true, create_leaf = :warn)
+	# Checks
+	if r.isroot
+		error("Trying to prune root in tree $(label(tree))")
+	elseif !in(r, tree)
+		error("Node $(r.label) is not in tree $(tree.label). Cannot prune.")
+	elseif length(children(ancestor(r))) == 1
+		if create_leaf == :warn
+			@warn "Pruning node $(r.label) will create a new leaf $(ancestor(r).label)"
+		elseif !create_leaf
+			error("Pruning node $(r.label) will create a new leaf $(ancestor(r).label)")
+		end
+	end
 
 	a = r.anc
 	delnode(n) = begin
@@ -90,7 +102,7 @@ function prunesubtree!(tree, r::TreeNode; remove_singletons=true)
 	map!(delnode, r)
 	prunenode!(r)
 	if remove_singletons
-		remove_internal_singletons!(tree, delete_time=true)
+		remove_internal_singletons!(tree, delete_time=false)
 	end
 	return r, a
 end
@@ -118,6 +130,10 @@ If a list of labels is provided, the MRCA of the corresponding nodes is pruned.
 ## kwargs
 - `remove_singletons`: remove singletons (internals with one child) in the tree after pruning. Default `true`.
 - `clade_only`: if a list of labels is provided, check that it corresponds to a clade before pruning. Default `true`.
+- `create_leaf`: if the ancestor of `r` has only one child (singleton), pruning `r`
+   will create a leaf. If `create_leaf == :warn`, this will trigger a warning. If
+   `create_leaf = false`, it will trigger an error. If `create_leaf = true`, then this
+   is allowed. Default: `:warn`.
 """
 function prune!(t, r; kwargs...)
 	r, a = prunesubtree!(t, r; kwargs...)
@@ -130,7 +146,7 @@ end
 
 Graft `n` onto `r`.
 `r` can be a label or a `TreeNode`, and should belong to `tree`.
-`n` can be a node label, a `TreeNode`, or a `Tree`.
+`n` can be a `TreeNode` or a `Tree`.
 In the latter case, `n` will be *copied* before being grafted.
 None of the nodes of the subtree of `n` should belong to `tree`.
 
@@ -233,9 +249,12 @@ end
 # 	return s
 # end
 """
-Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`
+	insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, time)
+
+Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`.
+The relation `branch_length(s) + t == branch_length(c)` should hold.
 """
-function _insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing) where T
+function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing) where T
 	@assert ancestor(c) == a
 	@assert ismissing(branch_length(c))
 	@assert ismissing(branch_length(a))
@@ -246,7 +265,7 @@ function _insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missin
 	graftnode!(s, c)
 	return nothing
 end
-function _insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number) where T
+function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number) where T
 	@assert ancestor(c) == a
 	@assert branch_length(s) == branch_length(c) - t
 	@assert branch_length(c) >= t
@@ -258,6 +277,7 @@ function _insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number
 
 	return s
 end
+
 
 """
 	insert_node!(tree, node; name, time)
@@ -286,7 +306,7 @@ function insert!(
 	#
 	sτ = nτ - time
 	s = TreeNode(; label=name, tau = sτ, data = T())
-	_insert_node!(n, ancestor(n), s, time)
+	insert_node!(n, ancestor(n), s, time)
 	t.lnodes[name] = s
 
 	return s
