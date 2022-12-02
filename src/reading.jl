@@ -76,14 +76,16 @@ Parse newick string into a tree. See `read_tree` for more informations.
 function parse_newick_string(
 	nw::AbstractString;
 	node_data_type=DEFAULT_NODE_DATATYPE, 
-	label=default_tree_label(), force_new_labels=false,
+	label=default_tree_label(),
+	force_new_labels=false,
+	strict_check = true,
 )
 	@assert nw[end] == ';' "Newick string does not end with ';'"
 
 	reset_n()
 	root = parse_newick(nw[1:end-1]; node_data_type)
 	tree = node2tree(root; label, force_new_labels)
-	check_tree(tree)
+	check_tree(tree, strict = strict_check)
 	return tree
 end
 

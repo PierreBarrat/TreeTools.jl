@@ -8,7 +8,7 @@ import Base: eltype, iterate, IteratorEltype, IteratorSize, length
 import Base: eachindex, firstindex, get!, getindex, lastindex, setindex!
 
 ## Others
-import Base: ==, cat, convert, copy, count, hash, in, intersect
+import Base: ==, cat, convert, copy, count, delete!, hash, in, insert!, intersect
 import Base: isempty, isequal, keys, map!, setdiff, show, size
 import Base: union, union!, unique, unique!, write
 
@@ -24,7 +24,7 @@ include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals
 
 include("prunegraft.jl")
-export delete_node!, graftnode!, prunenode!, prunenode, prunesubtree!
+export graft!, prune!, prunesubtree!
 
 include("reading.jl")
 export parse_newick_string, read_tree
