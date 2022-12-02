@@ -1,7 +1,7 @@
 using Test
 using TreeTools
 
-println("##### splits #####")
+# println("##### splits #####")
 
 nwk1 = "(((A1,A2),(B1,B2),(C1,C2)),D,E)"
 t = node2tree(TreeTools.parse_newick(nwk1)) #
