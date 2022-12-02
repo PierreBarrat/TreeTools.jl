@@ -207,31 +207,31 @@ function __subtree_prune_regraft!(
 end
 
 
-"""
-	add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real)
+# """
+# 	add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real)
 
-Add internal singleton above `n` and below `a`, at heigh `τ` above `n`.
-Return the singleton.
-"""
-function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label)
-	# Branch length above n and above the singleton
-	nτ, sτ = n.tau >= τ ? (τ, n.tau - τ) : (n.tau, 0.)
+# Add internal singleton above `n` and below `a`, at heigh `τ` above `n`.
+# Return the singleton.
+# """
+# function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label)
+# 	# Branch length above n and above the singleton
+# 	nτ, sτ = n.tau >= τ ? (τ, n.tau - τ) : (n.tau, 0.)
 
-	s = TreeNode(; tau = sτ, label)
-	prunenode!(n)
-	n.tau = nτ
-	graftnode!(a, s)
-	graftnode!(s, n)
-	return s
-end
-function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label)
-	@assert ismissing(n.tau)
-	prunenode!(n)
-	s = TreeNode(; label)
-	graftnode!(a, s)
-	graftnode!(s, n)
-	return s
-end
+# 	s = TreeNode(; tau = sτ, label)
+# 	prunenode!(n)
+# 	n.tau = nτ
+# 	graftnode!(a, s)
+# 	graftnode!(s, n)
+# 	return s
+# end
+# function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label)
+# 	@assert ismissing(n.tau)
+# 	prunenode!(n)
+# 	s = TreeNode(; label)
+# 	graftnode!(a, s)
+# 	graftnode!(s, n)
+# 	return s
+# end
 """
 Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`
 """
@@ -263,6 +263,7 @@ end
 	insert_node!(tree, node; name, time)
 
 Insert a singleton named `name` above `node`, at height `time` on the branch.
+Return the inserted singleton.
 `time` can be a `Number` or `missing`.
 """
 function insert!(

@@ -624,7 +624,8 @@ function root_midpoint!(t::Tree; topological = false)
 		end
 		@assert ismissing(τ) || 0 <= τ <= b_l.tau "Issue with time on the branch above midpoint"
 
-		R = add_internal_singleton!(b_l, b_h, τ, make_random_label("MIDPOINT_ROOT"))
+		# R = add_internal_singleton!(b_l, b_h, τ, make_random_label("MIDPOINT_ROOT"))
+		R = insert!(t, b_l; time=τ, name=get_unique_label(t, "MIDPOINT_ROOT"))
 		node2tree!(t, t.root)
 
 		@debug "Introducing new root between $(b_l.label) and $(b_h.label)"
