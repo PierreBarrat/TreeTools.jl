@@ -35,7 +35,7 @@ end
 
 @testset "Grafting new node onto tree" begin
 	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
-	t = parse_newick_string(nwk)
+	t = parse_newick_string(nwk; node_data_type = TreeTools.EmptyData)
 
 	# 1
 	E = TreeNode(label = "E", tau = 4.)
@@ -68,11 +68,20 @@ end
 	@test check_tree(E)
 	@test in("E", tc)
 	@test_throws ErrorException graft!(tc, E, "CD")
+
+	# 4
+	E = TreeNode(label = "E", tau = 4., data = MiscData())
+	tc = copy(t)
+	@test_throws ErrorException graft!(tc, E, "AB")
+
+	tc = convert(Tree{MiscData}, t)
+	E = TreeNode(label = "E", tau = 4.)
+	@test_throws ErrorException graft!(tc, E, "AB")
 end
 
 @testset "Pruning" begin
 	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
-	t = parse_newick_string(nwk)
+	t = parse_newick_string(nwk; node_data_type = TreeTools.EmptyData)
 
 	# 1
 	tc = copy(t)
@@ -114,7 +123,7 @@ end
 
 @testset "Insert" begin
 	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
-	t = parse_newick_string(nwk)
+	t = parse_newick_string(nwk; node_data_type = TreeTools.EmptyData)
 
 	# 1
 	tc = copy(t)
@@ -124,7 +133,7 @@ end
 	@test_throws ErrorException insert!(tc, "R"; time = 1.)
 
 	# 2
-	tc = copy(t)
+	tc = convert(Tree{MiscData}, t)
 	s = insert!(tc, "A"; time = 0.25)
 	@test in(label(s), tc)
 	@test ancestor(tc["A"]) == s
@@ -132,11 +141,24 @@ end
 	@test ancestor(s) == t["AB"]
 	@test branch_length(s) == 0.75
 	@test branch_length(s) + branch_length(tc["A"]) == 1.
+
+	# 3
+	tc = convert(Tree{MiscData}, t)
+	s = insert!(tc, "A"; time = 0.25)
+	@test typeof(s) == TreeNode{MiscData}
+	@test in(label(s), tc)
+	@test ancestor(tc["A"]) == s
+	@test map(label, children(s)) == ["A"]
+	@test ancestor(s) == t["AB"]
+	@test branch_length(s) == 0.75
+	@test branch_length(s) + branch_length(tc["A"]) == 1.
+	s.data["Hello"] = " World!"
+	@test tc[s.label].data["Hello"] == " World!"
 end
 
 @testset "Delete" begin
 	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
-	t = parse_newick_string(nwk)
+	t = parse_newick_string(nwk; node_data_type = TreeTools.EmptyData)
 
 	# 1
 	tc = copy(t)

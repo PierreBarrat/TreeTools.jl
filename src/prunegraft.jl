@@ -137,9 +137,9 @@ None of the nodes of the subtree of `n` should belong to `tree`.
 If `r` is a leaf and `graft_on_leaf` is set to `false` (default), will raise an error.
 """
 function graft!(
-	t::Tree, n::TreeNode, r::TreeNode;
+	t::Tree{T}, n::TreeNode{T}, r::TreeNode;
 	graft_on_leaf=false, tau = branch_length(n),
-)
+) where T
 	# checks
 	if !graft_on_leaf && isleaf(r)
 		error("Cannot graft: node $r is a leaf (got `graft_on_leaf=false`")
@@ -168,6 +168,13 @@ function graft!(
 
 	return nothing
 end
+function graft!(t::Tree{T}, n::TreeNode{R}, r::TreeNode; kwargs...) where T where R
+	error(
+		"Cannot graft node of type $(typeof(n)) on tree of type $(typeof(t)).
+		Try to change node data type"
+	)
+end
+
 graft!(t, n::TreeNode, r::AbstractString; kwargs...) = graft!(t, n, t[r]; kwargs...)
 graft!(t1, t2::Tree, r; kwargs...) = graft!(t1, copy(t2).root, r; kwargs...)
 
@@ -228,7 +235,7 @@ end
 """
 Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`
 """
-function _insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, t::Missing)
+function _insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing) where T
 	@assert ancestor(c) == a
 	@assert ismissing(branch_length(c))
 	@assert ismissing(branch_length(a))
@@ -239,7 +246,7 @@ function _insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, t::Missing)
 	graftnode!(s, c)
 	return nothing
 end
-function _insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, t::Number)
+function _insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number) where T
 	@assert ancestor(c) == a
 	@assert branch_length(s) == branch_length(c) - t
 	@assert branch_length(c) >= t
@@ -259,11 +266,11 @@ Insert a singleton named `name` above `node`, at height `time` on the branch.
 `time` can be a `Number` or `missing`.
 """
 function insert!(
-	t::Tree,
+	t::Tree{T},
 	n::TreeNode;
 	name = get_unique_label(t),
 	time = zero(branch_length(n)),
-)
+) where T
 
 	# Checks
 	nτ = branch_length(n)
@@ -277,7 +284,7 @@ function insert!(
 
 	#
 	sτ = nτ - time
-	s = TreeNode(; label=name, tau = sτ)
+	s = TreeNode(; label=name, tau = sτ, data = T())
 	_insert_node!(n, ancestor(n), s, time)
 	t.lnodes[name] = s
 
