@@ -64,7 +64,7 @@ end
 	tc = copy(t)
 	graft!(tc, E, "A", graft_on_leaf=true) # will copy E
 	@test sort(map(label, children(tc["A"]))) == ["E"]
-	@test isnothing(ancestor(E.root))
+	@test isroot(E.root)
 	@test check_tree(E)
 	@test in("E", tc)
 	@test_throws ErrorException graft!(tc, E, "CD")

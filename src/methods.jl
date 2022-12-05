@@ -458,8 +458,9 @@ divtime(i_node, j_node) = distance(i_node, j_node)
 
 """
 	is_ancestor(t::Tree, a::AbstractString, n::AbstractString)
+	is_ancestor(a::TreeNode, n::TreeNode)
 
-Check if `a` is an ancestor of `node`.
+Check if `a` is an ancestor of `n`.
 """
 function is_ancestor(a::TreeNode, node::TreeNode)
 	if a == node
@@ -468,7 +469,7 @@ function is_ancestor(a::TreeNode, node::TreeNode)
 		return isroot(node) ? false : is_ancestor(a, ancestor(node))
 	end
 end
-is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[n1], t[n2])
+is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t[n])
 
 """
 	distance_to_deepest_leaf(n::TreeNode; topological=false)
