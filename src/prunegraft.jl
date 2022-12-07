@@ -115,10 +115,14 @@ function prunesubtree!(tree, labels::AbstractArray; clade_only=true, kwargs...)
 	r = lca(tree, labels)
 	return prunesubtree!(tree, r; kwargs...)
 end
+function prunesubtree!(tree, label1, label2::Vararg{AbstractString}; kwargs...)
+	return prunesubtree!(tree, vcat(label1, label2...); kwargs...)
+end
 
 """
 	prune!(tree, node; kwargs...)
-	prune!(tree, labels)
+	prune!(tree, labels::AbstractArray)
+	prune!(tree, labels...)
 
 Prune `node` from `tree`.
 `node` can be a label or a `TreeNode`.
@@ -134,12 +138,29 @@ If a list of labels is provided, the MRCA of the corresponding nodes is pruned.
    will create a leaf. If `create_leaf == :warn`, this will trigger a warning. If
    `create_leaf = false`, it will trigger an error. If `create_leaf = true`, then this
    is allowed. Default: `:warn`.
+
+## Example
+
+```jldoctest
+julia> begin
+		tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;")
+		prune!(tree, ["X1", "X2"])
+		map(label, nodes(tree))
+	end
+3-element Vector{String}:
+ "B"
+ "A"
+ "R"
+```
 """
 function prune!(t, r; kwargs...)
 	r, a = prunesubtree!(t, r; kwargs...)
 	return node2tree(r), a
 end
-
+function prune!(t, labels...; kwargs...)
+	r, a = prunesubtree!(t, labels...; kwargs...)
+	return node2tree(r), a
+end
 
 """
 	graft!(tree::Tree, n, r; graft_on_leaf=false)
