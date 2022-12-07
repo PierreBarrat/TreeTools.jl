@@ -29,9 +29,6 @@ At the basic level, the tree is represented by a set of linked `TreeNode` struct
 The illustration below is a summary of the `TreeNode` object. 
 ![TreeNode_illustration](assets/TreeNode_illustration.png)
 
-
-![Enter a descriptive caption for the image](assets/logo.png)
-
 Each `TreeNode` can be accessed by directly indexing into the tree: 
 ```@repl basic
 AB = tree["AB"]
