@@ -27,7 +27,10 @@ At the basic level, the tree is represented by a set of linked `TreeNode` struct
 	TreeTools does not actively enforce the fact that trees do not have loops. That is, if you try to, you can perfectly create a state where *e.g.* a node is its own ancestor. This will of course result in a lot of issues. I'd like to enforce the absence of loops at some point, but for now it's up to the user to be careful.  
 
 The illustration below is a summary of the `TreeNode` object. 
-![TreeNode_illustration](./assets/TreeNode_illustration.png)
+![TreeNode_illustration](assets/TreeNode_illustration.png)
+
+
+![Enter a descriptive caption for the image](assets/logo.png)
 
 Each `TreeNode` can be accessed by directly indexing into the tree: 
 ```@repl basic
