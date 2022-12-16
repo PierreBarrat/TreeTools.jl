@@ -762,10 +762,13 @@ A fully resolved tree has `R=1`.
 Trees with only one leaf are also considered fully resolved.
 """
 function resolution_index(t::Tree)
-    if length(keys(t.lleaves))==1 # if tree only contains 1 node it is resolved by definition
+    if length(leaves(t)) == 1 ||  length(leaves(t)) == 2
+    	# if tree only contains 1 or 2 leaves it is resolved
         return 1
     else
-        return (length(nodes(t)) - length(leaves(t)))/ (length(leaves(t)) - 1)
+    	L = length(leaves(t))
+    	I = length(nodes(t)) - L
+        return (I-1) / (L-2)
     end
 end
 resolution_value(t::Tree) = resolution_index(t::Tree)

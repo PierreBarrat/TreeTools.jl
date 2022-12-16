@@ -256,11 +256,13 @@ end
 	nwk2 = "(A,(B,C));"
 	nwk3 = "((A,B,D),C);"
 	nwk4 = "(((A,B),D),C);"
+	nwk5 = "(A,B,C,D);"
 
 	t1 = node2tree(TreeTools.parse_newick(nwk1), label = "a")
 	t2 = node2tree(TreeTools.parse_newick(nwk2), label = "b")
 	t3 = node2tree(TreeTools.parse_newick(nwk3), label = "c")
 	t4 = node2tree(TreeTools.parse_newick(nwk4), label = "d")
+	t5 = node2tree(TreeTools.parse_newick(nwk5), label = "e")
 
 	@testset "RF distance" begin
 		@test TreeTools.RF_distance(t1, t2) == 2
@@ -271,8 +273,9 @@ end
 	end
 
 	@testset "resolution value" begin
-		@test TreeTools.resolution_value(t3) == (2/3)
+		@test TreeTools.resolution_value(t3) == (1/2)
 	    @test TreeTools.resolution_value(t4) == 1
+	    @test TreeTools.resolution_value(t5) == 0
 	end
 end
 
