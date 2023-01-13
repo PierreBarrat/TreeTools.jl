@@ -546,9 +546,9 @@ function _root!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}
 		end
 	else # Recursion
 		if newroot == nothing
-			if node.isleaf
-				error("Cannot root on a leaf node")
-			end
+			# if node.isleaf
+			# 	error("Cannot root on a leaf node")
+			# end
 			node.isroot = true
 			_root!(node.anc, newroot=node)
 			push!(node.child, node.anc)
@@ -569,10 +569,23 @@ end
 
 root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting. 
 """
-function root!(tree::Tree, node::AbstractString)
+function root!(tree::Tree, node::AbstractString; root_on_leaf = false)
+	if isleaf(tree[node])
+		if root_on_leaf
+			# remove `node` from set of leaves
+			delete!(tree.lleaves, node)
+			tree[node].isleaf = false
+		else
+			error("Cannot root on a leaf node")
+		end
+	end
+
 	_root!(tree.lnodes[node])
 	tree.root = tree.lnodes[node]
 	remove_internal_singletons!(tree) # old root is potentially a singleton
+	if label(tree.root) != node
+		label!(tree, label(tree.root), node)
+	end
 	return nothing
 end
 """
