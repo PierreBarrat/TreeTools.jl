@@ -392,24 +392,15 @@ delete_null_branches!(tree::Tree; threshold=1e-10) = delete_branches!(n -> branc
 
 
 function delete_branches!(f, n::TreeNode; keep_time=false)
-	if !n.isroot && f(n)
-		if !n.isleaf
-			# if `n` is an internal node, delete it and the branch above.
-			child_list, ntau = copy(n.child), branch_length(n)
-			delete_node!(n)
-			for c in child_list
-				if keep_time && !ismissing(ntau) && !ismissing(branch_length(c))
-					c.tau += ntau
-				end
-				delete_branches!(f, c; keep_time)
-			end
-		else
+	for c in copy(children(n)) # copy needed since `children(n)` is about to change
+		delete_branches!(f, c; keep_time)
+	end
+	if !isroot(n) && f(n)
+		if isleaf(n)
 			# if `n` is a leaf, set its branch length to 0
 			n.tau = ismissing(n.tau) ? missing : 0.
-		end
-	else
-		for c in n.child
-			delete_branches!(f, c; keep_time)
+		else
+			delete_node!(n; delete_time = !keep_time)
 		end
 	end
 

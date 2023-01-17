@@ -1,6 +1,7 @@
 using Test
 using TreeTools
 
+using Chain
 
 @testset "TreeNode level functions" begin
 	root_1 = TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/prunegraft/tree1.nwk")
@@ -186,12 +187,41 @@ end
 
 end
 
-@testset "Deleting branches" begin
-    root = TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/prunegraft/tree_testnullbranches.nwk")
-    TreeTools.delete_null_branches!(node2tree(root))
-    @test root == TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/prunegraft/tree_testnullbranches_.nwk")
+
+@testset "delete_branches!" begin
+	# Constructing a binary tree with branch length 1/k for layer k
+	K = 5
+	tree = let
+		tree = Tree()
+		label!(tree, tree.root, "root")
+		nodes = [tree.root]
+		new_nodes = []
+		for k in 1:K
+			for n in nodes, _ in 1:2
+				c = TreeNode(;
+					label = TreeTools.make_random_label("$k"),
+					tau = 1/k,
+				)
+				graft!(tree, c, n; graft_on_leaf=true)
+				push!(new_nodes, c)
+			end
+			nodes = new_nodes
+			new_nodes = []
+		end
+		tree
+	end
+
+	# Remove branches with cutoff 1/k for all k.
+	# Check that we removed the correct amount and that the tree remains ultrametric.
+	for cutoff in [1/k for k in reverse(1:K)]
+		tc = copy(tree)
+		n_removed = count(
+			n -> !isroot(n) && branch_length(n) < cutoff,
+			internals(tree)
+		)
+		TreeTools.delete_branches!(n -> branch_length(n) < cutoff, tc)
+		@test length(collect(internals(tc))) == 2^(K) - 1 - n_removed
+		@test length(@chain leaves(tc) map(n->distance(n, tc.root), _) unique) == 1
+	end
 end
 
-
-nwk1 = "(A,(B,(C,D)))"
-t1 = node2tree(TreeTools.parse_newick(nwk1))
