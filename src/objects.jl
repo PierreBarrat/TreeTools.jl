@@ -59,6 +59,10 @@ mutable struct TreeNode{T <: TreeNodeData}
 	label::String
 	tau::Union{Missing, Float64}
 	data::T
+	function TreeNode(anc, child, isleaf, isroot, label, tau, data::T) where T
+		tau = !ismissing(tau) ? convert(Float64, tau) : missing
+		return new{T}(anc, child, isleaf, isroot, label, tau, data)
+	end
 end
 function TreeNode(
 	data::T;
