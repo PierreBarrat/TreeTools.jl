@@ -59,7 +59,7 @@ Note that there is a difference between the TreeTools extension of `map!` with r
 As explained in [Basic concepts](@ref), a `Tree` object is mainly a dictionary mapping labels to `TreeNode` objects.
 We can thus iterate through nodes in the tree using this dictionary. 
 For this, TreeTools provides the `nodes`, `leaves` and `internals` methods. 
-Note that this will traverse the tree in an arbitrary order.  
+This will traverse the tree in an arbitrary order but is faster than `POT`.   
 
 ```@repl iteration_1
 for n in leaves(tree)

@@ -5,8 +5,7 @@ Functions are quite basic at this stage.
 
 ## Reading
 
-If you have a variable containing a Newick string, simply call `parse_newick_string` to return a tree. 
-To read from a file, use `read_tree`. 
+To read from a Newick file, use `read_tree`. 
 Here is an example with the `example/tree_10.nwk` file: 
 
 ```@example
@@ -22,6 +21,14 @@ TreeTools.read_tree
 
 `read_tree` will also read files containing several Newick strings, provided they are on separate lines. 
 It then returns an array of `Tree` objects. 
+
+If you have a variable containing a Newick string, simply call `parse_newick_string` to return a tree: 
+
+```@example
+using TreeTools # hide
+nwk = "(A:3,(B:1,C:1)BC:1);"
+tree = parse_newick_string(nwk)
+```
 
 
 If internal nodes of a Newick string do not have names, TreeTools will by default give them names of the form `NODE_i` with `i::Int`. 

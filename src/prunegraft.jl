@@ -140,13 +140,14 @@ If a list of labels is provided, the MRCA of the corresponding nodes is pruned.
    is allowed. Default: `:warn`.
 
 ## Example
-
 ```jldoctest
-julia> begin
-		tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;")
-		prune!(tree, ["X1", "X2"])
-		map(label, nodes(tree))
-	end
+using TreeTools # hide
+tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;")
+prune!(tree, ["X1", "X2"])
+map(label, nodes(tree))
+
+# output
+
 3-element Vector{String}:
  "B"
  "A"
