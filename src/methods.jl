@@ -601,8 +601,8 @@ Distance between nodes can be either topological (number of branches) or based o
 length. Does not create a polytomy at the root: if the midpoint is an already existing
 internal node (not the root), creates a new root node at infinitesimal distance below it.
 
-Midpoint rooting will exist without doing anything if
-- the distance between the two farthest leaves is `0`. This happens is branch length
+Midpoint rooting will exit without doing anything if
+- the distance between the two farthest leaves is `0`. This happens if all branch lengths
    are 0.
 - the current root is already the midpoint.
 """
@@ -625,14 +625,35 @@ function root_midpoint!(t::Tree; topological = false)
 	b_l, b_h, L1, L2, fail = find_midpoint(t; topological)
 	fail && (@warn exit_warning; return nothing)
 	# The midpoint is between b_l and b_r == b_l.anc
-	# It's on the side of L1
+	# L1 and L2 are the farthest apart leaves
+	# It's on the side of L1 w.r. to the current root, that is we should be in the situation
+	#=
+	-- Root --
+	|		  |
+	b_h		  |
+	|		  |
+	b_l       |
+	|		  |
+	L1		  L2
+	=#
 	# If the midpoint is exactly on b_h and b_h is not the root, we introduce a singleton below to root on.
 
 	d1 = distance(b_l, L1; topological)
 	d2 = distance(b_l, L2; topological)
-	if  isroot(b_h) && abs(d1-d2) == 2*distance(b_l, b_h; topological)
+	@debug """
+	Midpoint on branch $(label(b_h)) --> $(label(b_l)).
+	Farthest apart leaves: $(label(L1)) and $(label(L2)).
+	Distances: L1 --> b_l: $(d1) // L2 --> b_h: $(distance(b_h, L2; topological))
+	"""
+	@assert d1 <= d2 """
+	Issue with branch lengths.
+	"""
+	if  isroot(b_h) && isapprox(abs(d1-d2), 2*distance(b_l, b_h; topological))
 		# The root is already the midpoint
-		@debug "Distances to previous root: $(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))"
+		@debug """
+		Distances to previous root:
+		$(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))
+		"""
 		@debug "Previous root was already midpoint, exiting."
 	else
 		# Introducing a singleton that will act as the new root.
@@ -640,11 +661,14 @@ function root_midpoint!(t::Tree; topological = false)
 			# root halfway along the branch
 			ismissing(b_l) ? missing : b_l.tau/2
 		else
-			d2 - (d1+d2)/2
+			_τ = (d2-d1)/2
+			_τ = isapprox(_τ, b_l.tau) ? b_l.tau : _τ # if small numerical error, fix it
 		end
-		@assert ismissing(τ) || 0 <= τ <= b_l.tau "Issue with time on the branch above midpoint"
+		@assert ismissing(τ) || 0 <= τ <= b_l.tau """
+		Issue with time on the branch above midpoint.
+		Got τ=$τ and expected `missing` or `0 <= τ <= `$(b_l.tau).
+		"""
 
-		# R = add_internal_singleton!(b_l, b_h, τ, make_random_label("MIDPOINT_ROOT"))
 		R = insert!(t, b_l; time=τ, name=get_unique_label(t, "MIDPOINT_ROOT"))
 		node2tree!(t, t.root)
 
