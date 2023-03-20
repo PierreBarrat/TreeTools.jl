@@ -793,9 +793,9 @@ end
 """
 	resolution_index(t::Tree)
 
-Compute a measure of how resolved `t` is: `R = I / (L-1)` where `I` is the number of
+Compute a measure of how resolved `t` is: `R = (I-1) / (L-2)` where `I` is the number of
 internal nodes and `L` the number of leaves.
-A fully resolved tree has `R=1`.
+A fully resolved tree has `R=1`. A star tree has `R=0`.
 Trees with only one leaf are also considered fully resolved.
 """
 function resolution_index(t::Tree)
