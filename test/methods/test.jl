@@ -267,8 +267,8 @@ end
 	@testset "RF distance" begin
 		@test TreeTools.RF_distance(t1, t2) == 2
 	    @test TreeTools.RF_distance(t3, t4) == 1
-	    @test TreeTools.RF_distance(t1, t2; scale=true) == 1
-	    @test TreeTools.RF_distance(t3, t4; scale=true) == 1/3
+	    @test TreeTools.RF_distance(t1, t2; normalize=true) == 1
+	    @test TreeTools.RF_distance(t3, t4; normalize=true) == 1/3
 	    @test_throws AssertionError TreeTools.RF_distance(t1, t3)
 	end
 

@@ -1,9 +1,10 @@
 """
-	nodes(t)
+	nodes(t; skiproot=false)
 	leaves(t)
-	internals(t)
+	internals(t; skiproot=false)
 
 Iterator over all nodes / leaves / internal nodes of a tree.
+If `skiproot`, the root node will be skipped by the iterator.
 
 # Note
 `length` cannot be called on `internals(t)` as the latter is based on `Iterators.filter`.
