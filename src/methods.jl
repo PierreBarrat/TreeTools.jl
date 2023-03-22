@@ -812,35 +812,35 @@ resolution_value(t::Tree) = resolution_index(t::Tree)
 
 const tree_distance_types = (:RF,)
 """
-	distance(t1::Tree, t2::Tree; type = :RF, scale = false)
+	distance(t1::Tree, t2::Tree; type = :RF, normalize = false)
 
 Compute distance between two trees.
 See `TreeTools.tree_distance_types` for allowed types.
-If `scale`, the distance is scaled to `[0,1]`.
+If `normalize`, the distance is normalized to `[0,1]`.
 """
-function distance(t1::Tree, t2::Tree; type = :RF, scale = false)
+function distance(t1::Tree, t2::Tree; type = :RF, normalize = false)
 	if Symbol(type) == :RF
-		return RF_distance(t1, t2; scale)
+		return RF_distance(t1, t2; normalize)
 	else
 		error("Unknown distance type $(type) - see `TreeTools.tree_distance_types`")
 	end
 end
 
 """
-	RF_distance(t1::Tree, t2::Tree; scale=false)
+	RF_distance(t1::Tree, t2::Tree; normalize=false)
 
 Compute the Robinson–Foulds distance between `t1` and `t2`.
 RF distance is the sum of the number of splits present in `t1` and not `t2` and in `t2`
 and not `t1`.
-If `scale`, the distance is scaled to `[0,1]`.
+If `normalize`, the distance is normalized to `[0,1]`.
 """
-function RF_distance(t1::Tree, t2::Tree; scale=false)
+function RF_distance(t1::Tree, t2::Tree; normalize=false)
 	@assert share_labels(t1, t2) "Cannot compute RF distance for trees that do not share leaves"
     s1 = SplitList(t1)
     s2 = SplitList(t2)
     d = length(s1) + length(s2) - 2*length(TreeTools.intersect(s1, s2))
-    if !scale || (length(s1) + length(s2) < 3)
-    	# can't scale if both trees have only the root split
+    if !normalize || (length(s1) + length(s2) < 3)
+    	# can't normalize if both trees have only the root split
     	return d
     else
     	return d / (length(s1) + length(s2) - 2)

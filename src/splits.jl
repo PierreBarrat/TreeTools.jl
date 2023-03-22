@@ -515,7 +515,8 @@ function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
 	#
 	U = SplitList(S.leaves)
 	for s in S
-		if (!in(s, T, m; usemask) &&
+		if (
+			!in(s, T, m; usemask) &&
 			!isroot(s, m) &&
 			!isleaf(s, m) &&
 			!isempty(s,m)

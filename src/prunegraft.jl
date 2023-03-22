@@ -55,6 +55,9 @@ end
 	graftnode!(r::TreeNode, n::TreeNode ; tau=n.tau)
 
 Graft `n` on `r`.
+
+*Note*: this does not modify the `Tree` object. You could have to use `node2tree!` after,
+ or call the `graft!` function.
 """
 function graftnode!(r::TreeNode, n::TreeNode; tau=n.tau)
 	if !n.isroot || n.anc != nothing
