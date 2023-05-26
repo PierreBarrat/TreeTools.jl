@@ -222,8 +222,8 @@ Parse Newick string of child into name and time to ancestor.
 Default value for missing time is `missing`.
 """
 function nw_parse_name(s::AbstractString)
-	temp = split(s, ":")
 	if occursin(':', s) # Node has a time
+		temp = split(s, ":")
 		if length(temp) == 2 # Node also has a name, return both
 			tau = (tau = tryparse(Float64,temp[2]); isnothing(tau) ? missing : tau) # Dealing with unparsable times
 			return string(temp[1]), tau

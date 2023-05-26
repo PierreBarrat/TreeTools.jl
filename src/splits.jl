@@ -238,10 +238,10 @@ struct SplitList{T}
 	mask::Array{Bool,1}
 	splitmap::Dict{T,Split} ## Maps each leaf to the split it is in.
 	function SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T
-		if issorted(leaves)
+		if issorted(leaves) && allunique(leaves)
 			return new(leaves, splits, mask, splitmap)
 		else
-			@error("Leaves must be sorted")
+			@error("Leaves must be sorted and unique")
 		end
 	end
 end
