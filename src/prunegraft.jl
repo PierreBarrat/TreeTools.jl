@@ -248,47 +248,21 @@ function __subtree_prune_regraft!(
 end
 
 
-# """
-# 	add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real)
-
-# Add internal singleton above `n` and below `a`, at heigh `τ` above `n`.
-# Return the singleton.
-# """
-# function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Real, label)
-# 	# Branch length above n and above the singleton
-# 	nτ, sτ = n.tau >= τ ? (τ, n.tau - τ) : (n.tau, 0.)
-
-# 	s = TreeNode(; tau = sτ, label)
-# 	prunenode!(n)
-# 	n.tau = nτ
-# 	graftnode!(a, s)
-# 	graftnode!(s, n)
-# 	return s
-# end
-# function add_internal_singleton!(n::TreeNode, a::TreeNode, τ::Missing, label)
-# 	@assert ismissing(n.tau)
-# 	prunenode!(n)
-# 	s = TreeNode(; label)
-# 	graftnode!(a, s)
-# 	graftnode!(s, n)
-# 	return s
-# end
 """
 	insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, time)
 
-Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`.
+Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`. Return `s`.
 The relation `branch_length(s) + t == branch_length(c)` should hold.
 """
 function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing) where T
 	@assert ancestor(c) == a
 	@assert ismissing(branch_length(c))
-	@assert ismissing(branch_length(a))
 	@assert ismissing(branch_length(s))
 
 	prunenode!(c)
 	graftnode!(a, s)
 	graftnode!(s, c)
-	return nothing
+	return s
 end
 function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number) where T
 	@assert ancestor(c) == a
