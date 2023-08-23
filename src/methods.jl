@@ -624,7 +624,7 @@ function root_midpoint!(t::Tree; topological = false)
 	# Find the good branch
 	b_l, b_h, L1, L2, fail = find_midpoint(t; topological)
 	fail && (@warn exit_warning; return nothing)
-	# The midpoint is between b_l and b_r == b_l.anc
+	# The midpoint is between b_l and b_h == b_l.anc
 	# L1 and L2 are the farthest apart leaves
 	# It's on the side of L1 w.r. to the current root, that is we should be in the situation
 	#=
@@ -654,7 +654,7 @@ function root_midpoint!(t::Tree; topological = false)
 		Distances to previous root:
 		$(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))
 		"""
-		@debug "Previous root was already midpoint, exiting."
+		@debug "Previous root was already midpoint, leaving tree unchanged."
 	else
 		# Introducing a singleton that will act as the new root.
 		τ = if topological
@@ -697,7 +697,7 @@ function find_midpoint(t::Tree{T}; topological = false) where T
 	end
 	@debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
 	@assert L1 != L2 "Issue: farthest apart leaves have the same label."
-	(isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has empty label."
+	(isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has an empty label."
 
 	if max_dist == 0 || ismissing(max_dist)
 		@warn "Null or missing branch lengths: cannot midpoint root."
@@ -718,7 +718,7 @@ function find_midpoint(t::Tree{T}; topological = false) where T
 	b_h = L_ref
 	d = 0
 	it = 0
-	while d < max_dist/2 && it < 1e5
+	while d < max_dist/2 && !isroot(b_h) && it < 1e5
 		d += topological ? 1. : branch_length(b_h)
 		b_l = isnothing(b_l) ? b_h : b_l.anc
 		b_h = b_h.anc
