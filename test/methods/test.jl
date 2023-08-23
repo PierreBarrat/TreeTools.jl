@@ -157,7 +157,7 @@ end
 		z = TreeTools.binarize!(t; mode=:balanced)
 		@test z == 4
 		@test length(SplitList(t)) == 7
-		@test bl(t) == L
+		@test isapprox(bl(t), L; rtol = 1e-14)
 	end
 
 	nwk = "(8:571.0,(((10:0.0,17:0.0)internal_1:12.8,(12:0.0,19:0.0)internal_2:12.5)internal_11:80.7,((6:26.3,(4:0.0,5:0.0)internal_7:22.0)internal_14:22.4,(1:12.5,3:12.5)internal_10:36.1,((11:0.0,20:0.0)internal_5:16.5,7:11.2,16:11.2,9:0.0,13:0.0,18:0.0,15:0.0)internal_13:23.1,(2:0.0,14:0.0)internal_4:42.1)internal_17:43.0)internal_18:477.0)internal_19:0;"
