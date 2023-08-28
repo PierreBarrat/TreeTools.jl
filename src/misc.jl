@@ -101,7 +101,7 @@ function print_tree_ascii(io, t::Tree)
             depths = [node_depth(node) for node in values(t.lnodes)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
-        fudge_margin = ceil(Int64, log2(length(taxa)))
+        fudge_margin = max(ceil(Int, log2(length(taxa))), 1)
         if maximum(depths)==0
             cols_per_branch_unit = (drawing_width - fudge_margin)
         else
