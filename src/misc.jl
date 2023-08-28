@@ -1,7 +1,12 @@
 function Base.show(io::IO, ::MIME"text/plain", node::TreeNode)
     if !get(io, :compact, false)
-        node.isroot ? println(io, "Node $(node.label) (root)") : println(io, "Node $(node.label): ")
-        node.isroot ? println(io, "Ancestor : `nothing` (root)") : println(io, "Ancestor: $(node.anc.label), branch length = $(node.tau)")
+        if isroot(node)
+            println(io, "Node $(node.label) (root)")
+            println(io, "Ancestor : `nothing` (root)")
+        else
+            println(io, "Node $(node.label): ")
+            println(io, "Ancestor: $(node.anc.label), branch length = $(node.tau)")
+        end
         print(io, "$(length(node.child)) children: $([x.label for x in node.child])")
     end
     return nothing
@@ -67,17 +72,21 @@ function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth
                 for i in 1:vindent
                     cdepth < maxdepth && println(io, "$offset $(" "^hindent)|")
                 end
-                print_tree_(io, c, cdepth + 1, vindent=vindent, hindent=hindent, hoffset=hoffset+hindent, maxdepth=maxdepth)
+                print_tree_(
+                    io, c, cdepth + 1;
+                    vindent, hindent, hoffset=hoffset+hindent, maxdepth
+                )
             end
         end
         #
     end
 end
 function print_tree(io, node::TreeNode; vindent=2, hindent=5, maxdepth=5)
-    print_tree_(io, node, 1, vindent=vindent, hindent=hindent, hoffset=0, maxdepth=maxdepth)
+    print_tree_(io, node, 1; vindent, hindent, hoffset=0, maxdepth)
 end
-
-print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=5) = print_tree(io, t.root; vindent=2, hindent=5, maxdepth=maxdepth)
+function print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=5)
+    return print_tree(io, t.root; vindent, hindent, maxdepth)
+end
 
 
 """
@@ -101,17 +110,17 @@ function print_tree_ascii(io, t::Tree)
             depths = [node_depth(node) for node in values(t.lnodes)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
-        fudge_margin = ceil(Int64, log2(length(taxa)))
+        fudge_margin = ceil(Int, log2(length(taxa)))
         if maximum(depths)==0
             cols_per_branch_unit = (drawing_width - fudge_margin)
         else
             cols_per_branch_unit = (drawing_width - fudge_margin) / maximum(depths)
         end
-        return Dict(zip(keys(t.lnodes), round.(Int64,depths*cols_per_branch_unit .+2.0)))
+        return Dict(zip(keys(t.lnodes), round.(Int,depths*cols_per_branch_unit .+2.0)))
     end
 
     function get_row_positions(t::Tree)
-        positions = Dict{Any, Int64}(zip(taxa, 2 *(1:length(taxa)) ) )
+        positions = Dict{Any, Int}(zip(taxa, 2 *(1:length(taxa)) ) )
         function calc_row(clade::TreeNode)
             for subclade in clade.child
                 if !haskey(positions, subclade.label)
@@ -119,7 +128,10 @@ function print_tree_ascii(io, t::Tree)
                 end
             end
             if !haskey(positions, clade.label)
-                positions[clade.label] = floor(Int64, (positions[clade.child[1].label] + positions[clade.child[end].label])/2)
+                positions[clade.label] = floor(
+                    Int,
+                    (positions[clade.child[1].label] + positions[clade.child[end].label])/2
+                )
             end
         end
         calc_row(t.root)
@@ -130,7 +142,7 @@ function print_tree_ascii(io, t::Tree)
     row_positions = get_row_positions(t)
     char_matrix = [[" " for x in 1:(drawing_width+1)] for y in 1:(drawing_height+1)]
 
-    function draw_clade(clade::TreeNode, startcol::Int64)
+    function draw_clade(clade::TreeNode, startcol::Int)
         thiscol = col_positions[clade.label]
         thisrow = row_positions[clade.label]
         # Draw a horizontal line
@@ -160,7 +172,7 @@ function print_tree_ascii(io, t::Tree)
         line = rstrip(join(char_matrix[i]))
         # Add labels for terminal taxa in the right margin
         if i % 2 == 0
-            line = line * " " * strip(taxa[round(Int64, i/2)]) #remove white space from labels to make more tidy
+            line = line * " " * strip(taxa[round(Int, i/2)]) #remove white space from labels to make more tidy
         end
         println(io, line)
     end
@@ -175,7 +187,7 @@ end
 - Tree has only one root
 """
 function check_tree(tree::Tree; strict=true)
-    labellist = Dict{String, Int64}()
+    labellist = Dict{String, Int}()
     nroot = 0
     flag = true
     for n in nodes(tree)
@@ -241,8 +253,8 @@ function create_label(t::Tree, base="NODE")
     label_init = 1
     pattern = Regex(base)
     for n in values(t.lnodes)
-        if match(pattern, n.label)!=nothing && parse(Int64, n.label[length(base)+2:end]) >= label_init
-            label_init = parse(Int64, n.label[length(base)+2:end]) + 1
+        if match(pattern, n.label)!=nothing && parse(Int, n.label[length(base)+2:end]) >= label_init
+            label_init = parse(Int, n.label[length(base)+2:end]) + 1
         end
     end
     return "$(base)_$(label_init)"
