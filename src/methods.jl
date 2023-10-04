@@ -228,7 +228,7 @@ function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
 
 	return nothing
 end
-_copy_data(::Type{T}, n::TreeNode{T}) where T <: TreeNodeData = deepcopy(n.data)
+_copy_data(::Type{T}, n::TreeNode{T}) where T <: TreeNodeData = copy(n.data)
 _copy_data(::Type{T}, n::TreeNode) where T <: TreeNodeData = T()
 
 """
