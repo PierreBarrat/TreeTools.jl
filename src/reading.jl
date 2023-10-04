@@ -4,7 +4,7 @@ let n::Int64=0
 end
 
 let file::String = ""
-	global get_nwk_file() = file
+	global get_nwk_file() = file # use for easy access when error
 	global set_nwk_file(s) = (file=s)
 end
 
@@ -22,8 +22,8 @@ Read Newick file and create a `Tree{node_data_type}` object from it. The input f
 contain multiple Newick strings on different lines. The output will then be an array of
 `Tree` objects.
 
-`node_data_type` must be a subtype of `TreeNodeData`, and the call `node_data_type()` must
-return a valid instance of `node_data_type`. See `?TreeNodeData` for implemented types.
+The call `node_data_type()` must return a valid instance of a subtype of `TreeNodeData`.
+You can implement your own subtypes, or see `?TreeNodeData` for already implemented ones.
 
 Use `force_new_labels=true` to force the renaming of all internal nodes.
 By default the tree will be assigned a `default_tree_label()`, however the label of the 
@@ -96,12 +96,14 @@ Read Newick file `nwk_filename` and create a graph of `TreeNode` objects in the 
   `node2tree` or `read_tree` must be called to obtain a `Tree` object.
 """
 function read_newick(nwk_filename::AbstractString; node_data_type=DEFAULT_NODE_DATATYPE)
-	@assert node_data_type <: TreeNodeData
-	set_nwk_file(nwk_filename)
+	if !isa(node_data_type(), TreeNodeData)
+        throw(ArgumentError("`node_data_type()` should return a valid instance of `TreeNodeData`"))
+    end
 
-	f = open(nwk_filename)
-	nw = readlines(f)
-	close(f)
+	set_nwk_file(nwk_filename)
+    nw = open(nwk_filename) do io
+        readlines(io)
+    end
 	if length(nw) > 1
 		error("File $nwk_filename has more than one line.")
 	elseif length(nw) == 0
