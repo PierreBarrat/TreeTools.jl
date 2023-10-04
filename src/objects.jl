@@ -113,6 +113,7 @@ branch_length!(n::TreeNode, τ::Union{Missing, Real}) = (n.tau = τ)
 label(n::TreeNode) = n.label
 isleaf(n) = n.isleaf
 isroot(n) = n.isroot
+isinternal(n) = !isleaf(n)
 data(n::TreeNode) = n.data
 """
 	data!(n::TreeNode{T}, dat::T)
