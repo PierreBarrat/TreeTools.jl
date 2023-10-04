@@ -64,11 +64,13 @@ end
 	t1 = Tree(TreeNode(MiscData(Dict(1=>2))))
 	# No op
 	@test convert(Tree{MiscData}, t1) === t1
+    @test convert(MiscData, t1) === t1
 	@test convert(Tree{MiscData}, t1).root.data === t1.root.data
+    @test convert(MiscData, t1).root.data === t1.root.data
 
 	# Converting to EmptyData and back
 	t2 = convert(Tree{TreeTools.EmptyData}, t1)
-	t3 = convert(Tree{MiscData}, t2)
+	t3 = convert(MiscData, t2)
 	@test typeof(t2) == Tree{TreeTools.EmptyData}
 	@test t2.root.data == TreeTools.EmptyData()
 
@@ -79,7 +81,7 @@ end
 
 	t1 = Tree(TreeNode(TreeTools.EmptyData()))
 	# No op
-	@test convert(Tree{TreeTools.EmptyData}, t1) === t1
+	@test convert(TreeTools.EmptyData, t1) === t1
 
 	# Converting to MiscData and back
 	t2 = convert(Tree{TreeTools.MiscData}, t1)
@@ -92,7 +94,7 @@ end
 	t3 = Tree(TreeNode(TreeTools.EmptyData()))
 	t3.label = "tree3"
 	#while converting to MiscData and back
-	@test convert(Tree{TreeTools.MiscData}, t3).label === "tree3"
+	@test convert(TreeTools.MiscData, t3).label === "tree3"
 	@test convert(Tree{TreeTools.EmptyData}, t3).label === "tree3"
 	##check label can be changed if specified
 	t3 = Tree(TreeNode(TreeTools.EmptyData()))
