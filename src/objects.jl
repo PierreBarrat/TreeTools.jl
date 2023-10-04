@@ -9,6 +9,8 @@ Implemented concrete types are
 """
 abstract type TreeNodeData end
 
+Base.copy(x::TreeNodeData) = deepcopy(x)
+
 """
 	struct MiscData <: TreeNodeData
 		dat::Dict{Any,Any}
@@ -32,11 +34,14 @@ Base.get!(d::MiscData, k, v) = get!(d.dat, k, v)
 
 Base.haskey(d::MiscData, k) = haskey(d.dat, k)
 
+Base.copy(d::MiscData) = MiscData(copy(d.dat))
+
 """
 	struct EmptyData <: TreeNodeData
 """
 struct EmptyData <: TreeNodeData
 end
+Base.copy(::EmptyData) = EmptyData()
 
 const DEFAULT_NODE_DATATYPE = EmptyData
 
