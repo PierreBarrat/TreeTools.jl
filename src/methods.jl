@@ -483,10 +483,19 @@ is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t
 """
 	distance_to_deepest_leaf(n::TreeNode; topological=false)
 
-Distance from `n` to the deepest leaf below `n`.
+Distance from `n` to the deepest leaf in the clade below `n`.
 """
 function distance_to_deepest_leaf(n::TreeNode; topological=false)
-	maximum(l -> distance(n, l; topological), POT(n))
+	maximum(l -> distance(n, l; topological), POTleaves(n))
+end
+
+"""
+    distance_to_shallowest_leaf(n::TreeNode; topological = false)
+
+Distance from `n` to the closest leaf in the clade below `n`.
+"""
+function distance_to_shallowest_leaf(n::TreeNode; topological = false)
+    minimum(l -> distance(n, l; topological), POTleaves(n))
 end
 
 ###############################################################################################################
