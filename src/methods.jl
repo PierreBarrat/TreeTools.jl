@@ -469,13 +469,13 @@ divtime(i_node, j_node) = distance(i_node, j_node)
 	is_ancestor(t::Tree, a::AbstractString, n::AbstractString)
 	is_ancestor(a::TreeNode, n::TreeNode)
 
-Check if `a` is an ancestor of `n`.
+Check if `a` is an ancestor of `n`, in the sense that `ancestor(ancestor(...(node))) == a`.
 """
 function is_ancestor(a::TreeNode, node::TreeNode)
-	if a == node
-		return true
+	return if a == node
+		true
 	else
-		return isroot(node) ? false : is_ancestor(a, ancestor(node))
+		isroot(node) ? false : is_ancestor(a, ancestor(node))
 	end
 end
 is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t[n])
@@ -486,7 +486,7 @@ is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t
 Distance from `n` to the deepest leaf in the clade below `n`.
 """
 function distance_to_deepest_leaf(n::TreeNode; topological=false)
-	maximum(l -> distance(n, l; topological), POTleaves(n))
+	return maximum(l -> distance(n, l; topological), POTleaves(n))
 end
 
 """
@@ -495,7 +495,11 @@ end
 Distance from `n` to the closest leaf in the clade below `n`.
 """
 function distance_to_shallowest_leaf(n::TreeNode; topological = false)
-    minimum(l -> distance(n, l; topological), POTleaves(n))
+    return minimum(l -> distance(n, l; topological), POTleaves(n))
+end
+
+function distance_to_closest_leaf(tree::Tree, label::AbstractString; topological = false)
+    return minimum(l -> distance(tree[label], l; topological), leaves(tree))
 end
 
 ###############################################################################################################
@@ -863,4 +867,10 @@ function RF_distance(t1::Tree, t2::Tree; normalize=false)
     else
     	return d / (length(s1) + length(s2) - 2)
     end
+end
+
+
+function distance_matrix(t::Tree)
+    # grossly unoptimized
+    return [distance(n, m) for n in POTleaves(t), m in POTleaves(t)]
 end
