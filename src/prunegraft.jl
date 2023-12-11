@@ -191,7 +191,7 @@ function graft!(
 	# checking that the subtree defined by `n` is not in `t`
 	for c in POT(n)
 		if in(c, t)
-			error("Cannot graft: some nodes in subtree of $(label(n)) are already part of tree $(label(t))")
+			error("Cannot graft: node $(label(c)) in subtree of $(label(n)) are already part of tree $(label(t)), or have the same label")
 		end
 	end
 
@@ -279,7 +279,7 @@ end
 
 
 """
-	insert_node!(tree, node; name, time)
+	insert!(tree, node; name, time)
 
 Insert a singleton named `name` above `node`, at height `time` on the branch.
 Return the inserted singleton.
@@ -405,7 +405,7 @@ end
 	remove_internal_singletons!(tree; delete_time = false)
 
 Remove nodes with one child. Root node is left as is.
-If `delete_time` is set to `false`, the length of branches above removed nodes
+If `delete_time` is set to `false` (default), the length of branches above removed nodes
 is added to the branch length above their children.
 """
 function remove_internal_singletons!(tree; delete_time = false)
