@@ -175,7 +175,24 @@ end
 
 end
 
+@testset "Simple rooting" begin
+    nwk = "(A:1,(B:1,(C:1,D:1):1):1);"
+    tree = parse_newick_string(nwk)
+    leaf_labels = map(label, leaves(tree))
+    pw_distances = [distance(tree, x, y) for x in leaf_labels for y in leaf_labels]
 
+    TreeTools.root!(tree, lca(tree, "C", "D").label)
+    @test isroot(lca(tree, "C", "D"))
+    @test !isroot(lca(tree, "A", "B"))
+    @test pw_distances == [distance(tree, x, y) for x in leaf_labels for y in leaf_labels]
+
+    tree = parse_newick_string(nwk)
+    TreeTools.root!(tree, "B"; time = .5)
+    @test tree["B"] |> ancestor |> isroot
+    @test pw_distances == [distance(tree, x, y) for x in leaf_labels for y in leaf_labels]
+
+    @test_throws ErrorException TreeTools.root!(tree, "B"; time = 5)
+end
 
 @testset "Midpoint rooting" begin
 	@testset "1" begin
