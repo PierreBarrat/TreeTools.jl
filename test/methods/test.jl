@@ -147,7 +147,6 @@ end
 	@test write_newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
 end
 
-
 @testset "Binarize" begin
 	bl(t) = sum(skipmissing(map(x -> x.tau, nodes(t)))) # branch length should stay unchanged
 

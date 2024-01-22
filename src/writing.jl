@@ -52,7 +52,7 @@ function write_newick(io::IO, tree::Tree; kwargs...)
 	return write(io, newick(tree; kwargs...) * "\n")
 end
 function write_newick(
-	filename::AbstractString, tree::Tree, mode::AbstractString = "w";
+	filename::AbstractString, tree::Tree, mode::AbstractString = "w"; kwargs...
 )
 	return open(filename, mode) do io
 		write_newick(io, tree; kwargs...)
