@@ -2,9 +2,9 @@ using TreeTools
 using Test
 
 @testset verbose=true "TreeTools" begin
-	@testset "Reading" begin
-		println("## Reading")
-		include("$(dirname(pathof(TreeTools)))/../test/reading/test.jl")
+	@testset "IO" begin
+		println("## IO")
+		include("$(dirname(pathof(TreeTools)))/../test/IO/test.jl")
 	end
 
 	@testset "Objects" begin
