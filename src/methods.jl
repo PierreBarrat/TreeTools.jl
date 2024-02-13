@@ -675,9 +675,7 @@ function root_like_model!(tree, model::Tree)
 
     R, time = if !isroot(A1) && !isroot(A2)
         # if none of them is the root, then `tree` is already rooted correctly
-        Smodel = SplitList(model)
-        Stree = SplitList(tree)
-        if any(s -> !in(s, Smodel), Stree) || any(s -> !in(s, Stree), Smodel)
+        if SplitList(model) != SplitList(tree)
             @warn "Trees differ by more than rooting. Check what you're doing."
         end
         return nothing
@@ -694,9 +692,7 @@ function root_like_model!(tree, model::Tree)
     end
     TreeTools.root!(tree, R; time)
 
-    Smodel = SplitList(model)
-    Stree = SplitList(tree)
-    if any(s -> !in(s, Smodel), Stree) || any(s -> !in(s, Stree), Smodel)
+    if SplitList(model) != SplitList(tree)
         @warn "Trees differ by more than rooting. Check what you're doing."
     end
 
