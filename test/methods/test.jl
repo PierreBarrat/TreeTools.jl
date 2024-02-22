@@ -191,7 +191,9 @@ end
     @test tree["B"] |> ancestor |> isroot
     @test pw_distances == [distance(tree, x, y) for x in leaf_labels for y in leaf_labels]
 
-    @test_throws ErrorException TreeTools.root!(tree, "B"; time = 5)
+    @test_throws ErrorException redirect_stderr(
+        () -> TreeTools.root!(tree, "B"; time = 5), devnull
+    )
 end
 
 @testset "Midpoint rooting" begin
