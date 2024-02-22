@@ -685,7 +685,7 @@ function root_like_model!(tree, model::Tree)
     R, time = if !isroot(A1) && !isroot(A2)
         # if none of them is the root, then `tree` is already rooted correctly
         if SplitList(model) != SplitList(tree)
-            warn_1()
+            @warn "Tree and model differ too much for rooting. Leaving input tree unchanged."
         end
         return nothing
     elseif isroot(A1) && isroot(A2)
