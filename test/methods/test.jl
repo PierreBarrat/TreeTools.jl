@@ -287,6 +287,17 @@ end
     nwk = "(A:1,((D:2,(C:3,E:1):2):2,B:0.5):1);"
     tree = parse_newick_string(nwk)
     @test_logs (:warn,) TreeTools.root!(tree; method=:model, model)
+
+    nwk = "((A:1,C:1):1,(B:2,(C:3,E:1):2):2);"
+    @test_logs (:warn,) TreeTools.root!(tree; method=:model, model)
+
+    # Test with missing branch lengths
+    model_nwk = "((A,B),(C,(D,E)));"
+    model = parse_newick_string(model_nwk)
+
+    tree = copy(model)
+    TreeTools.root!(tree, lca(tree, "D", "E").label, time = missing)
+    @test_logs min_level=Logging.Warn TreeTools.root!(tree; method=:model, model)
 end
 
 
