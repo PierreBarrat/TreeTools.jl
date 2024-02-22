@@ -1,3 +1,7 @@
+#############################################################
+########################### Split ###########################
+#############################################################
+
 """
 	Split
 
@@ -207,6 +211,10 @@ function are_disjoint(s::Split, t::Split, mask)
 	return true
 end
 
+#############################################################
+######################### SplitList #########################
+#############################################################
+
 """
 	SplitList{T}
 
@@ -393,9 +401,11 @@ function _splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
 end
 
 function Base.show(io::IO, S::SplitList)
+    println(io, "SplitList of $(length(S)) splits")
+    max_i = 20
 	for (i,s) in enumerate(S)
-		if i > 20
-			println(io, "...")
+		if i > max_i
+			println(io, "... ($(length(S)-max_i) more)")
 			break
 		end
 		println(io, leaves(S,i))
@@ -653,3 +663,10 @@ function clean!(
 	deleteat!(S.splits, idx)
 end
 
+#############################################################
+####################### Indexing Tree #######################
+#############################################################
+
+function Base.getindex(tree::Tree, S::SplitList, i::Int)
+    return lca(tree, leaves(S, i)...)
+end
