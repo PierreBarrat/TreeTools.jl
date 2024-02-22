@@ -2,6 +2,7 @@
 
 using Test
 using TreeTools
+using Logging
 
 
 ## Testing equality operator
@@ -190,7 +191,9 @@ end
     @test tree["B"] |> ancestor |> isroot
     @test pw_distances == [distance(tree, x, y) for x in leaf_labels for y in leaf_labels]
 
-    @test_throws ErrorException TreeTools.root!(tree, "B"; time = 5)
+    @test_throws ErrorException redirect_stderr(
+        () -> TreeTools.root!(tree, "B"; time = 5), devnull
+    )
 end
 
 @testset "Midpoint rooting" begin
@@ -265,9 +268,40 @@ end
 		@test length(children(t.root)) == 2
 		@test in(t["A"], children(t.root))
 	end
-
-
 end
+
+@testset "Model rooting" begin
+    model_nwk = "((A:1,B:1):1,(C:2,(D:3,E:1):2):2);"
+    model = parse_newick_string(model_nwk)
+
+    tree = copy(model)
+    TreeTools.root!(tree, lca(tree, "D", "E").label, time = 1)
+    @test_logs min_level=Logging.Warn TreeTools.root!(tree; method=:model, model)
+
+    tree = copy(model)
+    TreeTools.root!(tree, "A", time = .5)
+    @test_logs min_level=Logging.Warn TreeTools.root!(tree; method=:model, model)
+
+    nwk = "((A:1,B:1):1,(D:2,(C:3,E:1):2):2);"
+    tree = parse_newick_string(nwk)
+    @test_logs (:warn,) TreeTools.root!(tree; method=:model, model)
+
+    nwk = "(A:1,((D:2,(C:3,E:1):2):2,B:0.5):1);"
+    tree = parse_newick_string(nwk)
+    @test_logs (:warn,) TreeTools.root!(tree; method=:model, model)
+
+    nwk = "((A:1,C:1):1,(B:2,(C:3,E:1):2):2);"
+    @test_logs (:warn,) TreeTools.root!(tree; method=:model, model)
+
+    # Test with missing branch lengths
+    model_nwk = "((A,B),(C,(D,E)));"
+    model = parse_newick_string(model_nwk)
+
+    tree = copy(model)
+    TreeTools.root!(tree, lca(tree, "D", "E").label, time = missing)
+    @test_logs min_level=Logging.Warn TreeTools.root!(tree; method=:model, model)
+end
+
 
 @testset "Tree measures" begin
 	nwk1 = "((A,B),C);"

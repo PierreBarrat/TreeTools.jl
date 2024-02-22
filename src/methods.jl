@@ -593,7 +593,7 @@ Root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting.
 If `time` is non-zero, root above `node` at height `time`, inserting a new node.
 """
 function root!(tree::Tree, node::AbstractString; root_on_leaf = false, time = 0.)
-	if isleaf(tree[node]) && time == 0
+	if isleaf(tree[node]) && !ismissing(time) && time == 0
 		if root_on_leaf
 			# remove `node` from set of leaves
 			delete!(tree.lleaves, node)
@@ -603,10 +603,15 @@ function root!(tree::Tree, node::AbstractString; root_on_leaf = false, time = 0.
 		end
 	end
 
-    new_root = if time == 0
+    new_root = if !ismissing(time) && time == 0
         node
     else
-        r = insert!(tree, node; time)
+        r = try
+            insert!(tree, node; time)
+        catch
+            @error "Error inserting new root at height $time on branch above node $node"
+            rethrow()
+        end
         label(r)
     end
 
@@ -635,12 +640,73 @@ Midpoint rooting will exit without doing anything if
 - the distance between the two farthest leaves is `0`. This happens if all branch lengths
    are 0.
 - the current root is already the midpoint.
+
+## `:model`
+
+Provide keyword argument `model::Tree`.
+Try to root `tree` like `model`. If the two trees only differ by rooting, they will have
+the same topology at the end of this. Else, tree will be rerooted but a warning will
+be given.
 """
-function root!(tree; method=:midpoint, topological = false)
+function root!(tree; method=:midpoint, topological = false, model=nothing)
 	if method == :midpoint
 		root_midpoint!(tree; topological)
+    elseif method == :model
+        root_like_model!(tree, model)
 	end
 	return nothing
+end
+
+
+"""
+    root_like_model!(tree, model::Tree)
+
+Try to root `tree` like `model`. If the two trees only differ by rooting, they will have
+the same topology at the end of this. Else, tree will be rerooted but a warning will
+be given.
+"""
+function root_like_model!(tree, model::Tree)
+    @assert share_labels(tree, model) "Can only be used for trees that share leaves"
+
+    #
+    warn_1() = @warn """`tree` and `model` differ by more than rooting, but the rerooting \
+    algorithm nonetheless found a sensible root for `tree` and re-rooted.
+    Maybe check what you're doing."""
+    # Look at the two splits below the root of `model` ...
+    M1 = model |> root |> children |> first
+    M2 = model |> root |> children |> last
+    S1 = map(label, POTleaves(M1))
+    S2 = map(label, POTleaves(M2))
+
+    # ... and to what nodes they correspond in `tree`
+    A1 = lca(tree, S1...)
+    A2 = lca(tree, S2...)
+
+    R, time = if !isroot(A1) && !isroot(A2)
+        # if none of them is the root, then `tree` is already rooted correctly
+        if SplitList(model) != SplitList(tree)
+            @warn "Tree and model differ too much for rooting. Leaving input tree unchanged."
+        end
+        return nothing
+    elseif isroot(A1) && isroot(A2)
+        @warn "Tree and model differ too much for rooting. Leaving input tree unchanged."
+        return nothing
+    elseif isroot(A1)
+        # else, we root on the ancestor of the one that is not the root
+        # branch length is calculated proportionally from model
+        time = distance(A2, ancestor(A2)) * distance(M2, ancestor(M2)) / distance(M1, M2)
+        label(A2), time
+    elseif isroot(A2)
+        time = distance(A1, ancestor(A1)) * distance(M1, ancestor(M1)) / distance(M1, M2)
+        label(A1), time
+    end
+    TreeTools.root!(tree, R; time)
+
+    if SplitList(model) != SplitList(tree)
+        warn_1()
+    end
+
+    return nothing
 end
 
 function root_midpoint!(t::Tree; topological = false)
