@@ -488,6 +488,7 @@ Distance from `n` to the deepest leaf in the clade below `n`.
 function distance_to_deepest_leaf(n::TreeNode; topological=false)
 	return maximum(l -> distance(n, l; topological), POTleaves(n))
 end
+tree_height(tree::Tree; kwargs...) = distance_to_deepest_leaf(tree.root; kwargs...)
 
 """
     distance_to_shallowest_leaf(n::TreeNode; topological = false)

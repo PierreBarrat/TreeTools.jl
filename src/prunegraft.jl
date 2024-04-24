@@ -167,7 +167,7 @@ function prune!(t, labels...; kwargs...)
 end
 
 """
-	graft!(tree::Tree, n, r; graft_on_leaf=false)
+	graft!(tree::Tree, n, r; graft_on_leaf=false, time=branch_length(n))
 
 Graft `n` onto `r`.
 `r` can be a label or a `TreeNode`, and should belong to `tree`.
@@ -179,7 +179,7 @@ If `r` is a leaf and `graft_on_leaf` is set to `false` (default), will raise an 
 """
 function graft!(
 	t::Tree{T}, n::TreeNode{T}, r::TreeNode;
-	graft_on_leaf=false, tau = branch_length(n),
+	graft_on_leaf=false, time = branch_length(n),
 ) where T
 	# checks
 	if !graft_on_leaf && isleaf(r)
@@ -205,7 +205,7 @@ function graft!(
 	end
 
 	# grafting
-	graftnode!(r, n; tau)
+	graftnode!(r, n; time)
 
 	return nothing
 end
@@ -229,7 +229,7 @@ function __subtree_prune_regraft!(
 	if !create_new_leaf && length(children(ancestor(t[p]))) == 1
 		error("Cannot prune node $p without creating a new leaf (got `create_new_leaf=false`)")
 	elseif !graft_on_leaf && isleaf(t[g])
-		error("Cannot graft: node $g is a leaf (got `graft_on_leaf=false`")
+		error("Cannot graft: node $g is a leaf (got `graft_on_leaf=false`)")
 	end
 
 	# prune
