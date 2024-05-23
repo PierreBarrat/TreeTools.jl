@@ -41,6 +41,9 @@ include("splits.jl")
 export Split, SplitList
 export arecompatible, iscompatible
 
+include("simple_shapes.jl")
+export star_tree, balanced_binary_tree
+
 
 
 end
