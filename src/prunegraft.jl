@@ -191,7 +191,7 @@ function graft!(
 	# checking that the subtree defined by `n` is not in `t`
 	for c in POT(n)
 		if in(c, t)
-			error("Cannot graft: node $(label(c)) in subtree of $(label(n)) are already part of tree $(label(t)), or have the same label")
+			error("Cannot graft node \"$(label(c))\": a node in tree $(label(t)) already has the same label.")
 		end
 	end
 

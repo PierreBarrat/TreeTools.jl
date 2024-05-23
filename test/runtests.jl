@@ -31,5 +31,10 @@ using Test
 		println("## Splits")
 		include("$(dirname(pathof(TreeTools)))/../test/splits/test.jl")
 	end
+
+    @testset "Simple shapes" begin
+        println("## Shapes")
+        include("$(dirname(pathof(TreeTools)))/../test/simple_shapes/test.jl")
+    end
 end
 
