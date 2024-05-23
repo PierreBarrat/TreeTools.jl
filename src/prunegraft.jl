@@ -59,7 +59,7 @@ Graft `n` on `r`.
 *Note*: this does not modify the `Tree` object. You could have to use `node2tree!` after,
  or call the `graft!` function.
 """
-function graftnode!(r::TreeNode, n::TreeNode; tau=n.tau)
+function graftnode!(r::TreeNode, n::TreeNode; time=n.tau)
 	if !n.isroot || n.anc != nothing
 		@error "Trying to graft non-root node $(n)."
 	end
@@ -67,7 +67,7 @@ function graftnode!(r::TreeNode, n::TreeNode; tau=n.tau)
 	r.isleaf = false
 	n.anc = r
 	n.isroot = false
-	n.tau = tau
+	n.tau = time
 	return nothing
 end
 
@@ -328,15 +328,15 @@ to fully remove from the tree and apply the print function use `delete_node!(t::
 function delete_node!(node::TreeNode; delete_time = false)
 	node.isroot && error("Cannot delete root node")
 
-	ptau = !delete_time
 	out = node.anc
 	if node.isleaf
 		prunenode!(node)
 	else
-		base_tau = node.tau
+        base_time = branch_length(node)
 		for c in reverse(node.child)
 			nc = prunenode!(c)[1]
-			graftnode!(node.anc, nc, tau = (base_tau*ptau + nc.tau))
+            new_time = branch_length(nc) + (delete_time ?  0. : base_time)
+			graftnode!(node.anc, nc, time = new_time)
 		end
 		prunenode!(node)
 	end

@@ -53,7 +53,7 @@ end
 	E = TreeNode(label = "E", tau = 5.)
 	tc = copy(t)
 	@test_throws ErrorException graft!(tc, E, tc["A"])
-	graft!(tc, E, tc["A"], graft_on_leaf=true, tau = 1.)
+	graft!(tc, E, tc["A"], graft_on_leaf=true, time = 1.)
 	@test !isleaf(tc["A"])
 	@test ancestor(E) == tc["A"]
 	@test in(E, tc)

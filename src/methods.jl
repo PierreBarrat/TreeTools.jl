@@ -509,17 +509,17 @@ end
 
 
 """
-	binarize!(t::Tree; τ=0.)
+	binarize!(t::Tree; time=0.)
 
-Make `t` binary by adding arbitrary internal nodes with branch length `τ`.
+Make `t` binary by adding arbitrary internal nodes with branch length `time`.
 """
-function binarize!(t::Tree; mode = :balanced, τ = 0.)
+function binarize!(t::Tree; mode = :balanced, time = 0.)
 	# I would like to implement `mode = :random` too in the future
-	z = binarize!(t.root; mode, τ)
+	z = binarize!(t.root; mode, time)
 	node2tree!(t, t.root)
 	return z
 end
-function binarize!(n::TreeNode{T}; mode = :balanced, τ = 0.) where T
+function binarize!(n::TreeNode{T}; mode = :balanced, time = 0.) where T
 	z = 0
 	if length(n.child) > 2
 		c_left, c_right = _partition(n.child, mode)
@@ -531,13 +531,13 @@ function binarize!(n::TreeNode{T}; mode = :balanced, τ = 0.) where T
 					prunenode!(c)
 					graftnode!(nc, c)
 				end
-				graftnode!(n, nc; tau=τ)
+				graftnode!(n, nc; time)
 			end
 		end
 	end
 
 	for c in n.child
-		z += binarize!(c; mode, τ)
+		z += binarize!(c; mode, time)
 	end
 
 	return z
