@@ -42,7 +42,7 @@ export Split, SplitList
 export arecompatible, iscompatible
 
 include("simple_shapes.jl")
-export star_tree, balanced_binary_tree
+export star_tree, balanced_binary_tree, ladder_tree
 
 
 

@@ -19,10 +19,15 @@ function star_tree(n::Integer, time_vals)
     return tree
 end
 
-#=
-The code proceeds by recursively grafting asymetric shapes (An:(T-τ),Bn:τ) onto B_(n-1)
-=#
+"""
+    ladder_tree(n[, t=missing])
+
+Return a ladder tree with `n` leaves with total height `t`.
+For 4 leaves `A, B, C, D`, this would be `(A:t,(B:2t/3,(C:t/3,D:t/3)));`.
+The elementary branch length is `t/(n-1)` if `n>1`.
+"""
 function ladder_tree(n::Integer, T::Union{Missing, Real} = missing)
+    # proceeds by recursively grafting asymetric shapes (An:(T-τ),Bn:τ) onto B_(n-1)
     @assert n > 0 "Number of leaves must be positive"
 
     if n == 1
