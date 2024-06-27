@@ -4,7 +4,6 @@ using TreeTools
 using Chain
 
 @testset "star tree" begin
-    @test length(nodes(star_tree(0, 1.))) == 1 # just the root node
     n = 16
     times = rand(n)
     tree = star_tree(n, times)

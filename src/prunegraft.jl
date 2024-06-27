@@ -169,7 +169,7 @@ end
 """
 	graft!(tree::Tree, n, r; graft_on_leaf=false, time=branch_length(n))
 
-Graft `n` onto `r`.
+Graft `n` onto `r` and return the grafted node.
 `r` can be a label or a `TreeNode`, and should belong to `tree`.
 `n` can be a `TreeNode` or a `Tree`.
 In the latter case, `n` will be *copied* before being grafted.
@@ -207,7 +207,7 @@ function graft!(
 	# grafting
 	graftnode!(r, n; time)
 
-	return nothing
+	return n
 end
 function graft!(t::Tree{T}, n::TreeNode{R}, r::TreeNode; kwargs...) where T where R
 	error(
