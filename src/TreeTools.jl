@@ -21,6 +21,7 @@ export data, data!, root
 
 include("methods.jl")
 export lca, node2tree, node2tree!, node_depth, distance, divtime, share_labels, is_ancestor
+export root!
 
 include("iterators.jl")
 export POT, POTleaves, nodes, leaves, internals

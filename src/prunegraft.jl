@@ -52,14 +52,14 @@ function prunenode(node::TreeNode)
 end
 
 """
-	graftnode!(r::TreeNode, n::TreeNode ; tau=n.tau)
+	graftnode!(r::TreeNode, n::TreeNode ; time=branch_length(n))
 
 Graft `n` on `r`.
 
 *Note*: this does not modify the `Tree` object. You could have to use `node2tree!` after,
  or call the `graft!` function.
 """
-function graftnode!(r::TreeNode, n::TreeNode; time=n.tau)
+function graftnode!(r::TreeNode, n::TreeNode; time=branch_length(n))
 	if !n.isroot || n.anc != nothing
 		@error "Trying to graft non-root node $(n)."
 	end
