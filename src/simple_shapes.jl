@@ -54,3 +54,38 @@ function _ladder_tree!(tree, node, n, T, τ)
     end
     return nothing
 end
+
+"""
+    balanced_binary_tree(n::Integer, time::Union{Missing, Real} = missing)
+
+Return a balanced binary tree of `n` nodes with all branches of length `time`.
+`n` must be a power of 2.
+"""
+function balanced_binary_tree(n::Integer, time::Union{Missing, Real} = missing)
+    if !ispow2(n)
+        error("Number of nodes must be a power of 2. Instead $n")
+    end
+
+
+    tree = Tree()
+    if n == 1
+        label!(tree, tree.root, "1")
+    end
+
+    while n > 1
+        id = 1
+        for leaf in collect(leaves(tree)) # collect because we modify the dict
+            new_leaf_1 = graft!(tree, TreeNode(tau=time), leaf; graft_on_leaf=true)
+            new_leaf_2 = graft!(tree, TreeNode(tau=time), leaf; graft_on_leaf=true)
+            if n == 2
+                # then new_leaf will remain a leaf. Label it nicely
+                label!(tree, new_leaf_1, id)
+                label!(tree, new_leaf_2, id+1)
+                id += 2
+            end
+        end
+        n /= 2
+    end
+
+    return tree
+end

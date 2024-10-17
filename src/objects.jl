@@ -179,6 +179,7 @@ function label!(tree::Tree, node::TreeNode, label::AbstractString)
 
 	return nothing
 end
-label!(t::Tree, old_label, new_label) = label!(t, t[old_label], new_label)
+label!(t::Tree, old_label::AbstractString, new_label) = label!(t, t[old_label], new_label)
+label!(t::Tree, node, label) = label!(t, node, string(label))
 
 root(t::Tree) = t.root
