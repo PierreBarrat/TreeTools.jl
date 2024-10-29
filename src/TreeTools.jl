@@ -1,6 +1,7 @@
 module TreeTools
 
 using Random
+using ResumableFunctions
 
 ## Iteration
 import Base: eltype, iterate, IteratorEltype, IteratorSize, length
@@ -24,7 +25,10 @@ export lca, node2tree, node2tree!, node_depth, distance, divtime, share_labels, 
 export root!
 
 include("iterators.jl")
-export POT, POTleaves, nodes, leaves, internals
+export nodes, leaves, internals
+export traversal, postorder_traversal
+
+# include("better_iterators.jl")
 
 include("prunegraft.jl")
 export insert!, graft!, prune!, prunesubtree!

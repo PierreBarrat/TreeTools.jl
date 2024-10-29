@@ -77,7 +77,6 @@ end
 function _newick!(s::String, root::TreeNode, internal_labels=true, write_root=true)
 	if !isempty(root.child)
 		s *= '('
-		# temp = sort(root.child, by=x->length(POTleaves(x)))
 		for c in root.child
 			s = _newick!(s, c, internal_labels)
 			s *= ','
