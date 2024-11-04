@@ -3,18 +3,18 @@ using TreeTools
 
 using BenchmarkTools
 
-makedocs(
-    sitename = "TreeTools",
-    format = Documenter.HTML(),
-    modules = [TreeTools],
-    pages = [
-    	"Home" => "index.md",
-    	"Basic concepts" => "basic_concepts.md",
-    	"Reading and writing" => "IO.md",
-    	"Iteration" => "Iteration.md",
-    	"Useful functions" => "useful_functions.md",
-    	"Modifying the tree" => "modifying_the_tree.md",
-    ]
+makedocs(;
+    sitename="TreeTools",
+    format=Documenter.HTML(),
+    modules=[TreeTools],
+    pages=[
+        "Home" => "index.md",
+        "Basic concepts" => "basic_concepts.md",
+        "Reading and writing" => "IO.md",
+        "Iteration" => "Iteration.md",
+        "Useful functions" => "useful_functions.md",
+        "Modifying the tree" => "modifying_the_tree.md",
+    ],
 )
 
 # Documenter can also automatically deploy documentation to gh-pages.
@@ -23,6 +23,4 @@ makedocs(
 #=deploydocs(
     repo = "<repository url>"
 )=#
-deploydocs(
-    repo = "github.com/PierreBarrat/TreeTools.jl.git",
-)
+deploydocs(; repo="github.com/PierreBarrat/TreeTools.jl.git")

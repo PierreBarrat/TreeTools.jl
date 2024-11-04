@@ -12,38 +12,38 @@ function Base.show(io::IO, ::MIME"text/plain", node::TreeNode)
     return nothing
 end
 function Base.show(io::IO, node::TreeNode)
-	print(io, "$(typeof(node)): $(node.label)")
-	node.isroot && print(io, " (root)")
-	return nothing
+    print(io, "$(typeof(node)): $(node.label)")
+    node.isroot && print(io, " (root)")
+    return nothing
 end
 
-function Base.show(io::IO, t::Tree{T}) where T
-	nn = length(nodes(t))
-	nl = length(leaves(t))
-	long = begin
-		base = "Tree{$T}: "
-		base *= nn > 1 ? "$nn nodes, " : "$nn node, "
-		base *= nl > 1 ? "$nl leaves" : "$nl leaf"
-		base
-	end
-	if length(long) < 0.8*displaysize(io)[2]
-		print(io, long)
-		return nothing
-	end
+function Base.show(io::IO, t::Tree{T}) where {T}
+    nn = length(nodes(t))
+    nl = length(leaves(t))
+    long = begin
+        base = "Tree{$T}: "
+        base *= nn > 1 ? "$nn nodes, " : "$nn node, "
+        base *= nl > 1 ? "$nl leaves" : "$nl leaf"
+        base
+    end
+    if length(long) < 0.8 * displaysize(io)[2]
+        print(io, long)
+        return nothing
+    end
 
-	short = begin
-		base = "Tree w. "
-		base *= nl > 1 ? "$nl leaves" : "$nl leaf"
-		base
-	end
-	print(io, short)
-	return nothing
+    short = begin
+        base = "Tree w. "
+        base *= nl > 1 ? "$nl leaves" : "$nl leaf"
+        base
+    end
+    print(io, short)
+    return nothing
 end
 function Base.show(io::IO, ::MIME"text/plain", t::Tree; maxnodes=40)
     if length(nodes(t)) < maxnodes
         print_tree_ascii(io, t)
     else
-    	show(io, t)
+        show(io, t)
     end
 end
 
@@ -57,15 +57,15 @@ function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth
         offset *= " "
     end
     if cdepth < maxdepth
-    	println(io, "$offset $hspace $(node.label):$(node.tau)")
+        println(io, "$offset $hspace $(node.label):$(node.tau)")
     elseif cdepth == maxdepth
-    	if node.isleaf
-    		println(io, "$offset $hspace $(node.label):$(node.tau)")
-    	else
-    		println(io, "$offset $hspace $(node.label):$(node.tau) ...")
-    	end
+        if node.isleaf
+            println(io, "$offset $hspace $(node.label):$(node.tau)")
+        else
+            println(io, "$offset $hspace $(node.label):$(node.tau) ...")
+        end
     end
-        #
+    #
     if cdepth <= maxdepth
         if !node.isleaf
             for c in node.child
@@ -73,8 +73,7 @@ function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth
                     cdepth < maxdepth && println(io, "$offset $(" "^hindent)|")
                 end
                 print_tree_(
-                    io, c, cdepth + 1;
-                    vindent, hindent, hoffset=hoffset+hindent, maxdepth
+                    io, c, cdepth + 1; vindent, hindent, hoffset=hoffset + hindent, maxdepth
                 )
             end
         end
@@ -82,12 +81,11 @@ function print_tree_(io, node, cdepth; vindent=2, hindent=5, hoffset=0, maxdepth
     end
 end
 function print_tree(io, node::TreeNode; vindent=2, hindent=5, maxdepth=5)
-    print_tree_(io, node, 1; vindent, hindent, hoffset=0, maxdepth)
+    return print_tree_(io, node, 1; vindent, hindent, hoffset=0, maxdepth)
 end
 function print_tree(io, t::Tree; vindent=2, hindent=5, maxdepth=5)
     return print_tree(io, t.root; vindent, hindent, maxdepth)
 end
-
 
 """
     print_tree_ascii(io, t::Tree)
@@ -106,21 +104,23 @@ function print_tree_ascii(io, t::Tree)
         depths = [divtime(node, root(t)) for node in nodes(t)]
         # If there are no branch lengths, assume unit branch lengths
         if ismissing(maximum(depths))
-            println(io, "\n not all branch lengths known, assuming identical branch lengths")
+            println(
+                io, "\n not all branch lengths known, assuming identical branch lengths"
+            )
             depths = [node_depth(node) for node in nodes(t)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
         fudge_margin = max(ceil(Int, log2(length(taxa))), 1)
-        if maximum(depths)==0
+        if maximum(depths) == 0
             cols_per_branch_unit = (drawing_width - fudge_margin)
         else
             cols_per_branch_unit = (drawing_width - fudge_margin) / maximum(depths)
         end
-        return Dict(zip(keys(t.lnodes), round.(Int,depths*cols_per_branch_unit .+2.0)))
+        return Dict(zip(keys(t.lnodes), round.(Int, depths * cols_per_branch_unit .+ 2.0)))
     end
 
     function get_row_positions(t::Tree)
-        positions = Dict{Any, Int}(zip(taxa, 2 *(1:length(taxa)) ) )
+        positions = Dict{Any,Int}(zip(taxa, 2 * (1:length(taxa))))
         function calc_row(clade::TreeNode)
             for subclade in clade.child
                 if !haskey(positions, subclade.label)
@@ -130,7 +130,8 @@ function print_tree_ascii(io, t::Tree)
             if !haskey(positions, clade.label)
                 positions[clade.label] = floor(
                     Int,
-                    (positions[clade.child[1].label] + positions[clade.child[end].label])/2
+                    (positions[clade.child[1].label] + positions[clade.child[end].label]) /
+                    2,
                 )
             end
         end
@@ -140,7 +141,7 @@ function print_tree_ascii(io, t::Tree)
 
     col_positions = get_col_positions(t)
     row_positions = get_row_positions(t)
-    char_matrix = [[" " for x in 1:(drawing_width+1)] for y in 1:(drawing_height+1)]
+    char_matrix = [[" " for x in 1:(drawing_width + 1)] for y in 1:(drawing_height + 1)]
 
     function draw_clade(clade::TreeNode, startcol::Int)
         thiscol = col_positions[clade.label]
@@ -153,7 +154,7 @@ function print_tree_ascii(io, t::Tree)
             # Draw a vertical line
             toprow = row_positions[clade.child[1].label]
             botrow = row_positions[clade.child[end].label]
-            for row in (toprow+1):botrow
+            for row in (toprow + 1):botrow
                 char_matrix[row][thiscol] = "|"
             end
             # Short terminal branches need something to stop rstrip()
@@ -172,7 +173,7 @@ function print_tree_ascii(io, t::Tree)
         line = rstrip(join(char_matrix[i]))
         # Add labels for terminal taxa in the right margin
         if i % 2 == 0
-            line = line * " " * strip(taxa[round(Int, i/2)]) #remove white space from labels to make more tidy
+            line = line * " " * strip(taxa[round(Int, i / 2)]) #remove white space from labels to make more tidy
         end
         println(io, line)
     end
@@ -187,24 +188,26 @@ end
 - Tree has only one root
 """
 function check_tree(tree::Tree; strict=true)
-    labellist = Dict{String, Int}()
+    labellist = Dict{String,Int}()
     nroot = 0
     flag = true
     for n in nodes(tree)
-        if !n.isleaf && length(n.child)==0
-        	(flag = false) || (@warn "Node $(n.label) is non-leaf and has no child.")
+        if !n.isleaf && length(n.child) == 0
+            (flag = false) || (@warn "Node $(n.label) is non-leaf and has no child.")
         elseif !n.isroot && n.anc == nothing
-        	(flag = false) || (@warn "Node $(n.label) is non-root and has no ancestor.")
+            (flag = false) || (@warn "Node $(n.label) is non-root and has no ancestor.")
         elseif strict && length(n.child) == 1
             if !(n.isroot && n.child[1].isleaf)
-        	   (flag = false) || (@warn "Node $(n.label) has only one child.")
+                (flag = false) || (@warn "Node $(n.label) has only one child.")
             end
         elseif length(n.child) == 0 && !haskey(tree.lleaves, n.label)
-            (flag = false) || (@warn "Node $(n.label) has no child but is not in `tree.lleaves`")
+            (flag = false) ||
+                (@warn "Node $(n.label) has no child but is not in `tree.lleaves`")
         end
         for c in n.child
             if c.anc != n
-                (flag = false) || (@warn "One child of $(n.label) does not satisfy `c.anc == n`.")
+                (flag = false) ||
+                    (@warn "One child of $(n.label) does not satisfy `c.anc == n`.")
             end
         end
         if get(labellist, n.label, 0) == 0
@@ -219,7 +222,7 @@ function check_tree(tree::Tree; strict=true)
     end
     if nroot > 1
         (flag = false) || (@warn "Tree has multiple roots")
-    elseif nroot ==0
+    elseif nroot == 0
         (flag = false) || (@warn "Tree has no root")
     end
     return flag
@@ -227,21 +230,21 @@ end
 
 default_tree_label(n=10) = randstring(n)
 
-make_random_label(base="NODE"; delim = "_") = make_random_label(base, 8; delim)
-make_random_label(base, i; delim = "_") = base * delim * randstring(i)
+make_random_label(base="NODE"; delim="_") = make_random_label(base, 8; delim)
+make_random_label(base, i; delim="_") = base * delim * randstring(i)
 
-function get_unique_label(t::Tree, base = "NODE"; delim = "_")
-	label = make_random_label(base; delim)
-	while haskey(t.lnodes, label)
-		label = make_random_label(base; delim)
-	end
-	return label
+function get_unique_label(t::Tree, base="NODE"; delim="_")
+    label = make_random_label(base; delim)
+    while haskey(t.lnodes, label)
+        label = make_random_label(base; delim)
+    end
+    return label
 end
 
-function set_unique_label!(node::TreeNode, t::Tree; delim = "_")
-	base = label(node)
-	new_label = get_unique_label(t, base; delim)
-	node.label = new_label
+function set_unique_label!(node::TreeNode, t::Tree; delim="_")
+    base = label(node)
+    new_label = get_unique_label(t, base; delim)
+    return node.label = new_label
 end
 
 """
@@ -253,15 +256,13 @@ function create_label(t::Tree, base="NODE")
     label_init = 1
     pattern = Regex(base)
     for n in values(t.lnodes)
-        if match(pattern, n.label)!=nothing && parse(Int, n.label[length(base)+2:end]) >= label_init
-            label_init = parse(Int, n.label[length(base)+2:end]) + 1
+        if match(pattern, n.label) != nothing &&
+            parse(Int, n.label[(length(base) + 2):end]) >= label_init
+            label_init = parse(Int, n.label[(length(base) + 2):end]) + 1
         end
     end
     return "$(base)_$(label_init)"
 end
-
-
-
 
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = nothing)
@@ -270,9 +271,9 @@ Map data in `dat` to nodes of `t`. All node labels of `t` should be keys of `dat
 If `!isnothing(key)`, only a specific key of `dat` is added. It's checked for by `k == key || Symbol(k) == key` for all keys `k` of `dat`.
 If `symbol`, data is added to nodes of `t` with symbols as keys.
 """
-function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = nothing)
+function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key=nothing)
     for (name, n) in t.lnodes
-        for (k,v) in dat[name]
+        for (k, v) in dat[name]
             if !isnothing(key) && (k == key || Symbol(k) == key)
                 n.data.dat[key] = v
             elseif isnothing(key)
@@ -280,7 +281,7 @@ function map_dict_to_tree!(t::Tree{MiscData}, dat::Dict; symbol=false, key = not
             end
         end
     end
-    nothing
+    return nothing
 end
 """
     map_dict_to_tree!(t::Tree{MiscData}, dat::Dict, key)
@@ -315,5 +316,3 @@ function rand_times!(t)
 
     return nothing
 end
-
-

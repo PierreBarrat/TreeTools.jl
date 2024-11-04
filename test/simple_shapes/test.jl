@@ -7,7 +7,7 @@ using Chain
     n = 16
     times = rand(n)
     tree = star_tree(n, times)
-    @test length(nodes(tree)) == n+1
+    @test length(nodes(tree)) == n + 1
     for node in leaves(tree)
         @test branch_length(node) == times[parse(Int, label(node))]
     end
@@ -17,7 +17,7 @@ using Chain
         @test ismissing(branch_length(node))
     end
 
-    @test_throws AssertionError star_tree(3, [1,2])
+    @test_throws AssertionError star_tree(3, [1, 2])
 end
 
 @testset "balanced binary" begin
@@ -32,7 +32,7 @@ end
     @test all(leaves(tree)) do leaf
         !isnothing(tryparse(Int, label(leaf))) # leaves have labels like "1", "2", etc...
     end
-    @test all(node -> length(children(node))==2, internals(tree))
+    @test all(node -> length(children(node)) == 2, internals(tree))
 
     @test balanced_binary_tree(1) isa Tree
 end

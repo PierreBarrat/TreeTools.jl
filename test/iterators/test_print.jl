@@ -27,5 +27,7 @@ t2 = parse_newick_string("(A:1, B)R")
 print_tree_ascii(IO, t2)
 
 print("tree with branch lengths from nwk file")
-t3 = node2tree(TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/iterators/tree1.nwk"))
+t3 = node2tree(
+    TreeTools.read_newick("$(dirname(pathof(TreeTools)))/../test/iterators/tree1.nwk")
+)
 print_tree_ascii(IO, t3)

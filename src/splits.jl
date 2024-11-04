@@ -8,14 +8,14 @@
 `dat::Array{Int,1}`: indices of leaves in the split
 """
 struct Split
-	dat::Array{Int,1}
-	function Split(dat)
-		if !issorted(dat)
-			@error("`split.dat` must be sorted")
-		end
+    dat::Array{Int,1}
+    function Split(dat)
+        if !issorted(dat)
+            @error("`split.dat` must be sorted")
+        end
 
-		return new(dat)
-	end
+        return new(dat)
+    end
 end
 Split(L::Integer) = Split(fill(typemax(Int), L))
 
@@ -40,34 +40,33 @@ Base.:(==)(s::Split, t::Split) = (s.dat == t.dat)
 Test for equality between splits restricted to `mask`.
 """
 function Base.isequal(s::Split, t::Split, mask::Array{Bool,1})
-	_in = max(length(s), length(t)) > 20 ? insorted : in
-	for i in s
-		if mask[i] && !_in(i, t.dat)
-			return false
-		end
-	end
-	for i in t
-		if mask[i] && !_in(i, s.dat)
-			return false
-		end
-	end
+    _in = max(length(s), length(t)) > 20 ? insorted : in
+    for i in s
+        if mask[i] && !_in(i, t.dat)
+            return false
+        end
+    end
+    for i in t
+        if mask[i] && !_in(i, s.dat)
+            return false
+        end
+    end
 
-	return true
+    return true
 end
 Base.isequal(s::Split, t::Split) = (s.dat == t.dat)
 Base.hash(s::Split, h::UInt) = hash(s.dat, h)
 
-
 function is_root_split(s::Split, mask::Array{Bool,1})
-	Lmask = sum(mask)
-	Ls = 0
-	for i in s
-		if mask[i]
-			Ls += 1
-		end
-	end
+    Lmask = sum(mask)
+    Ls = 0
+    for i in s
+        if mask[i]
+            Ls += 1
+        end
+    end
 
-	return Ls == Lmask
+    return Ls == Lmask
 end
 """
 	isroot(s::Split, mask::Array{Bool,1})
@@ -77,16 +76,16 @@ Check if `s` is the root split when restricted to `mask`.
 isroot(s::Split, mask) = is_root_split(s, mask)
 
 function is_leaf_split(s::Split, mask::Array{Bool,1})
-	Ls = 0
-	for i in s
-		if mask[i]
-			Ls += 1
-		end
-		if Ls > 1
-			return false
-		end
-	end
-	return true
+    Ls = 0
+    for i in s
+        if mask[i]
+            Ls += 1
+        end
+        if Ls > 1
+            return false
+        end
+    end
+    return true
 end
 is_leaf_split(s) = (length(s) == 1)
 """
@@ -103,13 +102,13 @@ isleaf(s::Split, mask) = is_leaf_split(s, mask)
 	isempty(s::Split)
 """
 function Base.isempty(s::Split, mask::Array{Bool,1})
-	Ls = 0
-	for i in s
-		if mask[i]
-			return false
-		end
-	end
-	return true
+    Ls = 0
+    for i in s
+        if mask[i]
+            return false
+        end
+    end
+    return true
 end
 Base.isempty(s::Split) = isempty(s.dat)
 
@@ -119,20 +118,19 @@ Base.isempty(s::Split) = isempty(s.dat)
 Join `t` to `s`.
 """
 function joinsplits!(s::Split, t::Vararg{Split})
-	for x in t
-		append!(s.dat, x.dat)
-	end
-	sort!(s.dat)
-	unique!(s.dat)
-	return nothing
-
+    for x in t
+        append!(s.dat, x.dat)
+    end
+    sort!(s.dat)
+    unique!(s.dat)
+    return nothing
 end
 # Same as above, but assume s is initialized with 0s, and start filling at index `i`.
 function _joinsplits!(s::Split, t::Split, i::Integer)
-	for j in 1:length(t)
-		s.dat[j + i - 1] = t.dat[j]
-	end
-	return nothing
+    for j in 1:length(t)
+        s.dat[j + i - 1] = t.dat[j]
+    end
+    return nothing
 end
 """
 	joinsplits(s::Split, t::Split)
@@ -140,9 +138,9 @@ end
 Join `s` and `t`. Return resulting `Split`.
 """
 function joinsplits(s::Split, t...)
-	sc = Split(copy(s.dat))
-	joinsplits!(sc, t...)
-	return sc
+    sc = Split(copy(s.dat))
+    joinsplits!(sc, t...)
+    return sc
 end
 
 """
@@ -151,24 +149,24 @@ end
 Check if `s` is a subsplit of `t`.
 """
 function is_sub_split(s::Split, t::Split)
-	_in = maximum(length(t)) > 20 ? insorted : in
-	for i in s
-		if !_in(i,t.dat)
-			return false
-		end
-	end
+    _in = maximum(length(t)) > 20 ? insorted : in
+    for i in s
+        if !_in(i, t.dat)
+            return false
+        end
+    end
 
-	return true
+    return true
 end
 function is_sub_split(s::Split, t::Split, mask)
-	_in = maximum(length(t)) > 20 ? insorted : in
-	for i in s
-		if mask[i] && !_in(i,t.dat)
-			return false
-		end
-	end
+    _in = maximum(length(t)) > 20 ? insorted : in
+    for i in s
+        if mask[i] && !_in(i, t.dat)
+            return false
+        end
+    end
 
-	return true
+    return true
 end
 
 """
@@ -178,37 +176,37 @@ end
 Check if `s` and `t` share leaves.
 """
 function are_disjoint(s::Split, t::Split)
-	_in = maximum(length(t)) > 20 ? insorted : in
-	for i in s
-		if _in(i,t.dat)
-			return false
-		end
-	end
+    _in = maximum(length(t)) > 20 ? insorted : in
+    for i in s
+        if _in(i, t.dat)
+            return false
+        end
+    end
 
-	for i in t
-		if _in(i,s.dat)
-			return false
-		end
-	end
+    for i in t
+        if _in(i, s.dat)
+            return false
+        end
+    end
 
-	return true
+    return true
 end
 
 function are_disjoint(s::Split, t::Split, mask)
-	_in = maximum(length(t)) > 20 ? insorted : in
-	for i in s
-		if mask[i] && _in(i,t.dat)
-			return false
-		end
-	end
+    _in = maximum(length(t)) > 20 ? insorted : in
+    for i in s
+        if mask[i] && _in(i, t.dat)
+            return false
+        end
+    end
 
-	for i in t
-		if mask[i] && _in(i,s.dat)
-			return false
-		end
-	end
+    for i in t
+        if mask[i] && _in(i, s.dat)
+            return false
+        end
+    end
 
-	return true
+    return true
 end
 
 #=================================#
@@ -241,34 +239,28 @@ Compute the list of splits below `r`, including `r` itself.
   of `r`.
 """
 struct SplitList{T}
-	leaves::Array{T,1}
-	splits::Array{Split,1}
-	mask::Array{Bool,1}
-	splitmap::Dict{T,Split} ## Maps each leaf to the split it is in.
-	function SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where T
-		if issorted(leaves) && allunique(leaves)
-			return new(leaves, splits, mask, splitmap)
-		else
-			@error("Leaves must be sorted and unique")
-		end
-	end
+    leaves::Array{T,1}
+    splits::Array{Split,1}
+    mask::Array{Bool,1}
+    splitmap::Dict{T,Split} ## Maps each leaf to the split it is in.
+    function SplitList{T}(leaves::Array{T,1}, splits, mask, splitmap) where {T}
+        if issorted(leaves) && allunique(leaves)
+            return new(leaves, splits, mask, splitmap)
+        else
+            @error("Leaves must be sorted and unique")
+        end
+    end
 end
 function SplitList(
-	leaves::Array{T,1},
-	splits::Array{Split,1},
-	mask::Array{Bool,1},
-	splitmap::Dict
-) where T
-	SplitList{T}(leaves, splits, mask, convert(Dict{T, Split}, splitmap))
+    leaves::Array{T,1}, splits::Array{Split,1}, mask::Array{Bool,1}, splitmap::Dict
+) where {T}
+    return SplitList{T}(leaves, splits, mask, convert(Dict{T,Split}, splitmap))
 end
 
-function SplitList(leaves::Array{T,1}) where T
-	SplitList{T}(
-		leaves,
-		Array{Split,1}(undef,0),
-		ones(Bool, length(leaves)),
-		Dict{T, Split}()
-	)
+function SplitList(leaves::Array{T,1}) where {T}
+    return SplitList{T}(
+        leaves, Array{Split,1}(undef, 0), ones(Bool, length(leaves)), Dict{T,Split}()
+    )
 end
 
 # Iteration
@@ -291,22 +283,22 @@ Base.keys(S::SplitList) = LinearIndices(S.splits)
 
 # Equality
 function Base.:(==)(S::SplitList, T::SplitList)
-	S.leaves == T.leaves &&
-	sort(S.splits, by=x->x.dat) == sort(T.splits, by=x->x.dat) &&
-	S.mask == T.mask
+    return S.leaves == T.leaves &&
+               sort(S.splits; by=x -> x.dat) == sort(T.splits; by=x -> x.dat) &&
+               S.mask == T.mask
 end
 Base.hash(S::SplitList, h::UInt) = hash(S.splits, h)
 
-function Base.cat(aS::Vararg{SplitList{T}}) where T
-	if !mapreduce(S->S.leaves==aS[1].leaves && S.mask==aS[1].mask, *, aS, init=true)
-		error("Split lists do not share leaves or masks")
-	end
-	catS = SplitList(aS[1].leaves, Array{Split,1}(undef,0), aS[1].mask, Dict{T, Split}())
-	for S in aS
-		append!(catS.splits, S.splits)
-	end
-	unique!(catS.splits)
-	return catS
+function Base.cat(aS::Vararg{SplitList{T}}) where {T}
+    if !mapreduce(S -> S.leaves == aS[1].leaves && S.mask == aS[1].mask, *, aS; init=true)
+        error("Split lists do not share leaves or masks")
+    end
+    catS = SplitList(aS[1].leaves, Array{Split,1}(undef, 0), aS[1].mask, Dict{T,Split}())
+    for S in aS
+        append!(catS.splits, S.splits)
+    end
+    unique!(catS.splits)
+    return catS
 end
 
 """
@@ -322,47 +314,42 @@ isroot(S::SplitList, i) = isroot(S[i], S.mask)
 Return array of leaves in `S.splits[i]`, taking `S.mask` into account.
 """
 function leaves(S::SplitList, i)
-	idx = S[i].dat[findall(i -> S.mask[i], S[i].dat)]
-	return S.leaves[idx]
+    idx = S[i].dat[findall(i -> S.mask[i], S[i].dat)]
+    return S.leaves[idx]
 end
 
 function SplitList(t::Tree, mask=ones(Bool, length(t.lleaves)))
-	leaves = sort(collect(keys(t.lleaves)))
-	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves))
-	return SplitList(t.root, leaves, mask, leafmap)
+    leaves = sort(collect(keys(t.lleaves)))
+    leafmap = Dict(leaf => i for (i, leaf) in enumerate(leaves))
+    return SplitList(t.root, leaves, mask, leafmap)
 end
 function SplitList(r::TreeNode, leaves)
-	leaves_srt = !issorted(leaves) ? sort(leaves) :  leaves
-	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(leaves_srt))
-	# Compute mask : leaves that are descendents or `r`
-	mask = zeros(Bool, length(leaves_srt))
-	set_mask(n) = if n.isleaf mask[leafmap[n.label]] = true end
-	map!(set_mask, r)
-	#
-	S = SplitList(
-		leaves_srt,
-		Array{Split,1}(undef,0),
-		mask,
-		Dict{eltype(leaves), Split}(),
-	)
-	_splitlist!(S, r, leafmap)
-	return S
+    leaves_srt = !issorted(leaves) ? sort(leaves) : leaves
+    leafmap = Dict(leaf => i for (i, leaf) in enumerate(leaves_srt))
+    # Compute mask : leaves that are descendents or `r`
+    mask = zeros(Bool, length(leaves_srt))
+    set_mask(n) =
+        if n.isleaf
+            mask[leafmap[n.label]] = true
+        end
+    map!(set_mask, r)
+    #
+    S = SplitList(leaves_srt, Array{Split,1}(undef, 0), mask, Dict{eltype(leaves),Split}())
+    _splitlist!(S, r, leafmap)
+    return S
 end
 function SplitList(
-	r::TreeNode,
-	leaves,
-	mask,
-	leafmap = Dict(leaf=>i for (i,leaf) in enumerate(sort(leaves)))
+    r::TreeNode,
+    leaves,
+    mask,
+    leafmap=Dict(leaf => i for (i, leaf) in enumerate(sort(leaves))),
 )
-	!issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
-	S = SplitList(
-		leaves_srt,
-		Array{Split,1}(undef,0),
-		mask,
-		Dict{eltype(leaves_srt), Split}(),
-	)
-	_splitlist!(S, r, leafmap)
-	return S
+    !issorted(leaves) ? leaves_srt = sort(leaves) : leaves_srt = leaves
+    S = SplitList(
+        leaves_srt, Array{Split,1}(undef, 0), mask, Dict{eltype(leaves_srt),Split}()
+    )
+    _splitlist!(S, r, leafmap)
+    return S
 end
 """
 	_splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
@@ -372,57 +359,56 @@ Compute the split defined by `r` and store it in S, by first calling `_splitlist
   Leaf-splits and root-split are not stored.
 """
 function _splitlist!(S::SplitList, r::TreeNode, leafmap::Dict)
-	if r.isleaf
-		s = Split([leafmap[r.label]])
-	else
-		L = 0
-		for c in r.child
-			sc = _splitlist!(S, c, leafmap)
-			L += length(sc)
-		end
-		s = Split(L)
-		i = 1
-		for c in r.child
-			if c.isleaf
-				s.dat[i] = leafmap[c.label]
-				i += 1
-			else
-				sc = S.splitmap[c.label]
-				_joinsplits!(s,sc,i)
-				i += length(sc)
-			end
-		end
-		sort!(s.dat)
-		unique!(s.dat)
-		push!(S.splits, s)
-		S.splitmap[r.label] = s
-	end
-	return s
+    if r.isleaf
+        s = Split([leafmap[r.label]])
+    else
+        L = 0
+        for c in r.child
+            sc = _splitlist!(S, c, leafmap)
+            L += length(sc)
+        end
+        s = Split(L)
+        i = 1
+        for c in r.child
+            if c.isleaf
+                s.dat[i] = leafmap[c.label]
+                i += 1
+            else
+                sc = S.splitmap[c.label]
+                _joinsplits!(s, sc, i)
+                i += length(sc)
+            end
+        end
+        sort!(s.dat)
+        unique!(s.dat)
+        push!(S.splits, s)
+        S.splitmap[r.label] = s
+    end
+    return s
 end
 
 function Base.show(io::IO, S::SplitList)
     println(io, "SplitList of $(length(S)) splits")
     max_i = 20
-	for (i,s) in enumerate(S)
-		if i > max_i
-			println(io, "... ($(length(S)-max_i) more)")
-			break
-		end
-		println(io, leaves(S,i))
-	end
+    for (i, s) in enumerate(S)
+        if i > max_i
+            println(io, "... ($(length(S)-max_i) more)")
+            break
+        end
+        println(io, leaves(S, i))
+    end
 end
 Base.show(S::SplitList) = show(stdout, S)
-
 
 """
 	isequal(S::SplitList, i::Integer, j::Integer; mask=true)
 """
 function Base.isequal(S::SplitList, i::Integer, j::Integer; mask=true)
-	if mask
-		return isequal(S.splits[i], S.splits[j], S.mask)
-	else
-		return S.splits[i] == S.splits[j]
-	end
+    if mask
+        return isequal(S.splits[i], S.splits[j], S.mask)
+    else
+        return S.splits[i] == S.splits[j]
+    end
 end
 
 """
@@ -431,9 +417,9 @@ end
 Is `[leaves(S,i) for i in ...]` equal to `A`?
 """
 function Base.isequal(S::SplitList, A::AbstractArray)
-	sort([leaves(S,i) for i in eachindex(S.splits)]) == sort(A)
+    return sort([leaves(S, i) for i in eachindex(S.splits)]) == sort(A)
 end
-==(S::SplitList, A::AbstractArray) = isequal(S,A)
+==(S::SplitList, A::AbstractArray) = isequal(S, A)
 
 """
 	arecompatible(s::Split, t::Split[, mask::Array{Bool}])
@@ -445,29 +431,29 @@ Are splits `s` and `t` compatible **in the cluster sense**.
 Are `s.splits[i]` and `s.splits[j]` compatible **in the cluster sense**?
 """
 function arecompatible(s::Split, t::Split)
-	if is_sub_split(s, t) || is_sub_split(t, s)
-		return true
-	elseif are_disjoint(s,t)
-		return true
-	else
-		return false
-	end
+    if is_sub_split(s, t) || is_sub_split(t, s)
+        return true
+    elseif are_disjoint(s, t)
+        return true
+    else
+        return false
+    end
 end
 function arecompatible(s::Split, t::Split, mask::Array{Bool})
-	if is_sub_split(s, t, mask) || is_sub_split(t, s, mask)
-		return true
-	elseif are_disjoint(s, t, mask)
-		return true
-	else
-		return false
-	end
+    if is_sub_split(s, t, mask) || is_sub_split(t, s, mask)
+        return true
+    elseif are_disjoint(s, t, mask)
+        return true
+    else
+        return false
+    end
 end
 function arecompatible(s::SplitList, i::Integer, j::Integer; mask=true)
-	if mask
-		return arecompatible(s.splits[i], s.splits[j], s.mask)
-	else
-		return arecompatible(s.splits[i], s.splits[j])
-	end
+    if mask
+        return arecompatible(s.splits[i], s.splits[j], s.mask)
+    else
+        return arecompatible(s.splits[i], s.splits[j])
+    end
 end
 
 """
@@ -476,16 +462,15 @@ end
 Is `s` compatible with all splits in `S`?
 """
 function iscompatible(s::Split, S::SplitList, mask=S.mask; usemask=true)
-	for t in S
-		if usemask && !arecompatible(s, t, mask)
-			return false
-		elseif !usemask && !arecompatible(s, t)
-			return false
-		end
-	end
-	return true
+    for t in S
+        if usemask && !arecompatible(s, t, mask)
+            return false
+        elseif !usemask && !arecompatible(s, t)
+            return false
+        end
+    end
+    return true
 end
-
 
 """
 	in(s, S::SplitList, mask=S.mask; usemask=true)
@@ -493,14 +478,13 @@ end
 Is `s` in `S`?
 """
 function Base.in(s::Split, S::SplitList, mask=S.mask; usemask=true)
-	for t in S
-		if (!usemask && s == t) || (usemask && isequal(s, t, mask))
-			return true
-		end
-	end
-	return false
+    for t in S
+        if (!usemask && s == t) || (usemask && isequal(s, t, mask))
+            return true
+        end
+    end
+    return false
 end
-
 
 """
 	setdiff(S::SplitList, T::SplitList, mask=:left)
@@ -510,31 +494,26 @@ Return array of splits in S that are not in T.
 `mask` options: `:left`, `:right`, `:none`.
 """
 function Base.setdiff(S::SplitList, T::SplitList, mask=:left)
-	if mask == :none
-		m = ones(Bool, length(S.leaves))
-		usemask = false
-	elseif mask == :left
-		m = S.mask
-		usemask = true
-	elseif mask == :right
-		m = T.mask
-		usemask = true
-	else
-		@error "Unrecognized `mask` kw-arg."
-	end
-	#
-	U = SplitList(S.leaves)
-	for s in S
-		if (
-			!in(s, T, m; usemask) &&
-			!isroot(s, m) &&
-			!isleaf(s, m) &&
-			!isempty(s,m)
-		)
-			push!(U.splits, s)
-		end
-	end
-	return U
+    if mask == :none
+        m = ones(Bool, length(S.leaves))
+        usemask = false
+    elseif mask == :left
+        m = S.mask
+        usemask = true
+    elseif mask == :right
+        m = T.mask
+        usemask = true
+    else
+        @error "Unrecognized `mask` kw-arg."
+    end
+    #
+    U = SplitList(S.leaves)
+    for s in S
+        if (!in(s, T, m; usemask) && !isroot(s, m) && !isleaf(s, m) && !isempty(s, m))
+            push!(U.splits, s)
+        end
+    end
+    return U
 end
 
 """
@@ -547,48 +526,47 @@ Build a union of `Split`s. Ignore potential incompatibilities. Possible values o
 union, union!
 
 function Base.union!(S::SplitList, T::SplitList; mask=:none)
-	if mask == :none
-		m = ones(Bool, length(S.leaves))
-	elseif mask == :left
-		m = S.mask
-	elseif mask == :right
-		m = T.mask
-	else
-		@error "Unrecognized `mask` kw-arg."
-	end
+    if mask == :none
+        m = ones(Bool, length(S.leaves))
+    elseif mask == :left
+        m = S.mask
+    elseif mask == :right
+        m = T.mask
+    else
+        @error "Unrecognized `mask` kw-arg."
+    end
 
-	for t in T
-		if !in(t, S, m)
-			push!(S.splits, t)
-		end
-	end
+    for t in T
+        if !in(t, S, m)
+            push!(S.splits, t)
+        end
+    end
 
-	return S
+    return S
 end
 function Base.union!(S::SplitList, T...; mask=:none)
-	for t in T
-		union!(S, t)
-	end
-	return S
+    for t in T
+        union!(S, t)
+    end
+    return S
 end
 
 function Base.union(S::SplitList, T...; mask=:none)
-	if mask == :none
-		m = ones(Bool, length(S.leaves))
-	elseif mask == :left
-		m = S.mask
-	elseif mask == :right
-		m = T.mask
-	else
-		@error "Unrecognized `mask` kw-arg."
-	end
+    if mask == :none
+        m = ones(Bool, length(S.leaves))
+    elseif mask == :left
+        m = S.mask
+    elseif mask == :right
+        m = T.mask
+    else
+        @error "Unrecognized `mask` kw-arg."
+    end
 
-	U = SplitList(copy(S.leaves))
-	union!(U, S, T...; mask)
+    U = SplitList(copy(S.leaves))
+    union!(U, S, T...; mask)
 
-	return U
+    return U
 end
-
 
 """
 	intersect(S::SplitList, T::SplitList, mask=:none)
@@ -596,23 +574,23 @@ end
 Build an intersection of `Split`s. Possible values of `mask` are `:none, :left, :right`.
 """
 function Base.intersect(S::SplitList, T::SplitList, mask=:none)
-	if mask == :none
-		m = ones(Bool, length(S.leaves))
-	elseif mask == :left
-		m = S.mask
-	elseif mask == :right
-		m = T.mask
-	else
-		@error "Unrecognized `mask` kw-arg."
-	end
-	#
-	U = SplitList(S.leaves)
-	for s in S
-		if in(s, T, m)
-			push!(U.splits, s)
-		end
-	end
-	return U
+    if mask == :none
+        m = ones(Bool, length(S.leaves))
+    elseif mask == :left
+        m = S.mask
+    elseif mask == :right
+        m = T.mask
+    else
+        @error "Unrecognized `mask` kw-arg."
+    end
+    #
+    U = SplitList(S.leaves)
+    for s in S
+        if in(s, T, m)
+            push!(U.splits, s)
+        end
+    end
+    return U
 end
 
 """
@@ -622,21 +600,21 @@ end
 unique, unique!
 
 function Base.unique!(S::SplitList; usemask=true)
-	todel = Int64[]
-	hashes = Dict{Array{Int,1}, Bool}()
-	for (i,s) in enumerate(S)
-		if haskey(hashes, s.dat)
-			push!(todel, i)
-		end
-		hashes[s.dat] = true
-	end
-	deleteat!(S.splits, todel)
+    todel = Int64[]
+    hashes = Dict{Array{Int,1},Bool}()
+    for (i, s) in enumerate(S)
+        if haskey(hashes, s.dat)
+            push!(todel, i)
+        end
+        hashes[s.dat] = true
+    end
+    return deleteat!(S.splits, todel)
 end
 
 function Base.unique(S::SplitList; usemask=true)
-	Sc = deepcopy(S)
-	unique!(Sc, usemask=usemask)
-	return Sc
+    Sc = deepcopy(S)
+    unique!(Sc; usemask=usemask)
+    return Sc
 end
 
 """
@@ -646,21 +624,18 @@ end
 
 Remove leaf and empty splits according to S.mask. Option to remove root.
 """
-function clean!(
-	S::SplitList, mask=S.mask;
-	clean_leaves=true, clean_root=false
-)
-	idx = Int64[]
-	for (i,s) in enumerate(S)
-		if clean_leaves && isleaf(s, mask)
-			push!(idx, i)
-		elseif clean_root &&  isroot(s, mask)
-			push!(idx, i)
-		elseif isempty(s, mask)
-			push!(idx, i)
-		end
-	end
-	deleteat!(S.splits, idx)
+function clean!(S::SplitList, mask=S.mask; clean_leaves=true, clean_root=false)
+    idx = Int64[]
+    for (i, s) in enumerate(S)
+        if clean_leaves && isleaf(s, mask)
+            push!(idx, i)
+        elseif clean_root && isroot(s, mask)
+            push!(idx, i)
+        elseif isempty(s, mask)
+            push!(idx, i)
+        end
+    end
+    return deleteat!(S.splits, idx)
 end
 
 #############################################################

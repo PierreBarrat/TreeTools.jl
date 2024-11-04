@@ -9,22 +9,21 @@ Create a `Tree` object from `root` with name `label`. If `force_new_labels`, a r
 string is added to node labels to make them unique.
 """
 function node2tree(
-	root::TreeNode{T};
-	label = default_tree_label(), force_new_labels = false
-) where T
-	if !isroot(root)
-		@warn "Creating a tree from non-root node $(root.label)."
-	end
-	tree = Tree(root, Dict{String, TreeNode{T}}(), Dict{String, TreeNode{T}}(), label)
-	node2tree_addnode!(tree, root; force_new_labels)
-	return tree
+    root::TreeNode{T}; label=default_tree_label(), force_new_labels=false
+) where {T}
+    if !isroot(root)
+        @warn "Creating a tree from non-root node $(root.label)."
+    end
+    tree = Tree(root, Dict{String,TreeNode{T}}(), Dict{String,TreeNode{T}}(), label)
+    node2tree_addnode!(tree, root; force_new_labels)
+    return tree
 end
 
 function node2tree!(tree::Tree, root::TreeNode; force_new_labels=false)
-	tree.root = root
-	tree.lnodes = Dict{String, TreeNode}()
-	tree.lleaves = Dict{String, TreeNode}()
-	node2tree_addnode!(tree, root; force_new_labels)
+    tree.root = root
+    tree.lnodes = Dict{String,TreeNode}()
+    tree.lleaves = Dict{String,TreeNode}()
+    return node2tree_addnode!(tree, root; force_new_labels)
 end
 
 """
@@ -42,21 +41,21 @@ If `node` is a leaf node, also add it to `tree.lleaves`.
 	This is only applied to internal nodes.
 """
 function node2tree_addnode!(tree::Tree, node::TreeNode; force_new_labels=false)
-	isbb = !isleaf(node) && isbootstrap(node.label)
-	if isempty(node.label) || (in(node, tree) && force_new_labels) || isbb
-		set_unique_label!(node, tree; delim="__")
-	end
+    isbb = !isleaf(node) && isbootstrap(node.label)
+    if isempty(node.label) || (in(node, tree) && force_new_labels) || isbb
+        set_unique_label!(node, tree; delim="__")
+    end
 
-	if haskey(tree.lnodes, node.label)
-		error("Node $(node.label) appears twice in tree. Use `force_new_labels`.")
-	end
-	tree.lnodes[node.label] = node
-	if node.isleaf
-		tree.lleaves[node.label] = node
-	end
-	for c in node.child
-		node2tree_addnode!(tree, c; force_new_labels)
-	end
+    if haskey(tree.lnodes, node.label)
+        error("Node $(node.label) appears twice in tree. Use `force_new_labels`.")
+    end
+    tree.lnodes[node.label] = node
+    if node.isleaf
+        tree.lleaves[node.label] = node
+    end
+    for c in node.child
+        node2tree_addnode!(tree, c; force_new_labels)
+    end
 end
 
 """
@@ -70,15 +69,14 @@ Multiple confidence values separated by a `/` are also interpreted as such.
 - `"87.7/cool_node"` will not
 """
 function isbootstrap(label::AbstractString)
-	elements = split(label, '/')
-	for e in elements
-		if isnothing(tryparse(Float64, e))
-			return false
-		end
-	end
-	return true
+    elements = split(label, '/')
+    for e in elements
+        if isnothing(tryparse(Float64, e))
+            return false
+        end
+    end
+    return true
 end
-
 
 """
 	parse_bootstrap(label::AbstractString)
@@ -93,8 +91,8 @@ If label is of one of these forms and followed by a string of the form `__NAME`,
 parsed.
 """
 function parse_bootstrap(label::AbstractString)
-	@warn "`parse_bootstrap` is not implemented yet, doing nothing and return `missing`."
-	return missing
+    @warn "`parse_bootstrap` is not implemented yet, doing nothing and return `missing`."
+    return missing
 end
 
 """
@@ -103,26 +101,25 @@ end
 Give a label to label-less nodes in `t`.
 """
 function name_nodes!(t::Tree)
-	name_nodes!(t.root, collect(keys(t.lnodes)))
+    return name_nodes!(t.root, collect(keys(t.lnodes)))
 end
-function name_nodes!(r::TreeNode, labels ; i = 0)
-	ii = i
-	if r.isleaf && isempty(r.label)
-		@warn "Label-less leaf node!"
-	end
-	if isempty(r.label)
-		while in("NODE_$ii", labels)
-			ii += 1
-		end
-		r.label = "NODE_$ii"
-		ii += 1
-		for c in r.child
-			ii = name_nodes!(c, labels, i = ii)
-		end
-	end
-	return ii
+function name_nodes!(r::TreeNode, labels; i=0)
+    ii = i
+    if r.isleaf && isempty(r.label)
+        @warn "Label-less leaf node!"
+    end
+    if isempty(r.label)
+        while in("NODE_$ii", labels)
+            ii += 1
+        end
+        r.label = "NODE_$ii"
+        ii += 1
+        for c in r.child
+            ii = name_nodes!(c, labels; i=ii)
+        end
+    end
+    return ii
 end
-
 
 """
 	share_labels(tree1, tree2)
@@ -130,10 +127,9 @@ end
 Check if `tree1` and `tree2` share the same labels for leaf nodes.
 """
 function share_labels(tree1, tree2)
-	l1 = Set(l for l in keys(tree1.lleaves))
-	l2 = Set(l for l in keys(tree2.lleaves))
-	return l1 ==  l2
-
+    l1 = Set(l for l in keys(tree1.lleaves))
+    l2 = Set(l for l in keys(tree2.lleaves))
+    return l1 == l2
 end
 
 """
@@ -156,11 +152,11 @@ In the `TreeNode` version, call `f(n)` on each node in the clade below `r`, `r` 
 Useful if `f` changes its input. Return `nothing`.
 """
 function Base.map!(f, r::TreeNode)
-	for c in r.child
-		map!(f, c)
-	end
-	f(r)
-	return nothing
+    for c in r.child
+        map!(f, c)
+    end
+    f(r)
+    return nothing
 end
 Base.map!(f, t::Tree) = map!(f, t.root)
 
@@ -171,70 +167,79 @@ Call `f(n)` on each node in the clade below `r` and return the number of time it
   `true`.
 """
 function Base.count(f, r::TreeNode)
-	c = _count(f, 0, r)
-	return c
+    c = _count(f, 0, r)
+    return c
 end
 Base.count(f, t::Tree) = count(f, t.root)
 
 function _count(f, c, r)
-	if f(r)
-		c += 1
-	end
-	for n in r.child
-		c += _count(f, 0, n)
-	end
-	return c
+    if f(r)
+        c += 1
+    end
+    for n in r.child
+        c += _count(f, 0, n)
+    end
+    return c
 end
 
 #================================================#
 ################# Copy / convert #################
 #================================================#
 
-
-function _copy(r::TreeNode, ::Type{T}) where T <: TreeNodeData
-	!r.isroot && error("Copying non-root node.")
-	data = _copy_data(T, r)
-	child = if r.isleaf
-		Array{TreeNode{T}, 1}(undef, 0)
-	else
-		Array{TreeNode{T}, 1}(undef, length(r.child))
-	end
-	cr = TreeNode(
-		data;
-		anc=nothing, isleaf=r.isleaf, isroot=true, label=r.label, tau=r.tau, child=child
-	)
-	for (i,c) in enumerate(r.child)
-		_copy!(cr, c, i)
-	end
-	return cr
+function _copy(r::TreeNode, ::Type{T}) where {T<:TreeNodeData}
+    !r.isroot && error("Copying non-root node.")
+    data = _copy_data(T, r)
+    child = if r.isleaf
+        Array{TreeNode{T},1}(undef, 0)
+    else
+        Array{TreeNode{T},1}(undef, length(r.child))
+    end
+    cr = TreeNode(
+        data;
+        anc=nothing,
+        isleaf=r.isleaf,
+        isroot=true,
+        label=r.label,
+        tau=r.tau,
+        child=child,
+    )
+    for (i, c) in enumerate(r.child)
+        _copy!(cr, c, i)
+    end
+    return cr
 end
 """
 	_copy!(an::TreeNode{T}, n::TreeNode) where T <: TreeNodeData
 
 Create a copy of `n` with node data type `T` and add it to the children of `an`.
 """
-function _copy!(an::TreeNode{T}, n::TreeNode, i) where T <: TreeNodeData
-	data = _copy_data(T, n)
-	child = if n.isleaf
-		Array{TreeNode{T}, 1}(undef, 0)
-	else
-		Array{TreeNode{T}, 1}(undef, length(n.child))
-	end
-	cn = TreeNode(
-		data;
-		anc=an, isleaf=n.isleaf, isroot=n.isroot, label=n.label, tau=n.tau, child=child
-	)
-	# Adding `cn` to the children of its ancestor `an`
-	an.child[i] = cn
-	# Copying children of `n`
-	for (i,c) in enumerate(n.child)
-		_copy!(cn, c, i)
-	end
+function _copy!(an::TreeNode{T}, n::TreeNode, i) where {T<:TreeNodeData}
+    data = _copy_data(T, n)
+    child = if n.isleaf
+        Array{TreeNode{T},1}(undef, 0)
+    else
+        Array{TreeNode{T},1}(undef, length(n.child))
+    end
+    cn = TreeNode(
+        data;
+        anc=an,
+        isleaf=n.isleaf,
+        isroot=n.isroot,
+        label=n.label,
+        tau=n.tau,
+        child=child,
+    )
+    # Adding `cn` to the children of its ancestor `an`
+    an.child[i] = cn
+    # Copying children of `n`
+    for (i, c) in enumerate(n.child)
+        _copy!(cn, c, i)
+    end
 
-	return nothing
+    return nothing
 end
-_copy_data(::Type{T}, n::TreeNode{T}) where T <: TreeNodeData = copy(n.data)
-_copy_data(::Type{T}, n::TreeNode) where T <: TreeNodeData = T()
+_copy_data(::Type{T}, n::TreeNode{T}) where {T<:TreeNodeData} = copy(n.data)
+_copy_data(::Type{T}, n::TreeNode) where {T<:TreeNodeData} = T()
 
 """
 	copy(t::Tree; force_new_tree_label = false, label=nothing)
@@ -243,12 +248,14 @@ Make a copy of `t`. The copy can be modified without changing `t`. By default `t
 is also copied. If this is not desired `force_new_tree_label=true` will create create a copy
 of the tree with a new label. Alternatively a `label` can be set with the `label` argument.
 """
-function Base.copy(t::Tree{T}; force_new_tree_label = false, label=nothing) where T <: TreeNodeData
-	if force_new_tree_label
-		node2tree(_copy(t.root, T))
-	else
-		node2tree(_copy(t.root, T), label = isnothing(label) ? t.label : label)
-	end
+function Base.copy(
+    t::Tree{T}; force_new_tree_label=false, label=nothing
+) where {T<:TreeNodeData}
+    if force_new_tree_label
+        node2tree(_copy(t.root, T))
+    else
+        node2tree(_copy(t.root, T); label=isnothing(label) ? t.label : label)
+    end
 end
 
 """
@@ -257,11 +264,11 @@ end
 
 Create a copy of `t` with data of type `T::TreeNodeData` at nodes (see ?`TreeNodeData`).
 """
-Base.convert(::Type{Tree{T}}, t::Tree{T}) where T <: TreeNodeData = t
-function Base.convert(::Type{Tree{T}}, t::Tree; label=t.label) where T <: TreeNodeData
-    return node2tree(_copy(t.root, T), label=label)
+Base.convert(::Type{Tree{T}}, t::Tree{T}) where {T<:TreeNodeData} = t
+function Base.convert(::Type{Tree{T}}, t::Tree; label=t.label) where {T<:TreeNodeData}
+    return node2tree(_copy(t.root, T); label=label)
 end
-Base.convert(::Type{T}, t::Tree) where T <: TreeNodeData = convert(Tree{T}, t)
+Base.convert(::Type{T}, t::Tree) where {T<:TreeNodeData} = convert(Tree{T}, t)
 
 #========================#
 ######### Clades #########
@@ -272,18 +279,18 @@ Base.convert(::Type{T}, t::Tree) where T <: TreeNodeData = convert(Tree{T}, t)
 
 Return root of the tree to which `node` belongs.
 """
-function node_findroot(node::TreeNode ; maxdepth=1000)
-	temp = node
-	it = 0
-	while !temp.isroot && it <= maxdepth
-		temp = temp.anc
-		it += 1
-	end
-	if it > maxdepth
-		@error("Could not find root after $maxdepth iterations.")
-		error()
-	end
-	return temp
+function node_findroot(node::TreeNode; maxdepth=1000)
+    temp = node
+    it = 0
+    while !temp.isroot && it <= maxdepth
+        temp = temp.anc
+        it += 1
+    end
+    if it > maxdepth
+        @error("Could not find root after $maxdepth iterations.")
+        error()
+    end
+    return temp
 end
 
 """
@@ -292,13 +299,13 @@ end
 Return array of all ancestors of `node` up to the root.
 """
 function node_ancestor_list(node::TreeNode)
-	list = [node.label]
-	a = node
-	while !a.isroot
-		push!(list, a.anc.label)
-		a = a.anc
-	end
-	return list
+    list = [node.label]
+    a = node
+    while !a.isroot
+        push!(list, a.anc.label)
+        a = a.anc
+    end
+    return list
 end
 
 """
@@ -308,21 +315,21 @@ end
 Check if `nodelist` is a clade. All nodes in `nodelist` should be leaves.
 """
 function isclade(nodelist; safe=true)
-	if safe && !mapreduce(isleaf, *, nodelist, init=true)
-		return false
-	end
+    if safe && !mapreduce(isleaf, *, nodelist; init=true)
+        return false
+    end
 
-	claderoot = lca(nodelist)
-	# Check if clade of `claderoot` is the same as `nodelist`
-	for c in traversal(claderoot, :postorder, internals=false)
+    claderoot = lca(nodelist)
+    # Check if clade of `claderoot` is the same as `nodelist`
+    for c in traversal(claderoot, :postorder; internals=false)
         if !any(==(c), nodelist)
             return false
         end
-	end
-	return true
+    end
+    return true
 end
 function isclade(nodelist::AbstractArray{<:AbstractString}, t::Tree)
-	return isclade([t.lnodes[n] for n in nodelist])
+    return isclade([t.lnodes[n] for n in nodelist])
 end
 
 #==================================================================#
@@ -335,13 +342,13 @@ end
 Topologic distance from `node` to root.
 """
 function node_depth(node::TreeNode)
-	d = 0
-	_node = node
-	while !_node.isroot
-		_node = _node.anc
-		d += 1
-	end
-	return d
+    d = 0
+    _node = node
+    while !_node.isroot
+        _node = _node.anc
+        d += 1
+    end
+    return d
 end
 
 """
@@ -351,32 +358,31 @@ Find and return lowest common ancestor of `i_node` and `j_node`.
 Idea is to go up in the tree in an asymmetric way on the side of the deeper node, until both are at equal distance from root. Then, problem is solved by going up in a symmetric way. (https://stackoverflow.com/questions/1484473/how-to-find-the-lowest-common-ancestor-of-two-nodes-in-any-binary-tree/6183069#6183069)
 """
 function lca(i_node::TreeNode, j_node::TreeNode)
+    if i_node.isroot
+        return i_node
+    elseif j_node.isroot
+        return j_node
+    end
 
-	if i_node.isroot
-		return i_node
-	elseif j_node.isroot
-		return j_node
-	end
+    ii_node = i_node
+    jj_node = j_node
 
-	ii_node = i_node
-	jj_node = j_node
-
-	di = node_depth(ii_node)
-	dj = node_depth(jj_node)
-	while di != dj
-		if di > dj
-			ii_node = ii_node.anc
-			di -=1
-		else
-			jj_node = jj_node.anc
-			dj -=1
-		end
-	end
-	while ii_node != jj_node
-		ii_node = ii_node.anc
-		jj_node = jj_node.anc
-	end
-	return ii_node
+    di = node_depth(ii_node)
+    dj = node_depth(jj_node)
+    while di != dj
+        if di > dj
+            ii_node = ii_node.anc
+            di -= 1
+        else
+            jj_node = jj_node.anc
+            dj -= 1
+        end
+    end
+    while ii_node != jj_node
+        ii_node = ii_node.anc
+        jj_node = jj_node.anc
+    end
+    return ii_node
 end
 
 """
@@ -385,14 +391,14 @@ end
 Find the common ancestor of all nodes in `nodelist`. `nodelist` is an iterable collection of `TreeNode` objects.
 """
 function lca(nodelist::Vararg{<:TreeNode})
-	# Getting any element to start with
-	ca = first(nodelist)
-	for node in nodelist
-		if !is_ancestor(ca, node)
-			ca = lca(ca, node)
-		end
-	end
-	return ca
+    # Getting any element to start with
+    ca = first(nodelist)
+    for node in nodelist
+        if !is_ancestor(ca, node)
+            ca = lca(ca, node)
+        end
+    end
+    return ca
 end
 lca(nodelist) = lca(nodelist...)
 """
@@ -400,13 +406,13 @@ lca(nodelist) = lca(nodelist...)
 	lca(t::Tree, labels...)
 """
 function lca(t::Tree, labels)
-	ca = t.lnodes[first(labels)]
-	for l in labels
-		if !is_ancestor(ca, t.lnodes[l])
-			ca = lca(ca, t.lnodes[l])
-		end
-	end
-	return ca
+    ca = t.lnodes[first(labels)]
+    for l in labels
+        if !is_ancestor(ca, t.lnodes[l])
+            ca = lca(ca, t.lnodes[l])
+        end
+    end
+    return ca
 end
 lca(t::Tree, labels::Vararg{<:AbstractString}) = lca(t, collect(labels))
 
@@ -416,18 +422,17 @@ lca(t::Tree, labels::Vararg{<:AbstractString}) = lca(t, collect(labels))
 Return list of nodes just below `lca(nodelist)`. Useful for introducing splits in a tree.
 """
 function blca(nodelist::Vararg{<:TreeNode})
-	r = lca(nodelist...)
-	out = []
-	for n in nodelist
-		a = n
-		while a.anc != r
-			a = a.anc
-		end
-		push!(out, a)
-	end
-	return out
+    r = lca(nodelist...)
+    out = []
+    for n in nodelist
+        a = n
+        while a.anc != r
+            a = a.anc
+        end
+        push!(out, a)
+    end
+    return out
 end
-
 
 """
 	distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
@@ -438,22 +443,22 @@ If `topological`, the value `1.` is summed instead, counting the number of branc
 separating the two nodes (*Note*: the output is not an `Int`!).
 """
 function distance(i_node::TreeNode, j_node::TreeNode; topological=false)
-	a_node = lca(i_node, j_node)
-	tau = 0.
-	ii_node = i_node
-	jj_node = j_node
-	while ii_node != a_node
-		tau += topological ? 1. : ii_node.tau
-		ii_node = ii_node.anc
-	end
-	while jj_node != a_node
-		tau += topological ? 1. : jj_node.tau
-		jj_node = jj_node.anc
-	end
-	return tau
+    a_node = lca(i_node, j_node)
+    tau = 0.0
+    ii_node = i_node
+    jj_node = j_node
+    while ii_node != a_node
+        tau += topological ? 1.0 : ii_node.tau
+        ii_node = ii_node.anc
+    end
+    while jj_node != a_node
+        tau += topological ? 1.0 : jj_node.tau
+        jj_node = jj_node.anc
+    end
+    return tau
 end
 function distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=false)
-	return distance(t.lnodes[n1], t.lnodes[n2]; topological)
+    return distance(t.lnodes[n1], t.lnodes[n2]; topological)
 end
 
 # for convenience with old functions -- should be removed eventually
@@ -466,11 +471,11 @@ divtime(i_node, j_node) = distance(i_node, j_node)
 Check if `a` is an ancestor of `n`, in the sense that `ancestor(ancestor(...(node))) == a`.
 """
 function is_ancestor(a::TreeNode, node::TreeNode)
-	return if a == node
-		true
-	else
-		isroot(node) ? false : is_ancestor(a, ancestor(node))
-	end
+    return if a == node
+        true
+    else
+        isroot(node) ? false : is_ancestor(a, ancestor(node))
+    end
 end
 is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t[n])
 
@@ -480,7 +485,7 @@ is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t
 Distance from `node` to the deepest leaf in the clade below `node`.
 """
 function distance_to_deepest_leaf(node::TreeNode; topological=false)
-	return maximum(postorder_traversal(node; internals=false)) do leaf
+    return maximum(postorder_traversal(node; internals=false)) do leaf
         distance(node, leaf; topological)
     end
 end
@@ -491,13 +496,13 @@ tree_height(tree::Tree; kwargs...) = distance_to_deepest_leaf(root(tree); kwargs
 
 Distance from `node` to the closest leaf in the clade below `node`.
 """
-function distance_to_shallowest_leaf(node::TreeNode; topological = false)
+function distance_to_shallowest_leaf(node::TreeNode; topological=false)
     return minimum(postorder_traversal(node; internals=false)) do leaf
         distance(node, leaf; topological)
     end
 end
 
-function distance_to_closest_leaf(tree::Tree, label::AbstractString; topological = false)
+function distance_to_closest_leaf(tree::Tree, label::AbstractString; topological=false)
     return minimum(l -> distance(tree[label], l; topological), leaves(tree))
 end
 
@@ -510,40 +515,40 @@ end
 
 Make `t` binary by adding arbitrary internal nodes with branch length `time`.
 """
-function binarize!(t::Tree; mode = :balanced, time = 0.)
-	# I would like to implement `mode = :random` too in the future
-	z = binarize!(t.root; mode, time)
-	node2tree!(t, t.root)
-	return z
+function binarize!(t::Tree; mode=:balanced, time=0.0)
+    # I would like to implement `mode = :random` too in the future
+    z = binarize!(t.root; mode, time)
+    node2tree!(t, t.root)
+    return z
 end
-function binarize!(n::TreeNode{T}; mode = :balanced, time = 0.) where T
-	z = 0
-	if length(n.child) > 2
-		c_left, c_right = _partition(n.child, mode)
-		for part in (c_left, c_right)
-			if length(part) > 1
-				z += 1
-				nc = TreeNode(T(), label=make_random_label("BINARIZE"))
-				for c in part
-					prunenode!(c)
-					graftnode!(nc, c)
-				end
-				graftnode!(n, nc; time)
-			end
-		end
-	end
+function binarize!(n::TreeNode{T}; mode=:balanced, time=0.0) where {T}
+    z = 0
+    if length(n.child) > 2
+        c_left, c_right = _partition(n.child, mode)
+        for part in (c_left, c_right)
+            if length(part) > 1
+                z += 1
+                nc = TreeNode(T(); label=make_random_label("BINARIZE"))
+                for c in part
+                    prunenode!(c)
+                    graftnode!(nc, c)
+                end
+                graftnode!(n, nc; time)
+            end
+        end
+    end
 
-	for c in n.child
-		z += binarize!(c; mode, time)
-	end
+    for c in n.child
+        z += binarize!(c; mode, time)
+    end
 
-	return z
+    return z
 end
 function _partition(X, mode)
-	# for now mode==:balanced all the time, so it's simple
-	L = length(X)
-	half = div(L,2) + mod(L,2)
-	return X[1:half], X[(half+1):end]
+    # for now mode==:balanced all the time, so it's simple
+    L = length(X)
+    half = div(L, 2) + mod(L, 2)
+    return X[1:half], X[(half + 1):end]
 end
 
 #=
@@ -552,37 +557,37 @@ root the tree to which `node` belongs at `node`. Base function for rooting.
 - Else if `newroot == nothing`, root the tree defined by `node` at `node`. Call `root!(node.anc; node)`.
 - Else, call `root!(node.anc; node)`, then change the ancestor of `node` to be `newroot`.
 =#
-function _root!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode, Nothing}=nothing)
-	# Breaking cases
-	if node.anc == nothing || node.isroot
-		if !(node.anc == nothing && node.isroot)
-			@warn "There was a problem with input tree: previous root node has an ancestor."
-		elseif newroot != nothing
-			i = findfirst(c->c.label==newroot.label, node.child)
-			deleteat!(node.child, i)
-			node.anc = newroot
-			node.tau = newroot.tau
-			node.isroot = false
-		end
-	else # Recursion
-		if newroot == nothing
-			# if node.isleaf
-			# 	error("Cannot root on a leaf node")
-			# end
-			node.isroot = true
-			_root!(node.anc, newroot=node)
-			push!(node.child, node.anc)
-			node.anc = nothing
-			node.tau = missing
-		else
-			i = findfirst(c->c.label==newroot.label, node.child)
-			deleteat!(node.child, i)
-			_root!(node.anc, newroot=node)
-			push!(node.child, node.anc)
-			node.anc = newroot
-			node.tau = newroot.tau
-		end
-	end
+function _root!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode,Nothing}=nothing)
+    # Breaking cases
+    if node.anc == nothing || node.isroot
+        if !(node.anc == nothing && node.isroot)
+            @warn "There was a problem with input tree: previous root node has an ancestor."
+        elseif newroot != nothing
+            i = findfirst(c -> c.label == newroot.label, node.child)
+            deleteat!(node.child, i)
+            node.anc = newroot
+            node.tau = newroot.tau
+            node.isroot = false
+        end
+    else # Recursion
+        if newroot == nothing
+            # if node.isleaf
+            # 	error("Cannot root on a leaf node")
+            # end
+            node.isroot = true
+            _root!(node.anc; newroot=node)
+            push!(node.child, node.anc)
+            node.anc = nothing
+            node.tau = missing
+        else
+            i = findfirst(c -> c.label == newroot.label, node.child)
+            deleteat!(node.child, i)
+            _root!(node.anc; newroot=node)
+            push!(node.child, node.anc)
+            node.anc = newroot
+            node.tau = newroot.tau
+        end
+    end
 end
 """
 	root!(tree::Tree, node::AbstractString; root_on_leaf, time=0.)
@@ -590,16 +595,16 @@ end
 Root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting.
 If `time` is non-zero, root above `node` at height `time`, inserting a new node.
 """
-function root!(tree::Tree, node::AbstractString; root_on_leaf = false, time = 0.)
-	if isleaf(tree[node]) && !ismissing(time) && time == 0
-		if root_on_leaf
-			# remove `node` from set of leaves
-			delete!(tree.lleaves, node)
-			tree[node].isleaf = false
-		else
-			error("Cannot root on a leaf node")
-		end
-	end
+function root!(tree::Tree, node::AbstractString; root_on_leaf=false, time=0.0)
+    if isleaf(tree[node]) && !ismissing(time) && time == 0
+        if root_on_leaf
+            # remove `node` from set of leaves
+            delete!(tree.lleaves, node)
+            tree[node].isleaf = false
+        else
+            error("Cannot root on a leaf node")
+        end
+    end
 
     new_root = if !ismissing(time) && time == 0
         node
@@ -613,13 +618,13 @@ function root!(tree::Tree, node::AbstractString; root_on_leaf = false, time = 0.
         label(r)
     end
 
-	_root!(tree.lnodes[new_root])
-	tree.root = tree.lnodes[new_root]
-	remove_internal_singletons!(tree) # old root is potentially a singleton
-	if label(tree.root) != new_root
-		label!(tree, label(tree.root), new_root)
-	end
-	return nothing
+    _root!(tree.lnodes[new_root])
+    tree.root = tree.lnodes[new_root]
+    remove_internal_singletons!(tree) # old root is potentially a singleton
+    if label(tree.root) != new_root
+        label!(tree, label(tree.root), new_root)
+    end
+    return nothing
 end
 """
 	root!(tree; method=:midpoint, topological = false)
@@ -646,15 +651,14 @@ Try to root `tree` like `model`. If the two trees only differ by rooting, they w
 the same topology at the end of this. Else, tree will be rerooted but a warning will
 be given.
 """
-function root!(tree; method=:midpoint, topological = false, model=nothing)
-	if method == :midpoint
-		root_midpoint!(tree; topological)
+function root!(tree; method=:midpoint, topological=false, model=nothing)
+    if method == :midpoint
+        root_midpoint!(tree; topological)
     elseif method == :model
         root_like_model!(tree, model)
-	end
-	return nothing
+    end
+    return nothing
 end
-
 
 """
     root_like_model!(tree, model::Tree)
@@ -671,8 +675,8 @@ function root_like_model!(tree, model::Tree)
     algorithm nonetheless found a sensible root for `tree` and re-rooted.
     Maybe check what you're doing."""
     # Look at the two splits below the root of `model` ...
-    M1 = model |> root |> children |> first
-    M2 = model |> root |> children |> last
+    M1 = first(children(root(model)))
+    M2 = last(children(root(model)))
     S1 = map(label, postorder_traversal(M1; internals=false))
     S2 = map(label, postorder_traversal(M2; internals=false))
 
@@ -707,124 +711,124 @@ function root_like_model!(tree, model::Tree)
     return nothing
 end
 
-function root_midpoint!(t::Tree; topological = false)
-	exit_warning = "Failed to midpoint root, tree unchanged"
-	if length(leaves(t)) == 1
-		@warn "Can't midpoint root tree with only one leaf"
-		@warn exit_warning
-		return nothing
-	end
+function root_midpoint!(t::Tree; topological=false)
+    exit_warning = "Failed to midpoint root, tree unchanged"
+    if length(leaves(t)) == 1
+        @warn "Can't midpoint root tree with only one leaf"
+        @warn exit_warning
+        return nothing
+    end
 
-	# Find the good branch
-	b_l, b_h, L1, L2, fail = find_midpoint(t; topological)
-	fail && (@warn exit_warning; return nothing)
-	# The midpoint is between b_l and b_h == b_l.anc
-	# L1 and L2 are the farthest apart leaves
-	# It's on the side of L1 w.r. to the current root, that is we should be in the situation
-	#=
-	-- Root --
-	|		  |
-	b_h		  |
-	|		  |
-	b_l       |
-	|		  |
-	L1		  L2
-	=#
-	# If the midpoint is exactly on b_h and b_h is not the root, we introduce a singleton below to root on.
+    # Find the good branch
+    b_l, b_h, L1, L2, fail = find_midpoint(t; topological)
+    fail && (@warn exit_warning; return nothing)
+    # The midpoint is between b_l and b_h == b_l.anc
+    # L1 and L2 are the farthest apart leaves
+    # It's on the side of L1 w.r. to the current root, that is we should be in the situation
+    #=
+    -- Root --
+    |		  |
+    b_h		  |
+    |		  |
+    b_l       |
+    |		  |
+    L1		  L2
+    =#
+    # If the midpoint is exactly on b_h and b_h is not the root, we introduce a singleton below to root on.
 
-	d1 = distance(b_l, L1; topological)
-	d2 = distance(b_l, L2; topological)
-	@debug """
-	Midpoint on branch $(label(b_h)) --> $(label(b_l)).
-	Farthest apart leaves: $(label(L1)) and $(label(L2)).
-	Distances: L1 --> b_l: $(d1) // L2 --> b_h: $(distance(b_h, L2; topological))
-	"""
-	@assert d1 <= d2 """
-	Issue with branch lengths.
-	"""
-	if  isroot(b_h) && isapprox(abs(d1-d2), 2*distance(b_l, b_h; topological))
-		# The root is already the midpoint
-		@debug """
-		Distances to previous root:
-		$(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))
-		"""
-		@debug "Previous root was already midpoint, leaving tree unchanged."
-	else
-		# Introducing a singleton that will act as the new root.
-		τ = if topological
-			# root halfway along the branch
-			ismissing(b_l) ? missing : b_l.tau/2
-		else
-			_τ = (d2-d1)/2
-			_τ = isapprox(_τ, b_l.tau) ? b_l.tau : _τ # if small numerical error, fix it
-		end
-		@assert ismissing(τ) || 0 <= τ <= b_l.tau """
-		Issue with time on the branch above midpoint.
-		Got τ=$τ and expected `missing` or `0 <= τ <= `$(b_l.tau).
-		"""
+    d1 = distance(b_l, L1; topological)
+    d2 = distance(b_l, L2; topological)
+    @debug """
+    Midpoint on branch $(label(b_h)) --> $(label(b_l)).
+    Farthest apart leaves: $(label(L1)) and $(label(L2)).
+    Distances: L1 --> b_l: $(d1) // L2 --> b_h: $(distance(b_h, L2; topological))
+    """
+    @assert d1 <= d2 """
+    Issue with branch lengths.
+    """
+    if isroot(b_h) && isapprox(abs(d1 - d2), 2 * distance(b_l, b_h; topological))
+        # The root is already the midpoint
+        @debug """
+        Distances to previous root:
+        $(L1.label) --> $(distance(t.root, L1; topological)) / $(L2.label) --> $(distance(t.root, L2; topological))
+        """
+        @debug "Previous root was already midpoint, leaving tree unchanged."
+    else
+        # Introducing a singleton that will act as the new root.
+        τ = if topological
+            # root halfway along the branch
+            ismissing(b_l) ? missing : b_l.tau / 2
+        else
+            _τ = (d2 - d1) / 2
+            _τ = isapprox(_τ, b_l.tau) ? b_l.tau : _τ # if small numerical error, fix it
+        end
+        @assert ismissing(τ) || 0 <= τ <= b_l.tau """
+        Issue with time on the branch above midpoint.
+        Got τ=$τ and expected `missing` or `0 <= τ <= `$(b_l.tau).
+        """
 
-		R = insert!(t, b_l; time=τ, name=get_unique_label(t, "MIDPOINT_ROOT"))
-		node2tree!(t, t.root)
+        R = insert!(t, b_l; time=τ, name=get_unique_label(t, "MIDPOINT_ROOT"))
+        node2tree!(t, t.root)
 
-		@debug "Introducing new root between $(b_l.label) and $(b_h.label)"
-		@debug "Distances to R: $(L1.label) --> $(distance(R, L1; topological)) / $(L2.label) --> $(distance(R, L2; topological))"
+        @debug "Introducing new root between $(b_l.label) and $(b_h.label)"
+        @debug "Distances to R: $(L1.label) --> $(distance(R, L1; topological)) / $(L2.label) --> $(distance(R, L2; topological))"
 
-		# Rooting on R
-		root!(t, R.label)
-	end
+        # Rooting on R
+        root!(t, R.label)
+    end
 
-	return nothing
+    return nothing
 end
 
-function find_midpoint(t::Tree{T}; topological = false) where T
-	# Find pair of leaves with largest distance
-	max_dist = -Inf
-	L1 = ""
-	L2 = ""
-	for n1 in leaves(t), n2 in leaves(t)
-		d = distance(n1, n2; topological)
-		ismissing(d) && (@error "Can't midpoint root for tree with missing branch length."; error())
-		if d > max_dist && n1 != n2
-			max_dist = d
-			L1, L2 = (n1.label, n2.label)
-		end
-	end
-	@debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
-	@assert L1 != L2 "Issue: farthest apart leaves have the same label."
-	(isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has an empty label."
+function find_midpoint(t::Tree{T}; topological=false) where {T}
+    # Find pair of leaves with largest distance
+    max_dist = -Inf
+    L1 = ""
+    L2 = ""
+    for n1 in leaves(t), n2 in leaves(t)
+        d = distance(n1, n2; topological)
+        ismissing(d) &&
+            (@error "Can't midpoint root for tree with missing branch length."; error())
+        if d > max_dist && n1 != n2
+            max_dist = d
+            L1, L2 = (n1.label, n2.label)
+        end
+    end
+    @debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
+    @assert L1 != L2 "Issue: farthest apart leaves have the same label."
+    (isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has an empty label."
 
-	if max_dist == 0 || ismissing(max_dist)
-		@warn "Null or missing branch lengths: cannot midpoint root."
-		return first(nodes(t)), first(nodes(t)), first(nodes(t)), first(nodes(t)), true
-	end
+    if max_dist == 0 || ismissing(max_dist)
+        @warn "Null or missing branch lengths: cannot midpoint root."
+        return first(nodes(t)), first(nodes(t)), first(nodes(t)), first(nodes(t)), true
+    end
 
-	# Find leaf farthest away from lca(L1, L2)
-	A = lca(t, L1, L2).label
-	d1 = distance(t, L1, A; topological)
-	d2 = distance(t, L2, A; topological)
-	@assert isapprox(d1 + d2, max_dist; rtol = 1e-10) # you never know ...
-	L_ref = d1 > d2 ? t[L1] : t[L2]
-	L_other = d1 > d2 ? t[L2] : t[L1]
+    # Find leaf farthest away from lca(L1, L2)
+    A = lca(t, L1, L2).label
+    d1 = distance(t, L1, A; topological)
+    d2 = distance(t, L2, A; topological)
+    @assert isapprox(d1 + d2, max_dist; rtol=1e-10) # you never know ...
+    L_ref = d1 > d2 ? t[L1] : t[L2]
+    L_other = d1 > d2 ? t[L2] : t[L1]
 
-	# Find middle branch: go up from leaf furthest from lca(L1, L2)
-	# midpoint is between b_l and b_h
-	b_l = nothing
-	b_h = L_ref
-	d = 0
-	it = 0
-	while d < max_dist/2 && !isroot(b_h) && it < 1e5
-		d += topological ? 1. : branch_length(b_h)
-		b_l = isnothing(b_l) ? b_h : b_l.anc
-		b_h = b_h.anc
-		@assert b_h != A "Issue during midpoint rooting."
-		it += 1
-	end
-	it >= 1e5 && error("Tree too large to midpoint root (>1e5 levels) (or there was a bug)")
+    # Find middle branch: go up from leaf furthest from lca(L1, L2)
+    # midpoint is between b_l and b_h
+    b_l = nothing
+    b_h = L_ref
+    d = 0
+    it = 0
+    while d < max_dist / 2 && !isroot(b_h) && it < 1e5
+        d += topological ? 1.0 : branch_length(b_h)
+        b_l = isnothing(b_l) ? b_h : b_l.anc
+        b_h = b_h.anc
+        @assert b_h != A "Issue during midpoint rooting."
+        it += 1
+    end
+    it >= 1e5 && error("Tree too large to midpoint root (>1e5 levels) (or there was a bug)")
 
-	@debug "Midpoint found between $(b_l.label) and $(b_h.label)"
-	return b_l, b_h, L_ref, L_other, false
+    @debug "Midpoint found between $(b_l.label) and $(b_h.label)"
+    return b_l, b_h, L_ref, L_other, false
 end
-
 
 """
 	ladderize!(t::Tree)
@@ -833,26 +837,26 @@ Ladderize `t` by placing nodes with largest clades left in the newick string.
 """
 ladderize!(t::Tree) = ladderize!(t.root)
 function ladderize!(n::TreeNode)
-	function _isless(v1::Tuple{Int, String}, v2::Tuple{Int, String})
-		if (v1[1] < v2[1]) || (v1[1] == v2[1] && v1[2] < v2[2])
-			return true
-		else 
-			return false
-		end
-	end
-	if n.isleaf
-		return (1, n.label)
-	else
-		rank = Array{Any}(undef, length(n.child))
-		for (k, c) in enumerate(n.child)
-			rank[k] = ladderize!(c)
-		end
-		n.child = n.child[sortperm(rank; lt= _isless)]
+    function _isless(v1::Tuple{Int,String}, v2::Tuple{Int,String})
+        if (v1[1] < v2[1]) || (v1[1] == v2[1] && v1[2] < v2[2])
+            return true
+        else
+            return false
+        end
+    end
+    if n.isleaf
+        return (1, n.label)
+    else
+        rank = Array{Any}(undef, length(n.child))
+        for (k, c) in enumerate(n.child)
+            rank[k] = ladderize!(c)
+        end
+        n.child = n.child[sortperm(rank; lt=_isless)]
 
-		return sum([r[1] for r in rank]), n.label
-	end
+        return sum([r[1] for r in rank]), n.label
+    end
 
-	return nothing
+    return nothing
 end
 
 #=====================#
@@ -865,21 +869,23 @@ end
 Return the set of branches of `t` spanning `leaves`.  The output is a `Vector{String}`
 containing labels of nodes. The branch above each of these nodes is in the spanning tree.
 """
-function branches_in_spanning_tree(t::Tree{T}, leaves::Vararg{String}) where T
-	R = lca(t, leaves...) # root of the spanning tree
-	visited = Dict{String, Bool}()
-	for n in leaves
-		a = t[n]
-		while !haskey(visited, a.label) && a != R
-			visited[a.label] = true
-			a = t[a.label].anc
-		end
-	end
-	return collect(keys(visited))
+function branches_in_spanning_tree(t::Tree{T}, leaves::Vararg{String}) where {T}
+    R = lca(t, leaves...) # root of the spanning tree
+    visited = Dict{String,Bool}()
+    for n in leaves
+        a = t[n]
+        while !haskey(visited, a.label) && a != R
+            visited[a.label] = true
+            a = t[a.label].anc
+        end
+    end
+    return collect(keys(visited))
 end
-branches_in_spanning_tree(t, leaves::Vector{String}) = branches_in_spanning_tree(t, leaves...)
+function branches_in_spanning_tree(t, leaves::Vector{String})
+    return branches_in_spanning_tree(t, leaves...)
+end
 function branches_in_spanning_tree(t, leaves::Vararg{TreeNode})
-	return branches_in_spanning_tree(t, Iterators.map(x->x.label, leaves)...)
+    return branches_in_spanning_tree(t, Iterators.map(x -> x.label, leaves)...)
 end
 
 """
@@ -891,13 +897,13 @@ A fully resolved tree has `R=1`. A star tree has `R=0`.
 Trees with only one leaf are also considered fully resolved.
 """
 function resolution_index(t::Tree)
-    if length(leaves(t)) == 1 ||  length(leaves(t)) == 2
-    	# if tree only contains 1 or 2 leaves it is resolved
+    if length(leaves(t)) == 1 || length(leaves(t)) == 2
+        # if tree only contains 1 or 2 leaves it is resolved
         return 1
     else
-    	L = length(leaves(t))
-    	I = length(nodes(t)) - L
-        return (I-1) / (L-2)
+        L = length(leaves(t))
+        I = length(nodes(t)) - L
+        return (I - 1) / (L - 2)
     end
 end
 resolution_value(t::Tree) = resolution_index(t::Tree)
@@ -910,12 +916,12 @@ Compute distance between two trees.
 See `TreeTools.tree_distance_types` for allowed types.
 If `normalize`, the distance is normalized to `[0,1]`.
 """
-function distance(t1::Tree, t2::Tree; type = :RF, normalize = false)
-	if Symbol(type) == :RF
-		return RF_distance(t1, t2; normalize)
-	else
-		error("Unknown distance type $(type) - see `TreeTools.tree_distance_types`")
-	end
+function distance(t1::Tree, t2::Tree; type=:RF, normalize=false)
+    if Symbol(type) == :RF
+        return RF_distance(t1, t2; normalize)
+    else
+        error("Unknown distance type $(type) - see `TreeTools.tree_distance_types`")
+    end
 end
 
 """
@@ -927,18 +933,17 @@ and not `t1`.
 If `normalize`, the distance is normalized to `[0,1]`.
 """
 function RF_distance(t1::Tree, t2::Tree; normalize=false)
-	@assert share_labels(t1, t2) "Cannot compute RF distance for trees that do not share leaves"
+    @assert share_labels(t1, t2) "Cannot compute RF distance for trees that do not share leaves"
     s1 = SplitList(t1)
     s2 = SplitList(t2)
-    d = length(s1) + length(s2) - 2*length(TreeTools.intersect(s1, s2))
+    d = length(s1) + length(s2) - 2 * length(TreeTools.intersect(s1, s2))
     if !normalize || (length(s1) + length(s2) < 3)
-    	# can't normalize if both trees have only the root split
-    	return d
+        # can't normalize if both trees have only the root split
+        return d
     else
-    	return d / (length(s1) + length(s2) - 2)
+        return d / (length(s1) + length(s2) - 2)
     end
 end
-
 
 function distance_matrix(tree::Tree)
     # grossly unoptimized

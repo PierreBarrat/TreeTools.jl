@@ -16,24 +16,23 @@ If `skiproot`, the root node will be skipped by the iterator.
   `length(nodes(t)) - length(leaves(t))`.
 """
 nodes, leaves, internals
-function nodes(t::Tree; skiproot = false)
-	return if skiproot
-		Iterators.filter(x -> !isroot(x), values(t.lnodes))
-	else
-		values(t.lnodes)
-	end
+function nodes(t::Tree; skiproot=false)
+    return if skiproot
+        Iterators.filter(x -> !isroot(x), values(t.lnodes))
+    else
+        values(t.lnodes)
+    end
 end
 leaves(t::Tree) = values(t.lleaves)
-function internals(t::Tree; skiproot = false)
-	return if skiproot
-		Iterators.filter(x->!x.isleaf && !isroot(x), values(t.lnodes))
-	else
-		Iterators.filter(x->!x.isleaf, values(t.lnodes))
-	end
+function internals(t::Tree; skiproot=false)
+    return if skiproot
+        Iterators.filter(x -> !isleaf(x) && !isroot(x), values(t.lnodes))
+    else
+        Iterators.filter(x -> !isleaf(x), values(t.lnodes))
+    end
 end
 
 nodes(f::Function, t::Tree) = filter(f, values(t.lnodes))
-
 
 #=============================================================================#
 ########################## Post-order (leaves first) ##########################
@@ -68,7 +67,7 @@ end
 ```
 """
 function postorder_traversal(
-    f::Function, node::TreeNode; root=true, leaves=true, internals=true,
+    f::Function, node::TreeNode; root=true, leaves=true, internals=true
 )
     function _f(n)
         if !root && isroot(n)
@@ -87,9 +86,10 @@ function postorder_traversal(
     end
     return _postorder(_f, node)
 end
-postorder_traversal(f, tree::Tree; kwargs...) = postorder_traversal(f, root(tree); kwargs...)
+function postorder_traversal(f, tree::Tree; kwargs...)
+    return postorder_traversal(f, root(tree); kwargs...)
+end
 postorder_traversal(tree; kwargs...) = postorder_traversal(x -> true, tree; kwargs...)
-
 
 # For backward compat
 POT(node) = postorder_traversal(x -> true, node)
@@ -97,7 +97,7 @@ POT(tree::Tree) = POT(root(tree))
 POTleaves(node) = postorder_traversal(x -> true, node; internals=false)
 POTleaves(tree::Tree) = POTleaves(root(tree))
 
-@resumable function _postorder(node::TreeNode{T}) where T
+@resumable function _postorder(node::TreeNode{T}) where {T}
     stack = TreeNode{T}[node]
     head = stack[end]
     while !isempty(stack)
@@ -115,7 +115,7 @@ POTleaves(tree::Tree) = POTleaves(root(tree))
     end
     return nothing
 end
-@resumable function _postorder(filter_func, node::TreeNode{T}) where T
+@resumable function _postorder(filter_func, node::TreeNode{T}) where {T}
     stack = TreeNode{T}[node]
     head = stack[end]
     while !isempty(stack)
@@ -136,13 +136,11 @@ end
     return nothing
 end
 
-
-
 #===================================================================================#
 ############################ Pre-order (ancestors first) ############################
 #===================================================================================#
 function preorder_traversal(
-    f::Function, node::TreeNode; root=true, leaves=true, internals=true,
+    f::Function, node::TreeNode; root=true, leaves=true, internals=true
 )
     function _f(n)
         if !root && isroot(n)
@@ -164,7 +162,7 @@ end
 preorder_traversal(f, tree::Tree; kwargs...) = preorder_traversal(f, root(tree); kwargs...)
 preorder_traversal(tree; kwargs...) = preorder_traversal(x -> true, tree; kwargs...)
 
-@resumable function _preorder(filter_func, node::TreeNode{T}) where T
+@resumable function _preorder(filter_func, node::TreeNode{T}) where {T}
     stack = TreeNode{T}[node]
     while !isempty(stack)
         next = pop!(stack)
@@ -177,7 +175,7 @@ preorder_traversal(tree; kwargs...) = preorder_traversal(x -> true, tree; kwargs
     end
     return nothing
 end
-@resumable function _preorder(node::TreeNode{T}) where T
+@resumable function _preorder(node::TreeNode{T}) where {T}
     stack = TreeNode{T}[node]
     while !isempty(stack)
         next = pop!(stack)
@@ -193,9 +191,8 @@ end
 ################ Traversal hub ################
 #=============================================#
 
-
 const traversal_styles = Dict(
-    :postorder => postorder_traversal, :preorder => preorder_traversal,
+    :postorder => postorder_traversal, :preorder => preorder_traversal
 )
 """
     traversal([f], tree, style; internals, leaves, root)
