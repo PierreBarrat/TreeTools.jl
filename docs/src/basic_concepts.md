@@ -134,6 +134,6 @@ tree2 = node2tree(R)
 ```
 
 !!! warning "Copying a tree"
-	The call `tree2 = node2tree(tree.root)` will produce another tree that shares nodes with `tree`.. This is usually not a good way to copy a tree, since the actual tree nodes are not copied. Any modification of the nodes of `tree` will also modify those of `tree2`. To make an independent copy, simply call `copy(tree)`. 
+	The call `tree2 = node2tree(tree.root)` will produce another tree that shares nodes with `tree`. This is usually not a good way to copy a tree, since the actual tree nodes are not copied. Any modification of the nodes of `tree` will also modify those of `tree2`. To make an independent copy, simply call `copy(tree)`. 
 
  

@@ -1,3 +1,9 @@
+```@meta 
+DocTestSetup quote 
+	using TreeTools
+end
+```
+
 # Useful functions
 
 ## Copy, convert
@@ -51,10 +57,14 @@ is_ancestor(tree, "R", "A")
 The `distance` function also lets you compute the distance between two trees. 
 For now, only the [Robinson-Foulds distance](https://en.wikipedia.org/wiki/Robinson%E2%80%93Foulds_metric) is implemented, but more could come. 
 
-```@repl
-using TreeTools # hide
-t1 = parse_newick_string("((A,B,D),C);")
-t2 = parse_newick_string("((A,(B,D)),C);")
-distance(t1, t2)
-distance(t1, t2; scale=true)
+```jldoctest
+julia> t1 = parse_newick_string("((A,B,D),C);");
+
+julia> t2 = parse_newick_string("((A,(B,D)),C);");
+
+julia> distance(t1, t2)
+1
+
+julia> round(distance(t1, t2; normalize=true), sigdigits=2)
+0.33
 ```
