@@ -780,16 +780,23 @@ function root_midpoint!(t::Tree; topological=false)
     return nothing
 end
 
-function find_midpoint(t::Tree{T}; topological=false) where {T}
+function find_midpoint(tree::Tree{T}; topological=false) where {T}
     # Find pair of leaves with largest distance
     max_dist = -Inf
     L1 = ""
     L2 = ""
-    for n1 in leaves(t), n2 in leaves(t)
-        d = distance(n1, n2; topological)
-        ismissing(d) &&
-            (@error "Can't midpoint root for tree with missing branch length."; error())
-        if d > max_dist && n1 != n2
+    depths = _node_depths(tree)
+    for (i, n1) in enumerate(leaves(tree)), (j, n2) in enumerate(leaves(tree))
+        i <= j && continue
+
+        d = _distance(n1, n2, depths; topological)
+        if ismissing(d)
+            throw(
+                DomainError(d, "Can't midpoint root for tree with missing branch length.")
+            )
+        end
+
+        if d > max_dist
             max_dist = d
             L1, L2 = (n1.label, n2.label)
         end
@@ -800,16 +807,17 @@ function find_midpoint(t::Tree{T}; topological=false) where {T}
 
     if max_dist == 0 || ismissing(max_dist)
         @warn "Null or missing branch lengths: cannot midpoint root."
-        return first(nodes(t)), first(nodes(t)), first(nodes(t)), first(nodes(t)), true
+        x = first(nodes(tree))
+        return x, x, x, x, true
     end
 
     # Find leaf farthest away from lca(L1, L2)
-    A = lca(t, L1, L2).label
-    d1 = distance(t, L1, A; topological)
-    d2 = distance(t, L2, A; topological)
+    A = lca(tree, L1, L2).label
+    d1 = distance(tree, L1, A; topological)
+    d2 = distance(tree, L2, A; topological)
     @assert isapprox(d1 + d2, max_dist; rtol=1e-10) # you never know ...
-    L_ref = d1 > d2 ? t[L1] : t[L2]
-    L_other = d1 > d2 ? t[L2] : t[L1]
+    L_ref = d1 > d2 ? tree[L1] : tree[L2]
+    L_other = d1 > d2 ? tree[L2] : tree[L1]
 
     # Find middle branch: go up from leaf furthest from lca(L1, L2)
     # midpoint is between b_l and b_h
@@ -946,6 +954,56 @@ function RF_distance(t1::Tree, t2::Tree; normalize=false)
 end
 
 function distance_matrix(tree::Tree)
-    # grossly unoptimized
-    return [distance(n, m) for n in leaves(tree), m in leaves(tree)]
+    depths = _node_depths(tree)
+    distances = zeros(Float64, length(leaves(tree)), length(leaves(tree)))
+    for (i, n) in enumerate(leaves(tree)), (j, m) in enumerate(leaves(tree))
+        if i > j
+            distances[i,j] = _distance(n, m, depths)
+            distances[j,i] = distances[i,j]
+        elseif i == j
+            distances[i,i] = 0.
+        end
+    end
+    return distances
+end
+
+function _distance(x::TreeNode, y::TreeNode, depths::Dict; topological=false)
+    Δ = depths[label(x)] - depths[label(y)]
+    deep, shallow = if Δ > 0
+        x, y
+    else
+        y, x
+    end
+
+    d = 0.
+    for _ in 1:abs(Δ)
+        d += topological ? 1. : branch_length(deep)
+        deep = ancestor(deep)
+    end
+
+    while deep != shallow
+        if topological
+            d += 2.
+        else
+            d += branch_length(deep) + branch_length(shallow)
+        end
+        deep = ancestor(deep)
+        shallow = ancestor(shallow)
+    end
+
+    return d
+end
+function _node_depths(tree::Tree)
+    depths = Dict{String, Int}(label(root(tree)) => 0)
+    for c in children(root(tree))
+        _node_depths!(c, 0, depths)
+    end
+    return depths
+end
+function _node_depths!(node, anc_depth, depths)
+    depths[label(node)] = anc_depth + 1
+    for c in children(node)
+        _node_depths!(c, anc_depth + 1, depths)
+    end
+    return nothing
 end

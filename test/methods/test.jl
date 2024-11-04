@@ -238,35 +238,31 @@ end
     end
 
     @testset "3" begin
+        topological = false
         nwk = "(A,((B,(C,D)),E,F,(G,(H,I))));"
         t = parse_newick_string(nwk)
         TreeTools.rand_times!(t)
         TreeTools.root!(t; method=:midpoint)
         @test length(children(t.root)) == 2
-        d1 =
-            TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=false) +
-            t.root.child[1].tau
-        d2 =
-            TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) +
-            t.root.child[2].tau
+        c1, c2 = children(root(t))
+        d1 = TreeTools.distance_to_deepest_leaf(c1; topological) + branch_length(c1)
+        d2 = TreeTools.distance_to_deepest_leaf(c2; topological) + branch_length(c2)
         @test isapprox(d1, d2, rtol=1e-10)
     end
 
     # Some Kingman tree
     nwk = "((3:42.39239447896236,9:42.39239447896236)internal_7:184.59454190028205,(((7:5.386265198881789,(4:3.4161799796066714,6:3.4161799796066714)internal_1:1.970085219275118)internal_3:13.350057070009068,(2:5.857739627778067,5:5.857739627778067)internal_4:12.878582641112791)internal_5:27.712331677710498,(10:33.43880444968331,(1:4.740041795143892,8:4.740041795143892)internal_2:28.69876265453942)internal_6:13.009849496918044)internal_8:180.53828243264306)internal_9:0;"
     @testset "4" begin
+        topological = false
         t = parse_newick_string(nwk)
         TreeTools.root!(t; method=:midpoint)
         for n in nodes(t)
             @test isroot(n) || !ismissing(branch_length(n))
         end
         @test length(children(t.root)) == 2
-        d1 =
-            TreeTools.distance_to_deepest_leaf(t.root.child[1]; topological=false) +
-            t.root.child[1].tau
-        d2 =
-            TreeTools.distance_to_deepest_leaf(t.root.child[2]; topological=false) +
-            t.root.child[2].tau
+        c1, c2 = children(root(t))
+        d1 = TreeTools.distance_to_deepest_leaf(c1; topological) + branch_length(c1)
+        d2 = TreeTools.distance_to_deepest_leaf(c2; topological) + branch_length(c2)
         @test isapprox(d1, d2, rtol=1e-10)
     end
 
