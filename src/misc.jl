@@ -97,17 +97,17 @@ https://github.com/biopython/biopython/blob/master/Bio/Phylo/_utils.py
 """
 function print_tree_ascii(io, t::Tree)
     column_width = 80
-    taxa = [ node.label for node in POTleaves(t)] #need leaves in Post-Order Traversal
+    taxa = [label(n) for n in postorder_traversal(t; internals=false)] # need leaves in Post-Order Traversal
     max_label_width = maximum([length(taxon) for taxon in taxa])
     drawing_width = column_width - max_label_width - 1
     drawing_height = 2 * length(taxa) - 1
 
     function get_col_positions(t::Tree)
-        depths = [divtime(node, t.root) for node in values(t.lnodes)]
+        depths = [divtime(node, root(t)) for node in nodes(t)]
         # If there are no branch lengths, assume unit branch lengths
         if ismissing(maximum(depths))
             println(io, "\n not all branch lengths known, assuming identical branch lengths")
-            depths = [node_depth(node) for node in values(t.lnodes)]
+            depths = [node_depth(node) for node in nodes(t)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
         fudge_margin = max(ceil(Int, log2(length(taxa))), 1)

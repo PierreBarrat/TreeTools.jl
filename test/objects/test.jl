@@ -5,18 +5,18 @@ using Test
 
 @testset "Node relabel" begin
 	nwk = "(A,(B,C));"
-	t = parse_newick_string(nwk)
-	label!(t, t["A"], "D")
-	@test check_tree(t)
-	@test !in("A", t)
-	@test in("D", t)
-	@test length(nodes(t)) == 5
-	labels = map(label, POT(t))
+	tree = parse_newick_string(nwk)
+	label!(tree, tree["A"], "D")
+	@test check_tree(tree)
+	@test !in("A", tree)
+	@test in("D", tree)
+	@test length(nodes(tree)) == 5
+	labels = map(label, postorder_traversal(tree))
 	@test !in("A", labels)
 	@test in("D", labels)
-	@test sort(labels) == sort(collect(keys(t.lnodes)))
+	@test sort(labels) == sort(map(label, tree))
 
-	@test_throws AssertionError label!(t, t["D"], "B")
-	@test_throws AssertionError label!(t, "D", "B")
+	@test_throws AssertionError label!(tree, tree["D"], "B")
+	@test_throws AssertionError label!(tree, "D", "B")
 end
 

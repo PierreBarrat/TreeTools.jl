@@ -104,6 +104,7 @@ Base.:(==)(x::TreeNode, y::TreeNode) = isequal(x,y)
 Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 
 children(n::TreeNode) = n.child
+children(n::TreeNode, i::Integer) = n.child[i]
 function ancestor(n::TreeNode)
 	@assert !isroot(n) "Trying to access the ancestor of root node $(label(n))"
 	return n.anc

@@ -38,46 +38,50 @@ end
 	nwk = "((A:1,B:1)AB:2,(C:1,D:1)CD:2)R;"
 	t = parse_newick_string(nwk; node_data_type = TreeTools.EmptyData)
 
-	# 1
-	E = TreeNode(label = "E", tau = 4.)
-	tc = copy(t)
-	graft!(tc, E, "AB")
-	@test sort(map(label, children(tc["AB"]))) == ["A","B","E"]
-	@test ancestor(E) == tc["AB"]
-	@test in(E, tc)
-	@test in(E, children(tc["AB"]))
-	@test branch_length(E) == 4
-	@test_throws ErrorException graft!(tc, E, "CD") # E is not a root anymore
+	@testset "1" begin
+	    E = TreeNode(label = "E", tau = 4.)
+	    tc = copy(t)
+	    graft!(tc, E, "AB")
+	    @test sort(map(label, children(tc["AB"]))) == ["A","B","E"]
+	    @test ancestor(E) == tc["AB"]
+	    @test in(E, tc)
+	    @test in(E, children(tc["AB"]))
+	    @test branch_length(E) == 4
+	    @test_throws ArgumentError graft!(tc, E, "CD") # E is not a root anymore
+    end
 
-	# 2
-	E = TreeNode(label = "E", tau = 5.)
-	tc = copy(t)
-	@test_throws ErrorException graft!(tc, E, tc["A"])
-	graft!(tc, E, tc["A"], graft_on_leaf=true, time = 1.)
-	@test !isleaf(tc["A"])
-	@test ancestor(E) == tc["A"]
-	@test in(E, tc)
-	@test in(E, children(tc["A"]))
-	@test branch_length(E) == 1
+	@testset "2" begin
+	    E = TreeNode(label = "E", tau = 5.)
+	    tc = copy(t)
+	    @test_throws ArgumentError graft!(tc, E, tc["A"])
+	    graft!(tc, E, tc["A"], graft_on_leaf=true, time = 1.)
+	    @test !isleaf(tc["A"])
+	    @test ancestor(E) == tc["A"]
+	    @test in(E, tc)
+    	@test in(E, children(tc["A"]))
+    	@test branch_length(E) == 1
+    end
 
-	# 3
-	E = node2tree(TreeNode(label = "E", tau = 5.))
-	tc = copy(t)
-	graft!(tc, E, "A", graft_on_leaf=true) # will copy E
-	@test sort(map(label, children(tc["A"]))) == ["E"]
-	@test isroot(E.root)
-	@test check_tree(E)
-	@test in("E", tc)
-	@test_throws ErrorException graft!(tc, E, "CD")
+	@testset "3" begin
+	    E = node2tree(TreeNode(label = "E", tau = 5.))
+	    tc = copy(t)
+	    graft!(tc, E, "A", graft_on_leaf=true) # will copy E
+	    @test sort(map(label, children(tc["A"]))) == ["E"]
+	    @test isroot(E.root)
+	    @test check_tree(E)
+	    @test in("E", tc)
+	    @test_throws ArgumentError graft!(tc, E, "CD")
+    end
 
-	# 4
-	E = TreeNode(label = "E", tau = 4., data = MiscData())
-	tc = copy(t)
-	@test_throws ErrorException graft!(tc, E, "AB")
+	@testset "4" begin
+	    E = TreeNode(label = "E", tau = 4., data = MiscData())
+	    tc = copy(t)
+	    @test_throws ArgumentError graft!(tc, E, "AB")
 
-	tc = convert(Tree{MiscData}, t)
-	E = TreeNode(label = "E", tau = 4.)
-	@test_throws ErrorException graft!(tc, E, "AB")
+	    tc = convert(Tree{MiscData}, t)
+	    E = TreeNode(label = "E", tau = 4.)
+	    @test_throws ArgumentError graft!(tc, E, "AB")
+    end
 end
 
 @testset "Pruning" begin
@@ -98,9 +102,9 @@ end
 
 	# 2
 	tc = copy(t)
-	@test_throws ErrorException prunesubtree!(tc, "R")
+	@test_throws ArgumentError prunesubtree!(tc, "R")
 	@test_throws KeyError prunesubtree!(tc, "X")
-	@test_throws ErrorException prune!(tc, ["A", "C"])
+	@test_throws ArgumentError prune!(tc, ["A", "C"])
 	prunesubtree!(tc, ["A", "B"])
 	@test_throws KeyError prunesubtree!(tc, "A")
 
@@ -128,10 +132,10 @@ end
 
 	# 1
 	tc = copy(t)
-	@test_throws ErrorException insert!(tc, "A"; time = 2.)
-	@test_throws ErrorException insert!(tc, "A"; time = missing)
-	@test_throws ErrorException insert!(tc, "A"; name = "B")
-	@test_throws ErrorException insert!(tc, "R"; time = 1.)
+	@test_throws ArgumentError insert!(tc, "A"; time = 2.)
+	@test_throws ArgumentError insert!(tc, "A"; time = missing)
+	@test_throws ArgumentError insert!(tc, "A"; name = "B")
+	@test_throws ArgumentError insert!(tc, "R"; time = 1.)
 
 	# 2
 	tc = convert(Tree{MiscData}, t)
@@ -163,7 +167,7 @@ end
 
 	# 1
 	tc = copy(t)
-	@test_throws ErrorException delete!(tc, "R")
+	@test_throws ArgumentError delete!(tc, "R")
 	delete!(tc, "AB")
 	@test sort(map(label, children(tc["R"]))) == ["A", "B", "CD"]
 	@test branch_length(tc["A"]) == 3

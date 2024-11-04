@@ -25,3 +25,6 @@ docs/Manifest.toml
 # environment.
 Manifest.toml
 
+examples/_scrap
+examples/test_iterators
+

@@ -61,7 +61,7 @@ Graft `n` on `r`.
 """
 function graftnode!(r::TreeNode, n::TreeNode; time=branch_length(n))
 	if !n.isroot || n.anc != nothing
-		@error "Trying to graft non-root node $(n)."
+		throw(ArgumentError("Trying to graft non-root node $(n)."))
 	end
 	push!(r.child, n)
 	r.isleaf = false
@@ -84,14 +84,16 @@ See `prune!` for details on `kwargs`.
 function prunesubtree!(tree, r::TreeNode; remove_singletons=true, create_leaf = :warn)
 	# Checks
 	if r.isroot
-		error("Trying to prune root in tree $(label(tree))")
+		throw(ArgumentError("Trying to prune root in tree $(label(tree))"))
 	elseif !in(r, tree)
-		error("Node $(r.label) is not in tree $(tree.label). Cannot prune.")
+		throw(ArgumentError("Node $(r.label) is not in tree $(tree.label). Cannot prune."))
 	elseif length(children(ancestor(r))) == 1
 		if create_leaf == :warn
 			@warn "Pruning node $(r.label) will create a new leaf $(ancestor(r).label)"
 		elseif !create_leaf
-			error("Pruning node $(r.label) will create a new leaf $(ancestor(r).label)")
+			throw(ArgumentError(
+                "Pruning node $(r.label) will create a new leaf $(ancestor(r).label)"
+            ))
 		end
 	end
 
@@ -113,7 +115,7 @@ prunesubtree!(t, r::AbstractString; kwargs...) = prunesubtree!(t, t[r]; kwargs..
 
 function prunesubtree!(tree, labels::AbstractArray; clade_only=true, kwargs...)
 	if clade_only && !isclade(labels, tree)
-		error("Can't prune non-clade $labels")
+		throw(ArgumentError("Can't prune non-clade $labels"))
 	end
 	r = lca(tree, labels)
 	return prunesubtree!(tree, r; kwargs...)
@@ -183,21 +185,24 @@ function graft!(
 ) where T
 	# checks
 	if !graft_on_leaf && isleaf(r)
-		error("Cannot graft: node $r is a leaf (got `graft_on_leaf=false`")
+		throw(ArgumentError("Cannot graft: node $r is a leaf (got `graft_on_leaf=false`"))
 	elseif !isroot(n) && !isnothing(ancestor(n))
-		error("Cannot graft non-root node $(label(n))")
+		throw(ArgumentError("Cannot graft non-root node $(label(n))"))
 	end
 
 	# checking that the subtree defined by `n` is not in `t`
-	for c in POT(n)
+	for c in postorder_traversal(n)
 		if in(c, t)
-			error("Cannot graft node \"$(label(c))\": a node in tree $(label(t)) already has the same label.")
+			throw(ArgumentError("""
+            Cannot graft node \"$(label(c))\":\
+            a node in tree $(label(t)) already has the same label.
+            """))
 		end
 	end
 
 	# Handling tree dicts
 	isleaf(r) && delete!(t.lleaves, label(r))
-	for c in POT(n)
+	for c in postorder_traversal(n)
 		t.lnodes[label(c)] = c
 		if isleaf(c)
 			t.lleaves[label(c)] = c
@@ -210,10 +215,12 @@ function graft!(
 	return n
 end
 function graft!(t::Tree{T}, n::TreeNode{R}, r::TreeNode; kwargs...) where T where R
-	error(
-		"Cannot graft node of type $(typeof(n)) on tree of type $(typeof(t)).
-		Try to change node data type"
-	)
+	throw(ArgumentError(
+		"""
+        Cannot graft node of type $(typeof(n)) on tree of type $(typeof(t)).
+		Try to change node data type
+        """
+	))
 end
 
 graft!(t, n::TreeNode, r::AbstractString; kwargs...) = graft!(t, n, t[r]; kwargs...)
@@ -227,9 +234,13 @@ function __subtree_prune_regraft!(
 )
 	# Checks
 	if !create_new_leaf && length(children(ancestor(t[p]))) == 1
-		error("Cannot prune node $p without creating a new leaf (got `create_new_leaf=false`)")
+		throw(ArgumentError("""
+        Cannot prune node $p without creating a new leaf (got `create_new_leaf=false`)
+        """))
 	elseif !graft_on_leaf && isleaf(t[g])
-		error("Cannot graft: node $g is a leaf (got `graft_on_leaf=false`)")
+		throw(ArgumentError("""
+        Cannot graft: node $g is a leaf (got `graft_on_leaf=false`)
+        """))
 	end
 
 	# prune
@@ -295,11 +306,11 @@ function insert!(
 	# Checks
 	nτ = branch_length(n)
 	if isroot(n)
-		error("Cannot insert node above root in tree $(label(t))")
+		throw(ArgumentError("Cannot insert node above root in tree $(label(t))"))
 	elseif ismissing(time) != ismissing(nτ) || (!ismissing(time) && time > nτ)
-		error("Cannot insert node at height $time on branch with length $nτ")
+		throw(ArgumentError("Cannot insert node at height $time on branch with length $nτ"))
 	elseif in(name, t)
-		error("node $name is already in tree $(label(t))")
+		throw(ArgumentError("node $name is already in tree $(label(t))"))
 	end
 
 	#
@@ -326,7 +337,9 @@ Note that the previous node will still be in the dictionary `lnodes` and `lleave
 to fully remove from the tree and apply the print function use `delete_node!(t::Tree, label)`
 """
 function delete_node!(node::TreeNode; delete_time = false)
-	node.isroot && error("Cannot delete root node")
+	if isroot(node)
+        throw(ArgumentError("Cannot delete root node"))
+    end
 
 	out = node.anc
 	if node.isleaf

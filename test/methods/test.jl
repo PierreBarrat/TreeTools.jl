@@ -52,8 +52,8 @@ end
 	t4 = copy(t1, label="tree_4")
 	@test typeof(t1) == typeof(t2)
 	prunesubtree!(t2, ["A"])
-	@test haskey(t1.lnodes, "A")
-	@test !haskey(t2.lnodes, "A")
+	@test "A" in t1
+	@test !in("A", t2)
 	@test t1.label == t2.label
 	@test t1.label != t3.label
 	@test t1.label != t4.label
@@ -191,7 +191,7 @@ end
     @test tree["B"] |> ancestor |> isroot
     @test pw_distances == [distance(tree, x, y) for x in leaf_labels for y in leaf_labels]
 
-    @test_throws ErrorException redirect_stderr(
+    @test_throws ArgumentError redirect_stderr(
         () -> TreeTools.root!(tree, "B"; time = 5), devnull
     )
 end

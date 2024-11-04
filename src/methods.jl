@@ -138,11 +138,15 @@ function share_labels(tree1, tree2)
 end
 
 """
-	map(f, t::Tree)
-	map(f, r::TreeNode)
+	map(f, tree::Tree; kwargs...)
+	map(f, node::TreeNode; kwargs...)
+
+Apply `f` to each node in `tree` (or subtree of `node`). Return an array.
+Traverse the tree in post order.
+Keywords are passed to `postorder_traversal`.
 """
-Base.map(f, r::TreeNode) = map(f, POT(r))
-Base.map(f, t::Tree) = map(f, t.root)
+Base.map(f, r::TreeNode; kwargs...) = map(f, postorder_traversal(r; kwargs...))
+Base.map(f, tree::Tree; kwargs...) = map(f, root(tree); kwargs...)
 
 """
 	map!(f, t::Tree)
@@ -310,10 +314,10 @@ function isclade(nodelist; safe=true)
 	else
 		claderoot = lca(nodelist)
 		# Now, checking if `clade` is the same as `nodelist`
-		for c in POTleaves(claderoot)
+		for c in traversal(claderoot, :postorder, internals=false)
 			flag = false
 			for n in nodelist
-				if n.label==c.label
+				if n == c
 					flag = true
 					break
 				end
@@ -481,22 +485,26 @@ end
 is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t[n])
 
 """
-	distance_to_deepest_leaf(n::TreeNode; topological=false)
+	distance_to_deepest_leaf(node::TreeNode; topological=false)
 
-Distance from `n` to the deepest leaf in the clade below `n`.
+Distance from `node` to the deepest leaf in the clade below `node`.
 """
-function distance_to_deepest_leaf(n::TreeNode; topological=false)
-	return maximum(l -> distance(n, l; topological), POTleaves(n))
+function distance_to_deepest_leaf(node::TreeNode; topological=false)
+	return maximum(postorder_traversal(node; internals=false)) do leaf
+        distance(node, leaf; topological)
+    end
 end
-tree_height(tree::Tree; kwargs...) = distance_to_deepest_leaf(tree.root; kwargs...)
+tree_height(tree::Tree; kwargs...) = distance_to_deepest_leaf(root(tree); kwargs...)
 
 """
-    distance_to_shallowest_leaf(n::TreeNode; topological = false)
+    distance_to_shallowest_leaf(node::TreeNode; topological = false)
 
-Distance from `n` to the closest leaf in the clade below `n`.
+Distance from `node` to the closest leaf in the clade below `node`.
 """
-function distance_to_shallowest_leaf(n::TreeNode; topological = false)
-    return minimum(l -> distance(n, l; topological), POTleaves(n))
+function distance_to_shallowest_leaf(node::TreeNode; topological = false)
+    return minimum(postorder_traversal(node; internals=false)) do leaf
+        distance(node, leaf; topological)
+    end
 end
 
 function distance_to_closest_leaf(tree::Tree, label::AbstractString; topological = false)
@@ -676,8 +684,8 @@ function root_like_model!(tree, model::Tree)
     # Look at the two splits below the root of `model` ...
     M1 = model |> root |> children |> first
     M2 = model |> root |> children |> last
-    S1 = map(label, POTleaves(M1))
-    S2 = map(label, POTleaves(M2))
+    S1 = map(label, postorder_traversal(M1; internals=false))
+    S2 = map(label, postorder_traversal(M2; internals=false))
 
     # ... and to what nodes they correspond in `tree`
     A1 = lca(tree, S1...)
@@ -945,7 +953,7 @@ function RF_distance(t1::Tree, t2::Tree; normalize=false)
 end
 
 
-function distance_matrix(t::Tree)
+function distance_matrix(tree::Tree)
     # grossly unoptimized
-    return [distance(n, m) for n in POTleaves(t), m in POTleaves(t)]
+    return [distance(n, m) for n in leaves(tree), m in leaves(tree)]
 end
