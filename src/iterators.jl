@@ -39,6 +39,16 @@ nodes(f::Function, t::Tree) = filter(f, values(t.lnodes))
 ########################## Post-order (leaves first) ##########################
 #=============================================================================#
 
+# Helper function useful for pre and post order
+function _subtrees_visited(next, head)
+    for c in children(next)
+        if c === head
+            return true
+        end
+    end
+    return false
+end
+
 """
     postorder_traversal([f], tree; root=true, leaves=true, internals=true)
 
@@ -75,14 +85,20 @@ function postorder_traversal(
         end
         return true
     end
-    return _POT(_f, node)
+    return _postorder(_f, node)
 end
 postorder_traversal(f, tree::Tree; kwargs...) = postorder_traversal(f, root(tree); kwargs...)
 postorder_traversal(tree; kwargs...) = postorder_traversal(x -> true, tree; kwargs...)
 
-@resumable function _POT(node::TreeNode{T}) where T
+
+# For backward compat
+POT(node) = postorder_traversal(x -> true, node)
+POT(tree::Tree) = POT(root(tree))
+POTleaves(node) = postorder_traversal(x -> true, node; internals=false)
+POTleaves(tree::Tree) = POTleaves(root(tree))
+
+@resumable function _postorder(node::TreeNode{T}) where T
     stack = TreeNode{T}[node]
-    isempty(stack) && return nothing
     head = stack[end]
     while !isempty(stack)
         next = stack[end]
@@ -99,9 +115,8 @@ postorder_traversal(tree; kwargs...) = postorder_traversal(x -> true, tree; kwar
     end
     return nothing
 end
-@resumable function _POT(filter_func, node::TreeNode{T}) where T
+@resumable function _postorder(filter_func, node::TreeNode{T}) where T
     stack = TreeNode{T}[node]
-    isempty(stack) && return nothing
     head = stack[end]
     while !isempty(stack)
         next = stack[end]
@@ -121,13 +136,57 @@ end
     return nothing
 end
 
-function _subtrees_visited(next, head)
-    for c in children(next)
-        if c === head
-            return true
+
+
+#===================================================================================#
+############################ Pre-order (ancestors first) ############################
+#===================================================================================#
+function preorder_traversal(
+    f::Function, node::TreeNode; root=true, leaves=true, internals=true,
+)
+    function _f(n)
+        if !root && isroot(n)
+            return false
+        end
+        if !internals && isinternal(n)
+            return false
+        end
+        if !leaves && isleaf(n)
+            return false
+        end
+        if !f(n)
+            return false
+        end
+        return true
+    end
+    return _preorder(_f, node)
+end
+preorder_traversal(f, tree::Tree; kwargs...) = preorder_traversal(f, root(tree); kwargs...)
+preorder_traversal(tree; kwargs...) = preorder_traversal(x -> true, tree; kwargs...)
+
+@resumable function _preorder(filter_func, node::TreeNode{T}) where T
+    stack = TreeNode{T}[node]
+    while !isempty(stack)
+        next = pop!(stack)
+        for c in Iterators.reverse(children(next))
+            push!(stack, c)
+        end
+        if filter_func(next)
+            @yield next
         end
     end
-    return false
+    return nothing
+end
+@resumable function _preorder(node::TreeNode{T}) where T
+    stack = TreeNode{T}[node]
+    while !isempty(stack)
+        next = pop!(stack)
+        for c in Iterators.reverse(children(next))
+            push!(stack, c)
+        end
+        @yield next
+    end
+    return nothing
 end
 
 #=============================================#
@@ -135,8 +194,21 @@ end
 #=============================================#
 
 
-const traversal_styles = Dict(:postorder => postorder_traversal)
-function traversal(f, tree::Tree, style::Symbol; kwargs...)
+const traversal_styles = Dict(
+    :postorder => postorder_traversal, :preorder => preorder_traversal,
+)
+"""
+    traversal([f], tree, style; internals, leaves, root)
+    traversal([f], node, style; internals, leaves, root)
+
+Iterate through nodes of `tree` according to `style`, skipping nodes for which
+`f` returns `false`.
+`style` must be in `collect(keys(TreeTools.traversal_styles))`.
+For now its just `:postorder`.
+
+See `postorder_traversal` for extended docstring.
+"""
+function traversal(f, tree, style::Symbol; kwargs...)
     if haskey(traversal_styles, style)
         return traversal_styles[style](f, tree; kwargs...)
     else
@@ -145,6 +217,6 @@ function traversal(f, tree::Tree, style::Symbol; kwargs...)
         """))
     end
 end
-function traversal(tree::Tree, style::Symbol; kwargs...)
+function traversal(tree, style::Symbol; kwargs...)
     return traversal(x -> true, tree, style; kwargs...)
 end

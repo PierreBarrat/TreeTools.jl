@@ -314,10 +314,10 @@ function isclade(nodelist; safe=true)
 	else
 		claderoot = lca(nodelist)
 		# Now, checking if `clade` is the same as `nodelist`
-		for c in _POT(isleaf, claderoot)
+		for c in traversal(claderoot, :postorder, internals=false)
 			flag = false
 			for n in nodelist
-				if n.label==c.label
+				if n == c
 					flag = true
 					break
 				end

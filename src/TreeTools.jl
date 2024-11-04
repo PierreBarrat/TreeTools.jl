@@ -27,6 +27,7 @@ export root!
 include("iterators.jl")
 export nodes, leaves, internals
 export traversal, postorder_traversal
+export POT, POTleaves # for backward compat
 
 # include("better_iterators.jl")
 
