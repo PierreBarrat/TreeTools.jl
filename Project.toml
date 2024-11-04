@@ -1,7 +1,7 @@
 name = "TreeTools"
 uuid = "62f0eae3-8c0e-4032-a621-7756092209e5"
 authors = ["PierreBarrat <p.barrat@live.fr>"]
-version = "0.6.14"
+version = "0.7.0"
 
 [deps]
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
@@ -9,4 +9,4 @@ ResumableFunctions = "c5292f4c-5179-55e1-98c5-05642aab7184"
 
 [compat]
 ResumableFunctions = "0.6.10"
-julia = "1.7"
+julia = "1.11"
