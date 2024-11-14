@@ -590,12 +590,18 @@ function _root!(node::Union{TreeNode,Nothing}; newroot::Union{TreeNode,Nothing}=
     end
 end
 """
-	root!(tree::Tree, node::AbstractString; root_on_leaf, time=0.)
+	root!(tree::Tree, node::AbstractString; root_on_leaf, time=0., remove_singletons=true)
 
 Root `tree` at `tree.lnodes[node]`. Equivalent to outgroup rooting.
 If `time` is non-zero, root above `node` at height `time`, inserting a new node.
+
+If `remove_singletons`, singleton nodes are removed after re-rooting.
+This is useful to remove the old root, which often ends up being a singleton.
 """
-function root!(tree::Tree, node::AbstractString; root_on_leaf=false, time=0.0)
+function root!(
+    tree::Tree, node::AbstractString;
+    root_on_leaf=false, time=0.0, remove_singletons=true,
+)
     if isleaf(tree[node]) && !ismissing(time) && time == 0
         if root_on_leaf
             # remove `node` from set of leaves
@@ -620,7 +626,7 @@ function root!(tree::Tree, node::AbstractString; root_on_leaf=false, time=0.0)
 
     _root!(tree.lnodes[new_root])
     tree.root = tree.lnodes[new_root]
-    remove_internal_singletons!(tree) # old root is potentially a singleton
+    remove_singletons && remove_internal_singletons!(tree) # old root is potentially a singleton
     if label(tree.root) != new_root
         label!(tree, label(tree.root), new_root)
     end
