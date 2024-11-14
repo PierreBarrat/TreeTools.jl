@@ -970,8 +970,8 @@ function distance_matrix(tree::Tree)
     # Precompute the depth of each node (i.e. topological distance from root)
     depths = _node_depths(tree)
     distances = zeros(Float64, length(leaves(tree)), length(leaves(tree)))
-    for (i, n) in enumerate(traversal(tree, :postorder))
-        for (j, m) in enumerate(traversal(tree, :postorder))
+    for (i, n) in enumerate(traversal(tree, :postorder; internals=false))
+        for (j, m) in enumerate(traversal(tree, :postorder; internals=false))
             if i > j
                 distances[i,j] = _distance(n, m, depths)
                 distances[j,i] = distances[i,j]
