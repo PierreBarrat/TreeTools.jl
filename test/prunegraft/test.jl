@@ -207,7 +207,7 @@ end
         new_nodes = []
         for k in 1:K
             for n in nodes, _ in 1:2
-                c = TreeNode(; label=TreeTools.make_random_label("$k"), tau=1 / k)
+                c = TreeNode(; label=TreeTools.random_label("$k"), tau=1 / k)
                 graft!(tree, c, n; graft_on_leaf=true)
                 push!(new_nodes, c)
             end

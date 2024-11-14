@@ -74,7 +74,7 @@ function TreeNode(
     child=Array{TreeNode{T},1}(undef, 0),
     isleaf=true,
     isroot=true,
-    label=make_random_label(),
+    label=random_label(),
     tau=missing,
 ) where {T}
     return TreeNode(anc, child, isleaf, isroot, label, tau, data)
@@ -85,7 +85,7 @@ function TreeNode(;
     child=Array{TreeNode{typeof(data)},1}(undef, 0),
     isleaf=true,
     isroot=true,
-    label=make_random_label(),
+    label=random_label(),
     tau=missing,
 )
     return TreeNode(anc, child, isleaf, isroot, label, tau, data)

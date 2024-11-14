@@ -230,13 +230,13 @@ end
 
 default_tree_label(n=10) = randstring(n)
 
-make_random_label(base="NODE"; delim="_") = make_random_label(base, 8; delim)
-make_random_label(base, i; delim="_") = base * delim * randstring(i)
+random_label(base="NODE"; delim="_") = random_label(base, 8; delim)
+random_label(base, i; delim="_") = base * delim * randstring(i)
 
 function get_unique_label(t::Tree, base="NODE"; delim="_")
-    label = make_random_label(base; delim)
+    label = random_label(base; delim)
     while haskey(t.lnodes, label)
-        label = make_random_label(base; delim)
+        label = random_label(base; delim)
     end
     return label
 end

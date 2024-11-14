@@ -5,8 +5,8 @@
 """
 	node2tree(root::TreeNode{T}; label = default_tree_label(), force_new_labels=false)
 
-Create a `Tree` object from `root` with name `label`. If `force_new_labels`, a random
-string is added to node labels to make them unique.
+Create a `Tree` object from `root` with name `label`.
+If `force_new_labels`, a random string is added to node labels to make them unique.
 """
 function node2tree(
     root::TreeNode{T}; label=default_tree_label(), force_new_labels=false
@@ -528,7 +528,7 @@ function binarize!(n::TreeNode{T}; mode=:balanced, time=0.0) where {T}
         for part in (c_left, c_right)
             if length(part) > 1
                 z += 1
-                nc = TreeNode(T(); label=make_random_label("BINARIZE"))
+                nc = TreeNode(T(); label=random_label("BINARIZE"))
                 for c in part
                     prunenode!(c)
                     graftnode!(nc, c)

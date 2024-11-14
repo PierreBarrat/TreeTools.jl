@@ -11,23 +11,24 @@ end
 """
 	read_tree(
 		nwk_filename::AbstractString;
-		node_data_type=DEFAULT_NODE_DATATYPE, label=default_tree_label(), force_new_labels=false
+		node_data_type=DEFAULT_NODE_DATATYPE,
+        label,
+        force_new_labels=false,
+        check=true,
 	)
-	read_tree(
-		io::IO;
-		node_data_type=DEFAULT_NODE_DATATYPE, label=default_tree_label(), force_new_labels=false
-	)
+	read_tree(io::IO; kwargs...)
 
-Read Newick file and create a `Tree{node_data_type}` object from it. The input file can
-contain multiple Newick strings on different lines. The output will then be an array of
-`Tree` objects.
+Read Newick file and create a `Tree{node_data_type}` object from it.
+If the input file contains multiple Newick strings on different lines,
+the output is an array of `Tree` objects.
 
 The call `node_data_type()` must return a valid instance of a subtype of `TreeNodeData`.
 You can implement your own subtypes, or see `?TreeNodeData` for already implemented ones.
+The default is `EmptyData`.
 
 Use `force_new_labels=true` to force the renaming of all internal nodes.
-By default the tree will be assigned a `default_tree_label()`, however the label of the 
-tree can also be assigned with the `label` parameter. 
+By default the tree will be assigned a label by calling `default_tree_label()`.
+This can be changed using the `label` argument.
 
 If you have a variable containing a Newick string and want to build a tree from it,
 use `parse_newick_string` instead.
@@ -45,27 +46,15 @@ For this reason, the following is done when reading a tree:
    identifier is appended to them, even if they're unique in the tree. See
    `?TreeTools.isbootstrap` to see which labels are identified as confidence values.
 """
-function read_tree(
-    io::IO;
-    node_data_type=DEFAULT_NODE_DATATYPE,
-    label=default_tree_label(),
-    force_new_labels=false,
-)
+function read_tree(io::IO; kwargs...)
     trees = map(Iterators.filter(!isempty, eachline(io))) do line
-        t = parse_newick_string(line; node_data_type, label, force_new_labels)
-        check_tree(t)
-        t
+        parse_newick_string(line; kwargs...)
     end
     return length(trees) == 1 ? trees[1] : trees
 end
-function read_tree(
-    nwk_filename::AbstractString;
-    node_data_type=DEFAULT_NODE_DATATYPE,
-    label=default_tree_label(),
-    force_new_labels=false,
-)
+function read_tree(nwk_filename::AbstractString; kwargs...)
     return open(nwk_filename, "r") do io
-        read_tree(io; node_data_type, label, force_new_labels)
+        read_tree(io; kwargs...)
     end
 end
 """
@@ -81,6 +70,7 @@ function parse_newick_string(
     node_data_type=DEFAULT_NODE_DATATYPE,
     label=default_tree_label(),
     force_new_labels=false,
+    check=true,
     strict_check=true,
 )
     @assert nw[end] == ';' "Newick string does not end with ';'"
@@ -88,7 +78,7 @@ function parse_newick_string(
     reset_n()
     root = parse_newick(nw[1:(end - 1)]; node_data_type)
     tree = node2tree(root; label, force_new_labels)
-    check_tree(tree; strict=strict_check)
+    check && check_tree(tree; strict=strict_check)
     return tree
 end
 
