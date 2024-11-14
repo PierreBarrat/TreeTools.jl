@@ -953,15 +953,25 @@ function RF_distance(t1::Tree, t2::Tree; normalize=false)
     end
 end
 
+"""
+    distance_matrix(tree::Tree)
+
+Pairwise distance between leaves.
+The element `D[i,j]` is the distance along branches between leaf `i` and `j`.
+Leaves are arranged in *post-order*.
+"""
 function distance_matrix(tree::Tree)
+    # Precompute the depth of each node (i.e. topological distance from root)
     depths = _node_depths(tree)
     distances = zeros(Float64, length(leaves(tree)), length(leaves(tree)))
-    for (i, n) in enumerate(leaves(tree)), (j, m) in enumerate(leaves(tree))
-        if i > j
-            distances[i,j] = _distance(n, m, depths)
-            distances[j,i] = distances[i,j]
-        elseif i == j
-            distances[i,i] = 0.
+    for (i, n) in enumerate(traversal(tree, :postorder))
+        for (j, m) in enumerate(traversal(tree, :postorder))
+            if i > j
+                distances[i,j] = _distance(n, m, depths)
+                distances[j,i] = distances[i,j]
+            elseif i == j
+                distances[i,i] = 0.
+            end
         end
     end
     return distances
