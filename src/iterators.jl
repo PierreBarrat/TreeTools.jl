@@ -195,8 +195,8 @@ const traversal_styles = Dict(
     :postorder => postorder_traversal, :preorder => preorder_traversal
 )
 """
-    traversal([f], tree, style; internals, leaves, root)
-    traversal([f], node, style; internals, leaves, root)
+    traversal([f], tree, style=:postorder; internals, leaves, root)
+    traversal([f], node, style=:postorder; internals, leaves, root)
 
 Iterate through nodes of `tree` according to `style`, skipping nodes for which
 `f` returns `false`.
@@ -205,7 +205,7 @@ For now its just `:postorder`.
 
 See `postorder_traversal` for extended docstring.
 """
-function traversal(f, tree, style::Symbol; kwargs...)
+function traversal(f, tree, style::Symbol=:postorder; kwargs...)
     if haskey(traversal_styles, style)
         return traversal_styles[style](f, tree; kwargs...)
     else
@@ -214,6 +214,6 @@ function traversal(f, tree, style::Symbol; kwargs...)
         """))
     end
 end
-function traversal(tree, style::Symbol; kwargs...)
+function traversal(tree, style::Symbol=:postorder; kwargs...)
     return traversal(x -> true, tree, style; kwargs...)
 end
