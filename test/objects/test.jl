@@ -16,6 +16,6 @@ using Test
     @test in("D", labels)
     @test sort(labels) == sort(map(label, tree))
 
-    @test_throws AssertionError label!(tree, tree["D"], "B")
-    @test_throws AssertionError label!(tree, "D", "B")
+    @test_throws ArgumentError label!(tree, tree["D"], "B")
+    @test_throws ArgumentError label!(tree, "D", "B")
 end

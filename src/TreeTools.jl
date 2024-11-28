@@ -1,5 +1,6 @@
 module TreeTools
 
+using ArgCheck
 using Random
 using ResumableFunctions
 

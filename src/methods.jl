@@ -674,7 +674,9 @@ the same topology at the end of this. Else, tree will be rerooted but a warning 
 be given.
 """
 function root_like_model!(tree, model::Tree)
-    @assert share_labels(tree, model) "Can only be used for trees that share leaves"
+    @argcheck share_labels(tree, model) """
+    `model` and `tree` must share leaves. Leaves of both trees should have the same labels.
+    """
 
     #
     warn_1() = @warn """`tree` and `model` differ by more than rooting, but the rerooting \
@@ -751,6 +753,7 @@ function root_midpoint!(t::Tree; topological=false)
     """
     @assert d1 <= d2 """
     Issue with branch lengths.
+    If some of the branch lengths are negative, this function should fail.
     """
     if isroot(b_h) && isapprox(abs(d1 - d2), 2 * distance(b_l, b_h; topological))
         # The root is already the midpoint
@@ -808,7 +811,9 @@ function find_midpoint(tree::Tree{T}; topological=false) where {T}
         end
     end
     @debug "Farthest leaves: $L1 & $L2 -- distance $max_dist"
-    @assert L1 != L2 "Issue: farthest apart leaves have the same label."
+    @argcheck L1 != L2 """
+    Farthest apart leaves have the same label. Maybe your tree has only one leaf?
+    """
     (isempty(L1) || isempty(L2)) && @warn "One of farthest apart leaves has an empty label."
 
     if max_dist == 0 || ismissing(max_dist)
@@ -947,7 +952,10 @@ and not `t1`.
 If `normalize`, the distance is normalized to `[0,1]`.
 """
 function RF_distance(t1::Tree, t2::Tree; normalize=false)
-    @assert share_labels(t1, t2) "Cannot compute RF distance for trees that do not share leaves"
+    @argcheck share_labels(t1, t2) """
+    Cannot compute RF distance for trees that do not share leaves.
+    Leaves of both trees should have the same labels.
+    """
     s1 = SplitList(t1)
     s2 = SplitList(t2)
     d = length(s1) + length(s2) - 2 * length(TreeTools.intersect(s1, s2))
