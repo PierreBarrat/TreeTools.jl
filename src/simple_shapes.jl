@@ -8,8 +8,8 @@ function star_tree(n::Integer, time::Union{Missing,Real}=missing)
     return star_tree(n, Iterators.map(x -> time, 1:n))
 end
 function star_tree(n::Integer, time_vals)
-    @assert n > 0 "Number of leaves must be positive"
-    @assert length(time_vals) == n "Number of leaves and times must match - \
+    @argcheck n > 0 "Number of leaves must be positive"
+    @argcheck length(time_vals) == n "Number of leaves and times must match - \
         Instead $n and $(length(time_vals))"
 
     tree = Tree(TreeNode(; label="root"))
@@ -28,7 +28,7 @@ The elementary branch length is `t/(n-1)` if `n>1`.
 """
 function ladder_tree(n::Integer, T::Union{Missing,Real}=missing)
     # proceeds by recursively grafting asymetric shapes (An:(T-τ),Bn:τ) onto B_(n-1)
-    @assert n > 0 "Number of leaves must be positive"
+    @argcheck n > 0 "Number of leaves must be positive"
 
     if n == 1
         return Tree(TreeNode(; tau=T))

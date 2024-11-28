@@ -333,7 +333,7 @@ end
         @test TreeTools.RF_distance(t3, t4) == 1
         @test TreeTools.RF_distance(t1, t2; normalize=true) == 1
         @test TreeTools.RF_distance(t3, t4; normalize=true) == 1 / 3
-        @test_throws AssertionError TreeTools.RF_distance(t1, t3)
+        @test_throws ArgumentError TreeTools.RF_distance(t1, t3)
     end
 
     @testset "resolution value" begin

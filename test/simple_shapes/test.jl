@@ -17,7 +17,7 @@ using Chain
         @test ismissing(branch_length(node))
     end
 
-    @test_throws AssertionError star_tree(3, [1, 2])
+    @test_throws ArgumentError star_tree(3, [1, 2])
 end
 
 @testset "balanced binary" begin

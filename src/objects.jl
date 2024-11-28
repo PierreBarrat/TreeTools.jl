@@ -65,6 +65,9 @@ mutable struct TreeNode{T<:TreeNodeData}
     data::T
     function TreeNode(anc, child, isleaf, isroot, label, tau, data::T) where {T}
         tau = !ismissing(tau) ? convert(Float64, tau) : missing
+        @argcheck ismissing(tau) || tau >= 0. """
+        `TreeNode` must have positive branch length. Instead $(tau)
+        """
         return new{T}(anc, child, isleaf, isroot, label, tau, data)
     end
 end
@@ -105,7 +108,7 @@ Base.hash(x::TreeNode, h::UInt) = hash(x.label, h)
 children(n::TreeNode) = n.child
 children(n::TreeNode, i::Integer) = n.child[i]
 function ancestor(n::TreeNode)
-    @assert !isroot(n) "Trying to access the ancestor of root node $(label(n))"
+    @argcheck !isroot(n) "Trying to access the ancestor of root node $(label(n))"
     return n.anc
 end
 branch_length(n::TreeNode) = n.tau
@@ -167,8 +170,10 @@ label!(t::Tree, label::AbstractString) = (t.label = string(label))
 Change the label of a `TreeNode` to `new_label`.
 """
 function label!(tree::Tree, node::TreeNode, label::AbstractString)
-    @assert in(node, tree) "Node $(node.label) is not in tree."
-    @assert !in(label, tree) "Node $(label) is already in tree: can't rename $(node.label) like this."
+    @argcheck in(node, tree) "Node $(node.label) is not in tree $(label(tree))."
+    @argcheck !in(label, tree) """
+    Node $(label) is already in tree. Can't rename $(node.label) like this.
+    """
     tree.lnodes[label] = node
     delete!(tree.lnodes, node.label)
     if node.isleaf

@@ -271,9 +271,18 @@ Insert `s` between `a` and `c` at height `t`: `a --> s -- t --> c`. Return `s`.
 The relation `branch_length(s) + t == branch_length(c)` should hold.
 """
 function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing) where {T}
-    @assert ancestor(c) == a
-    @assert ismissing(branch_length(c))
-    @assert ismissing(branch_length(s))
+    @argcheck ancestor(c) == a """
+    Expected ancestor of $(label(c)) to be $(label(a)). Instead $(label(ancestor(c))).
+    """
+    @argcheck ismissing(branch_length(c)) """
+    Cannot insert node with branch length `missing`
+    on branch with non-missing length $(branch_length(c))
+    """
+    @argcheck ismissing(branch_length(s)) """
+    Node to insert has branch length $(branch_length(s)),
+    but asked to insert with length `missing`.
+    Provide a node with `missing` branch length.
+    """
 
     prunenode!(c)
     graftnode!(a, s)
@@ -281,9 +290,16 @@ function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing
     return s
 end
 function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number) where {T}
-    @assert ancestor(c) == a
-    @assert branch_length(s) == branch_length(c) - t
-    @assert branch_length(c) >= t
+    @argcheck ancestor(c) == a """
+    Expected ancestor of $(label(c)) to be $(label(a)). Instead $(label(ancestor(c))).
+    """
+    @argcheck branch_length(s) == branch_length(c) - t """
+    Expect `branch_length(s) + t == branch_length(c)`.
+    Instead `$(branch_length(s)) + $(t) = $(branch_length(c))`.
+    """
+    @argcheck branch_length(s) >= 0 """
+    Not accepting negative branch length for the inserted node. Got $(branch_length(s)).
+    """
 
     prunenode!(c)
     branch_length!(c, t)
