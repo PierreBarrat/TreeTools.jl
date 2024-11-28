@@ -32,8 +32,7 @@ using Test
         include("$(dirname(pathof(TreeTools)))/../test/splits/test.jl")
     end
 
-    @testset "Simple shapes" begin
-        println("## Shapes")
-        include("$(dirname(pathof(TreeTools)))/../test/simple_shapes/test.jl")
-    end
+    # Generate has its own testset
+    println("# Generate")
+    include("$(dirname(pathof(TreeTools)))/../test/generate/runtests.jl")
 end
