@@ -6,6 +6,7 @@ Simple tools for handling *rooted* phylogenetic or genealogic trees with Julia.
 I used this package for all of my work related to trees and found it useful. I hope you will to! 
 A very brief list of what it can do: 
 - read and write Newick files
+- generate random trees in different ways: birth-death / coalescent / basic shapes
 - attach arbitrary data to tree nodes
 - compute distance between nodes in a tree, their most recent common ancestor, etc...
 - traverse the tree (post-order or arbitrary)
