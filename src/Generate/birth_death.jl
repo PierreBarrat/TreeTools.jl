@@ -7,10 +7,10 @@ Return the a `Tree` and a boolean indicating completion of the process: it is `f
 if all lineages died before reaching the target `n`.
 
 
-Keyword argument `activate` (bool) controls whether only active lineages (*i.e.* non dead)
+Keyword argument `active` (default: `false`) controls whether only active lineages (*i.e.* non dead)
 count towards completion.
-If `activate=false`, the number of leaves of output tree is `n` if the process completed.
-If `activate=true`, it is larger than `n`.
+If `active=false`, the number of leaves of output tree is `n` if the process completed.
+If `active=true`, it is larger than `n`.
 """
 function birth_death(n::Integer, λ::Real, μ::Real; active=false, warn_incomplete=true)
     @argcheck n > 0 "`n` must be positive. Instead $n"
@@ -31,14 +31,26 @@ function birth_death(n::Integer, λ::Real, μ::Real; active=false, warn_incomple
 
     # Running the process
     while number_of_lineages(tree, active_lineages, active) < n
-        length(active_lineages) == 0 && break # everyone died
-        @debug "There are $(length(active_lineages)) active lineages"
-        event, time = choose_birth_death_event(n, λ, μ)
+        nlin = length(active_lineages) # these count for the birth/death rate
+        nlin == 0 && break # everyone died
+        @debug "There are $(nlin) active lineages"
+        event, time = choose_birth_death_event(nlin, λ, μ)
         @debug "Event $event after time $time"
         do_birth_death_event!(tree, active_lineages, event, time)
-        @debug "There are $(length(active_lineages)) active lineages"
+        @debug "There are $(nlin) active lineages"
     end
+
+    # last event - for the last cherry to not have zero branch length
+    # doing it this way makes this exactly equivalent to the yule coalescent
+    event, time = choose_birth_death_event(nlin, λ, μ)
+    foreach(n -> n.tau += time, active_lineages)
+
+    # labelling
     branch_length!(root(tree), missing)
+    # label!(tree, root(tree), "root")
+    for (i, node) in enumerate(traversal(tree; internals=false))
+        label!(tree, node, "$i")
+    end
 
     # Check if process succeeded
     nlin = number_of_lineages(tree, active_lineages, active)

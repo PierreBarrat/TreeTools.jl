@@ -31,7 +31,7 @@ The expected height of the tree is (I think) `~log(n)/b`
 end
 function choose_event(Y::YuleCoalescent)
     @assert Y.n > 1 "Cannot choose coalescence event for one lineage." Y
-    τ = rand(Exponential(1/(Y.n-1)/Y.b))
+    τ = rand(Exponential(1/(Y.n)/Y.b))
     return 2, τ
 end
 
@@ -82,7 +82,7 @@ mutable struct SEFCoalescent{T<:UnivariateDistribution} <: Coalescent
     ρ::Float64
 end
 function choose_event(C::SEFCoalescent)
-    @assert C.n > 1 "Cannot choose coalescence event for one lineage." C
+    @argcheck C.n > 1 "Cannot choose coalescence event for one lineage." C
     τ = 0.
     merger = 0
     while merger < 2
