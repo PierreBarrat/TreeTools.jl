@@ -20,10 +20,6 @@ In short, the traversal guarantees that:
 ```jldoctest traversal
 julia> tree = parse_newick_string("((A:1,B:1)AB:2,C:3)R;");
 
-julia> for node in traversal(tree, :postorder)
-	# do something with node
-end
-
 julia> map(label, traversal(tree, :postorder))
 5-element Vector{String}:
  "A"
@@ -39,6 +35,18 @@ julia> map(label, traversal(tree, :preorder))
  "A"
  "B"
  "C"
+
+julia> map(label, traversal(tree, :postorder)) == map(label, traversal(tree)) # postorder is the default
+true
+```
+
+Of course, this can also be used in a loop: 
+```@repl
+using TreeTools # hide 
+tree = parse_newick_string("((A:1,B:1)AB:2,C:3)R;"); # hide
+for node in traversal(tree) # :postorder is the default
+	# do something with `node`
+end
 ```
 
 Note that `traversal` can also be called on `TreeNode` objects:

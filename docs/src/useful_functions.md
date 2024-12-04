@@ -1,5 +1,5 @@
 ```@meta 
-DocTestSetup quote 
+DocTestSetup = quote 
 	using TreeTools
 end
 ```
