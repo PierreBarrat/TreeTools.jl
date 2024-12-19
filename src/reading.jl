@@ -145,7 +145,7 @@ function parse_newick!(nw::AbstractString, root::TreeNode, node_data_type)
     # Setting isroot to false. Special case of the root is handled in main calling function
     root.isroot = false
     # Getting label of the node, after last parenthesis
-    parts = map(x -> String(x), split(nw, ")"))
+    parts = map(String, split(nw, ")"))
     lab, tau = nw_parse_name(String(parts[end]))
     if lab == ""
         lab = "NODE_$(increment_n())"
@@ -164,7 +164,7 @@ function parse_newick!(nw::AbstractString, root::TreeNode, node_data_type)
             @error "Parenthesis mismatch around $(parts[1]). This may be caused by spaces in the newick string."
             error("$(get_nwk_file()): incorrect Newick format.")
         else
-            parts[1] = parts[1][2:end] # Removing first bracket
+            parts[1] = parts[1][2:end] # Removing first parenthesis
         end
         children = join(parts[1:(end - 1)], ")") # String containing children, now delimited with ','
         l_children = nw_parse_children(children) # List of children (array of strings)
