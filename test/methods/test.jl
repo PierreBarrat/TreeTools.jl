@@ -284,16 +284,28 @@ end
 end
 
 @testset "Model rooting" begin
+    # root! from model gives @warn when it detects topological incompatibilities
+    # hence the test for warnings below
+
     model_nwk = "((A:1,B:1):1,(C:2,(D:3,E:1):2):2);"
     model = parse_newick_string(model_nwk)
+    test_topo_1(tree) = all([
+        isroot(ancestor(ancestor(tree["A"]))),
+        isroot(ancestor(ancestor(tree["B"]))),
+        isroot(ancestor(ancestor(tree["C"]))),
+        isroot(ancestor(ancestor(ancestor(tree["D"])))),
+        isroot(ancestor(ancestor(ancestor(tree["E"])))),
+    ])
 
     tree = copy(model)
     TreeTools.root!(tree, lca(tree, "D", "E").label; time=1)
     @test_logs min_level = Logging.Warn TreeTools.root!(tree; method=:model, model)
+    @test test_topo_1(tree)
 
     tree = copy(model)
     TreeTools.root!(tree, "A"; time=0.5)
     @test_logs min_level = Logging.Warn TreeTools.root!(tree; method=:model, model)
+    @test test_topo_1(tree)
 
     nwk = "((A:1,B:1):1,(D:2,(C:3,E:1):2):2);"
     tree = parse_newick_string(nwk)
@@ -309,10 +321,19 @@ end
     # Test with missing branch lengths
     model_nwk = "((A,B),(C,(D,E)));"
     model = parse_newick_string(model_nwk)
-
     tree = copy(model)
     TreeTools.root!(tree, lca(tree, "D", "E").label; time=missing)
     @test_logs min_level = Logging.Warn TreeTools.root!(tree; method=:model, model)
+
+    # Test with model with a polytomy at root
+    model_nwk = "((A:1,B:1):3,(C:2,D:2):2,(E:3,F:3):1);"
+    model = parse_newick_string(model_nwk)
+    tree = copy(model)
+    TreeTools.root!(tree, "A"; time=0.5)
+    @test_logs min_level = Logging.Warn TreeTools.root!(tree; method=:model, model)
+    @test length(children(root(tree))) == 3
+    @test isapprox(TreeTools.distance(tree["A"], tree["F"]), 8.)
+    @test isapprox(TreeTools.distance(tree["B"], tree["F"]), 8.)
 end
 
 @testset "Tree measures" begin

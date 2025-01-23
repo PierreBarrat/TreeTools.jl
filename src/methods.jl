@@ -662,6 +662,8 @@ function root!(tree; method=:midpoint, topological=false, model=nothing)
         root_midpoint!(tree; topological)
     elseif method == :model
         root_like_model!(tree, model)
+    else
+        throw(ArgumentError("Unknown method $method. Expected `(:midpoint, :model)`"))
     end
     return nothing
 end
@@ -672,6 +674,10 @@ end
 Try to root `tree` like `model`. If the two trees only differ by rooting, they will have
 the same topology at the end of this. Else, tree will be rerooted but a warning will
 be given.
+
+*Note*: In the case where `model` has a polytomy at the root and `tree` does have the
+corresponding polytomy, the function will try to root `tree` on an internal node, therefore
+creating a polytomy and making it similar to `model`.
 """
 function root_like_model!(tree, model::Tree)
     @argcheck share_labels(tree, model) """
@@ -687,6 +693,7 @@ function root_like_model!(tree, model::Tree)
     M2 = last(children(root(model)))
     S1 = map(label, postorder_traversal(M1; internals=false))
     S2 = map(label, postorder_traversal(M2; internals=false))
+    polytomy = length(children(root(model))) > 2
 
     # ... and to what nodes they correspond in `tree`
     A1 = lca(tree, S1...)
@@ -702,13 +709,21 @@ function root_like_model!(tree, model::Tree)
         @warn "Tree and model differ too much for rooting. Leaving input tree unchanged."
         return nothing
     elseif isroot(A1)
-        # else, we root on the ancestor of the one that is not the root
+        # else, we root on the branch above the one that is not the root
         # branch length is calculated proportionally from model
-        time = distance(A2, ancestor(A2)) * distance(M2, ancestor(M2)) / distance(M1, M2)
-        label(A2), time
+        if polytomy
+            label(ancestor(A2)), 0.
+        else
+            time = distance(A2, ancestor(A2)) * distance(M2, ancestor(M2)) / distance(M1, M2)
+            label(A2), time
+        end
     elseif isroot(A2)
-        time = distance(A1, ancestor(A1)) * distance(M1, ancestor(M1)) / distance(M1, M2)
-        label(A1), time
+        if polytomy
+            label(ancestor(A1)), 0.
+        else
+            time = distance(A1, ancestor(A1)) * distance(M1, ancestor(M1)) / distance(M1, M2)
+            label(A1), time
+        end
     end
     TreeTools.root!(tree, R; time)
 
