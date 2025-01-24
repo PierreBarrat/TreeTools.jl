@@ -865,11 +865,11 @@ function find_midpoint(tree::Tree{T}; topological=false) where {T}
 end
 
 """
-	ladderize!(t::Tree)
+	ladderize!(tree::Tree)
 
-Ladderize `t` by placing nodes with largest clades left in the newick string.
+Ladderize `tree` by placing nodes with largest clades left in the newick string.
 """
-ladderize!(t::Tree) = ladderize!(t.root)
+ladderize!(tree::Tree) = ladderize!(tree.root)
 function ladderize!(n::TreeNode)
     function _isless(v1::Tuple{Int,String}, v2::Tuple{Int,String})
         if (v1[1] < v2[1]) || (v1[1] == v2[1] && v1[2] < v2[2])
@@ -890,7 +890,7 @@ function ladderize!(n::TreeNode)
         return sum([r[1] for r in rank]), n.label
     end
 
-    return nothing
+    return tree
 end
 
 #=====================#
