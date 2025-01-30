@@ -289,16 +289,20 @@ function Base.:(==)(S::SplitList, T::SplitList)
 end
 Base.hash(S::SplitList, h::UInt) = hash(S.splits, h)
 
-function Base.cat(aS::Vararg{SplitList{T}}) where {T}
-    if !mapreduce(S -> S.leaves == aS[1].leaves && S.mask == aS[1].mask, *, aS; init=true)
-        error("Split lists do not share leaves or masks")
+"""
+    cat(S1::SplitList, S...)
+"""
+function Base.cat(S1::SplitList{T}, Smore::Vararg{SplitList{T}}) where {T}
+    @argcheck all(S -> S.leaves == S1.leaves && S.mask == S1.mask, Smore) """
+    Input `SplitList`s must share the same leaves and mask.
+    """
+
+    S_cat = SplitList(S1.leaves, Array{Split,1}(undef, 0), S1.mask, Dict{T,Split}())
+    for S in Smore
+        append!(S_cat.splits, S.splits)
     end
-    catS = SplitList(aS[1].leaves, Array{Split,1}(undef, 0), aS[1].mask, Dict{T,Split}())
-    for S in aS
-        append!(catS.splits, S.splits)
-    end
-    unique!(catS.splits)
-    return catS
+    unique!(S_cat.splits)
+    return S_cat
 end
 
 """

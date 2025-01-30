@@ -2,7 +2,7 @@ module Generate
 
 using ArgCheck
 using Distributions
-using StatsBase
+# using StatsBase
 using TreeTools
 
 include("simple_shapes.jl")

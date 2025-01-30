@@ -1008,11 +1008,7 @@ end
 
 function _distance(x::TreeNode, y::TreeNode, depths::Dict; topological=false)
     Δ = depths[label(x)] - depths[label(y)]
-    deep, shallow = if Δ > 0
-        x, y
-    else
-        y, x
-    end
+    deep, shallow = Δ > 0 ? (x, y) : (y, x)
 
     d = 0.
     for _ in 1:abs(Δ)
