@@ -3,16 +3,16 @@
        	n = 25 # number of lineages to reach for completion
        	b = 1 # birth rate
        	d = 0.1 # death rate
-       end;</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree, completed = TreeTools.Generate.birth_death(n, b, d)</code><code class="nohighlight hljs ansi" style="display:block;">(Tree{TreeTools.EmptyData}: 49 nodes, 25 leaves, true)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; length(leaves(tree)) == n || !completed</code><code class="nohighlight hljs ansi" style="display:block;">true</code></pre><p>The second output argument <code>completed</code> is a boolean indicating whether the process reached the target <code>n</code> lineages. If the death rate is non-zero, it is possible that all lineages die before completion. </p><p>The implemented process starts with one lineage (the root).  Then, if there are <span>$n$</span> lineages in the tree: </p><ul><li>with rate <span>$b\cdot n$</span>, trigger a birth event: pick a lineage at random and split it in two;</li><li>with rate <span>$d\cdot n$</span>, trigger a death event: stop the lineage and place a leaf at its end;</li><li>if <code>n</code> reaches the target value for completion or if all lineages are dead, stop the process by placing a leaf at the end of each lineage.</li></ul><h2 id="Coalescent-process"><a class="docs-heading-anchor" href="#Coalescent-process">Coalescent process</a><a id="Coalescent-process-1"></a><a class="docs-heading-anchor-permalink" href="#Coalescent-process" title="Permalink"></a></h2><p>There are two coalescent models implemented. </p><ul><li>The classical Kingman&#39;s process, with a rate of coalescence <span>$\nu = n(n-1)/N$</span> for <span>$n$</span> lineages, where <span>$N$</span> is a parameter (the population size).</li><li>The Yule process, with a rate of coalescence <span>$\nu = b\cdot n$</span> for <span>$n$</span> lineages, where <span>$b$</span> can be interpreted as a birth rate. This is equivalent to a birth only forward process. </li></ul><p>Generating a coalescent tree is a two-step process: first construct a <code>Coalescent</code> object, then give it to the function <code>genealogy</code>. </p><pre><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; kingman = TreeTools.Generate.KingmanCoalescent(n=25, N=10_000)</code><code class="nohighlight hljs ansi" style="display:block;">TreeTools.Generate.KingmanCoalescent(25, 10000.0)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; yule = TreeTools.Generate.YuleCoalescent(n=5, b=1)</code><code class="nohighlight hljs ansi" style="display:block;">TreeTools.Generate.YuleCoalescent(5, 1.0)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree = TreeTools.Generate.genealogy(kingman)</code><code class="nohighlight hljs ansi" style="display:block;">Tree{TreeTools.EmptyData}: 49 nodes, 25 leaves</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; distance(root(tree), first(leaves(tree))) # ~2N on average</code><code class="nohighlight hljs ansi" style="display:block;">8156.04275675825</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree = TreeTools.Generate.genealogy(yule)</code><code class="nohighlight hljs ansi" style="display:block;">
-                                           __________________________________ 5
-  ________________________________________|
- |                                        |                             _____ 1
- |                                        |____________________________|
-_|                                                                     |_____ 2
+       end;</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree, completed = TreeTools.Generate.birth_death(n, b, d)</code><code class="nohighlight hljs ansi" style="display:block;">(Tree{TreeTools.EmptyData}: 49 nodes, 25 leaves, true)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; length(leaves(tree)) == n || !completed</code><code class="nohighlight hljs ansi" style="display:block;">true</code></pre><p>The second output argument <code>completed</code> is a boolean indicating whether the process reached the target <code>n</code> lineages. If the death rate is non-zero, it is possible that all lineages die before completion. </p><p>The implemented process starts with one lineage (the root).  Then, if there are <span>$n$</span> lineages in the tree: </p><ul><li>with rate <span>$b\cdot n$</span>, trigger a birth event: pick a lineage at random and split it in two;</li><li>with rate <span>$d\cdot n$</span>, trigger a death event: stop the lineage and place a leaf at its end;</li><li>if <code>n</code> reaches the target value for completion or if all lineages are dead, stop the process by placing a leaf at the end of each lineage.</li></ul><h2 id="Coalescent-process"><a class="docs-heading-anchor" href="#Coalescent-process">Coalescent process</a><a id="Coalescent-process-1"></a><a class="docs-heading-anchor-permalink" href="#Coalescent-process" title="Permalink"></a></h2><p>There are two coalescent models implemented. </p><ul><li>The classical Kingman&#39;s process, with a rate of coalescence <span>$\nu = n(n-1)/N$</span> for <span>$n$</span> lineages, where <span>$N$</span> is a parameter (the population size).</li><li>The Yule process, with a rate of coalescence <span>$\nu = b\cdot n$</span> for <span>$n$</span> lineages, where <span>$b$</span> can be interpreted as a birth rate. This is equivalent to a birth only forward process. </li></ul><p>Generating a coalescent tree is a two-step process: first construct a <code>Coalescent</code> object, then give it to the function <code>genealogy</code>. </p><pre><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; kingman = TreeTools.Generate.KingmanCoalescent(n=25, N=10_000)</code><code class="nohighlight hljs ansi" style="display:block;">TreeTools.Generate.KingmanCoalescent(25, 10000.0)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; yule = TreeTools.Generate.YuleCoalescent(n=5, b=1)</code><code class="nohighlight hljs ansi" style="display:block;">TreeTools.Generate.YuleCoalescent(5, 1.0)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree = TreeTools.Generate.genealogy(kingman)</code><code class="nohighlight hljs ansi" style="display:block;">Tree{TreeTools.EmptyData}: 49 nodes, 25 leaves</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; distance(root(tree), first(leaves(tree))) # ~2N on average</code><code class="nohighlight hljs ansi" style="display:block;">20931.794549823353</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree = TreeTools.Generate.genealogy(yule)</code><code class="nohighlight hljs ansi" style="display:block;">
+                                                     ________________________ 1
+  __________________________________________________|
+ |                                                  |                      ,_ 2
+ |                                                  |______________________|
+_|                                                                         |_ 4
  |
- |                                     ______________________________________ 3
- |____________________________________|
-                                      |______________________________________ 4</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; distance(root(tree), first(leaves(tree))) # ~b log(n) on average</code><code class="nohighlight hljs ansi" style="display:block;">1.6103803256970821</code></pre><p>It is possible to create custom coalescent.  Below, we create a backward process with multiple mergers, with the following properties: </p><ul><li>the rate of merging is <span>$\rho$</span>, independent of the number of lineages <span>$n$</span>;</li><li>when a merge occurs, an average fraction <span>$\beta$</span> of the <span>$n$</span> lineages is involved (sampled using a binomial). </li></ul><p>First, we define the corresponding coalescent type.  Importantly, the field <code>n</code> must be present in the <code>struct</code>, and is interpreted as the number of remaining lineages. </p><pre><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; @kwdef mutable struct MultipleMerger &lt;: TreeTools.Generate.Coalescent
+ |                            _______________________________________________ 3
+ |___________________________|
+                             |_______________________________________________ 5</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; distance(root(tree), first(leaves(tree))) # ~b log(n) on average</code><code class="nohighlight hljs ansi" style="display:block;">0.37721699073515935</code></pre><p>It is possible to create custom coalescent.  Below, we create a backward process with multiple mergers, with the following properties: </p><ul><li>the rate of merging is <span>$\rho$</span>, independent of the number of lineages <span>$n$</span>;</li><li>when a merge occurs, an average fraction <span>$\beta$</span> of the <span>$n$</span> lineages is involved (sampled using a binomial). </li></ul><p>First, we define the corresponding coalescent type.  Importantly, the field <code>n</code> must be present in the <code>struct</code>, and is interpreted as the number of remaining lineages. </p><pre><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; @kwdef mutable struct MultipleMerger &lt;: TreeTools.Generate.Coalescent
            n::Int # number of lineages
            β::Float64 # parameters
            ρ::Float64
@@ -27,38 +27,38 @@ _|                                                                     |_____ 2
            end
            return merger, t
        end</code><code class="nohighlight hljs ansi" style="display:block;">choose_event (generic function with 5 methods)</code></pre><p>Now we can sample from this</p><pre><code class="language-julia-repl hljs" style="display:block;">julia&gt; mm = MultipleMerger(n=15, β=.25, ρ=1)</code><code class="nohighlight hljs ansi" style="display:block;">Main.MultipleMerger(15, 0.25, 1.0)</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; tree = TreeTools.Generate.genealogy(mm)</code><code class="nohighlight hljs ansi" style="display:block;">
-                                                                ___________ 11
-  _____________________________________________________________|
- |                                                             |       ____ 6
- |                                                             |______|
- |                                                                    |____ 9
+                                                         __________________ 1
+  ______________________________________________________|
+ |                                                      |         _________ 2
+ |                                                      |________|
+ |                                                               |_________ 8
 _|
- |                                      ___________________________________ 4
- |                                     |
- |                                     |                               ____ 3
- |_____________________________________|                              |
-                                       |                              |____ 13
-                                       |                              |
-                                       |______________________________|  __ 5
-                                                                      | |
-                                                                      | |,_ 2
-                                                                      | ||
-                                                                      |_||_ 8
-                                                                        ||
-                                                                        ||_ 10
-                                                                        ||
-                                                                        ||_ 12
-                                                                         |
-                                                                         |_ 14
-                                                                         |
-                                                                         ,_ 1
-                                                                         |
-                                                                         |_ 7
-                                                                         |
-                                                                         |_ 15</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; using StatsBase</code><code class="nohighlight hljs ansi" style="display:block;">ERROR: ArgumentError: Package StatsBase not found in current path.
-- Run `import Pkg; Pkg.add(&quot;StatsBase&quot;)` to install the StatsBase package.</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; map(n -&gt; length(children(n)), internals(tree)) |&gt; countmap # if we&#39;re not unlucky, there should be some multiple mergers in here!</code><code class="nohighlight hljs ansi" style="display:block;">ERROR: UndefVarError: `countmap` not defined in `Main`
-Suggestion: check for spelling errors or missing imports.
-Hint: a global variable of this name may be made accessible by importing StatsBase in the current active module Main</code></pre><h2 id="Basic-shapes"><a class="docs-heading-anchor" href="#Basic-shapes">Basic shapes</a><a id="Basic-shapes-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-shapes" title="Permalink"></a></h2><p>There are three at the moment, with self explanatory names: </p><pre><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; star = TreeTools.Generate.star_tree(4, 1.)</code><code class="nohighlight hljs ansi" style="display:block;">
+ |                                        _________________________________ 10
+ |                                       |
+ |                                       |                        _________ 6
+ |                                       |                       |
+ |_______________________________________|                       |_________ 9
+                                         |           ____________|
+                                         |          |            |_________ 15
+                                         |          |            |
+                                         |          |            |   ______ 11
+                                         |__________|            |__|
+                                                    |               |______ 13
+                                                    |
+                                                    |        ______________ 5
+                                                    |       |
+                                                    |_______|  ____________ 4
+                                                            | |
+                                                            | |____________ 7
+                                                            |_|
+                                                              |          __ 3
+                                                              |         |
+                                                              |_________|__ 12
+                                                                        |
+                                                                        |__ 14</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; using StatsBase</code><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; map(n -&gt; length(children(n)), internals(tree)) |&gt; countmap # if we&#39;re not unlucky, there should be some multiple mergers in here!</code><code class="nohighlight hljs ansi" style="display:block;">Dict{Int64, Int64} with 3 entries:
+  4 =&gt; 1
+  2 =&gt; 7
+  3 =&gt; 2</code></pre><h2 id="Basic-shapes"><a class="docs-heading-anchor" href="#Basic-shapes">Basic shapes</a><a id="Basic-shapes-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-shapes" title="Permalink"></a></h2><p>There are three at the moment, with self explanatory names: </p><pre><code class="nohighlight hljs ansi" style="display:block;"></code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; star = TreeTools.Generate.star_tree(4, 1.)</code><code class="nohighlight hljs ansi" style="display:block;">
   ____________________________________________________________________________ 1
  |
  |____________________________________________________________________________ 2
@@ -73,10 +73,10 @@ _|
                           |                          _________________________ 2
                           |_________________________|
                                                     |_________________________ 1</code><br/><code class="language-julia-repl hljs" style="display:block;">julia&gt; balanced = TreeTools.Generate.balanced_binary_tree(4, 1.)</code><code class="nohighlight hljs ansi" style="display:block;">
-                                        ______________________________________ 1
+                                        ______________________________________ 3
   _____________________________________|
- |                                     |______________________________________ 2
+ |                                     |______________________________________ 4
 _|
- |                                      ______________________________________ 3
+ |                                      ______________________________________ 1
  |_____________________________________|
-                                       |______________________________________ 4</code></pre><p>The docstrings give a bit more detail. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modifying_the_tree/">« Modifying the tree</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Thursday 23 January 2025 15:24">Thursday 23 January 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+                                       |______________________________________ 2</code></pre><p>The docstrings give a bit more detail. </p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modifying_the_tree/">« Modifying the tree</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Thursday 30 January 2025 16:50">Thursday 30 January 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
