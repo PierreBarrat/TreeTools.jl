@@ -82,7 +82,7 @@ mutable struct SEFCoalescent{T<:UnivariateDistribution} <: Coalescent
     ρ::Float64
 end
 function choose_event(C::SEFCoalescent)
-    @argcheck C.n > 1 "Cannot choose coalescence event for one lineage." C
+    @argcheck C.n > 1 "Cannot choose coalescence event for one lineage. $C"
     τ = 0.
     merger = 0
     while merger < 2
