@@ -1,7 +1,7 @@
 name = "TreeTools"
 uuid = "62f0eae3-8c0e-4032-a621-7756092209e5"
 authors = ["PierreBarrat <p.barrat@live.fr>"]
-version = "0.7.2"
+version = "0.7.3"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
