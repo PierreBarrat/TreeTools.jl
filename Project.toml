@@ -1,7 +1,7 @@
 name = "TreeTools"
 uuid = "62f0eae3-8c0e-4032-a621-7756092209e5"
 authors = ["PierreBarrat <p.barrat@live.fr>"]
-version = "0.7.3"
+version = "0.7.4"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -13,9 +13,9 @@ ResumableFunctions = "c5292f4c-5179-55e1-98c5-05642aab7184"
 ArgCheck = "2.4.0"
 Distributions = "0.25.113"
 Random = "1.11"
-ResumableFunctions = "0.6.10"
+ResumableFunctions = "1"
 Chain = "0.6"
-julia = "1.11"
+julia = "1.12"
 Test = "1.11"
 Logging = "1.11"
 
