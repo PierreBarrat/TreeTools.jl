@@ -6,6 +6,7 @@ using BenchmarkTools
 makedocs(;
     sitename="TreeTools",
     format=Documenter.HTML(),
+    checkdocs=:public,
     modules=[TreeTools],
     pages=[
         "Home" => "index.md",
