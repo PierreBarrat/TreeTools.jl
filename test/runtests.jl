@@ -36,3 +36,7 @@ using Test
     println("# Generate")
     include("$(dirname(pathof(TreeTools)))/../test/generate/runtests.jl")
 end
+
+@testset "Aqua.jl" begin
+    include("Aqua.jl")
+end
