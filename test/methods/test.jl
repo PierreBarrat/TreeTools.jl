@@ -363,3 +363,47 @@ end
         @test TreeTools.resolution_value(t5) == 0
     end
 end
+
+@testset "Diameter" begin
+    @testset "Star tree" begin
+        # Diameter = sum of two longest arms: B + C = 2 + 3 = 5
+        t = parse_newick_string("(A:1,B:2,C:3);")
+        @test diameter(t) == 5.0
+        @test diameter(t; topological=true) == 2
+    end
+
+    @testset "Binary tree" begin
+        # (A:3,(B:1,C:1):2): A to B (or C) = 3+2+1 = 6
+        t = parse_newick_string("(A:3,(B:1,C:1):2);")
+        @test diameter(t) == 6.0
+        @test diameter(t; topological=true) == 3
+    end
+
+    @testset "Consistency with pairwise distances" begin
+        nwk = "((3:42.39,(9:10.0,8:5.0):5.0):10.0,(1:3.0,(2:1.0,4:2.0):1.0):5.0);"
+        t = parse_newick_string(nwk)
+        @test isapprox(diameter(t), maximum(TreeTools.distance_matrix(t)); rtol=1e-10)
+    end
+
+    @testset "Singleton internal node" begin
+        # ((A:1):2,B:3): path A->internal->root->B = 1+2+3 = 6
+        t = parse_newick_string("((A:1):2,B:3);")
+        @test diameter(t) == 6.0
+        @test diameter(t; topological=true) == 3
+    end
+
+    @testset "Chain of singleton nodes" begin
+        # (((A:1):1):1,B:3): path A->n1->n2->root->B = 1+1+1+3 = 6
+        t = parse_newick_string("(((A:1):1):1,B:3);")
+        @test diameter(t) == 6.0
+        @test diameter(t; topological=true) == 4
+    end
+
+    @testset "Missing branch lengths" begin
+        t = parse_newick_string("(A,(B,C));")
+        # topological ignores branch lengths, so missing is fine
+        @test diameter(t; topological=true) == 3
+        # branch-length diameter requires all lengths to be present
+        @test_throws Exception diameter(t)
+    end
+end

@@ -24,6 +24,7 @@ export data, data!, root
 include("methods.jl")
 export lca, node2tree, node2tree!, node_depth, distance, divtime, share_labels, is_ancestor
 export root!
+export diameter
 
 include("iterators.jl")
 export nodes, leaves, internals

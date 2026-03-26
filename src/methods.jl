@@ -492,6 +492,44 @@ end
 tree_height(tree::Tree; kwargs...) = distance_to_deepest_leaf(root(tree); kwargs...)
 
 """
+    diameter(tree::Tree; topological=false)
+
+Diameter of `tree`: the longest path between any two leaves.
+If `topological=true`, counts edges instead of summing branch lengths.
+"""
+diameter(tree::Tree; topological=false) = _subtree_diameter(root(tree); topological)[2]
+
+# Recursive helper returning (height, diameter) for the subtree rooted at `node`.
+# The diameter of a node T with children c1, c2, ... is:
+#   max(diam(c1), diam(c2), ..., height(c_deepest) + height(c_second_deepest))
+# i.e. the longest path is either contained in one of the subtrees, or passes
+# through T, in which case it connects the deepest leaves of two distinct children.
+function _subtree_diameter(node::TreeNode; topological=false)
+    if isleaf(node)
+        return (0.0, 0.0)
+    end
+
+    d1, d2 = -Inf, -Inf   # heights of the two deepest children seen so far
+    sub_diam = 0.0
+
+    for c in children(node)
+        τ = topological ? 1.0 : branch_length(c)
+        depth_c, diam_c = _subtree_diameter(c; topological)
+        d = depth_c + τ
+        sub_diam = max(sub_diam, diam_c)        # diameter contained in a subtree
+        if d > min(d1, d2)                      # update the top-2 heights
+            d1, d2 = max(d1, d2), d
+        end
+    end
+
+    if isfinite(min(d1, d2))
+        sub_diam = max(sub_diam, d1 + d2)       # diameter passing through this node
+    end
+
+    return (max(d1, d2), sub_diam)
+end
+
+"""
     distance_to_shallowest_leaf(node::TreeNode; topological = false)
 
 Distance from `node` to the closest leaf in the clade below `node`.
