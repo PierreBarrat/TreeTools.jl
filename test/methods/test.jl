@@ -394,7 +394,7 @@ end
 
     @testset "Chain of singleton nodes" begin
         # (((A:1):1):1,B:3): path A->n1->n2->root->B = 1+1+1+3 = 6
-        t = parse_newick_string("(((A:1):1):1,B:3);")
+        t = parse_newick_string("(((A:1):1):1,B:3);"; check=false)
         @test diameter(t) == 6.0
         @test diameter(t; topological=true) == 4
     end
