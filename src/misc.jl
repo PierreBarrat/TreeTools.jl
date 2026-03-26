@@ -107,7 +107,7 @@ function print_tree_ascii(io, t::Tree)
             println(
                 io, "\n not all branch lengths known, assuming identical branch lengths"
             )
-            depths = [node_depth(node) for node in nodes(t)]
+            depths = [depth(node) for node in nodes(t)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
         fudge_margin = max(ceil(Int, log2(length(taxa))), 1)

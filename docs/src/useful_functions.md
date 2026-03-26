@@ -52,7 +52,25 @@ is_ancestor(tree, "A", "C")
 is_ancestor(tree, "R", "A")
 ```
 
-## Distance between trees
+## Tree metrics
+
+### Tree height
+
+```jldoctest metrics
+julia> using TreeTools
+
+julia> tree = parse_newick_string("((A:1,B:1)AB:2,(C:3,D:1)CD:1)R;");
+
+julia> height(tree)
+4.0
+
+julia> height(tree; topological=true)  # Count edges instead of branch lengths
+2
+```
+
+The `height` function calculates the maximum distance from the root to any leaf. Use `topological=true` to count the number of edges instead of summing branch lengths.
+
+### Distance between trees
 
 The `distance` function also lets you compute the distance between two trees. 
 For now, only the [Robinson-Foulds distance](https://en.wikipedia.org/wiki/Robinson%E2%80%93Foulds_metric) is implemented, but more could come. 

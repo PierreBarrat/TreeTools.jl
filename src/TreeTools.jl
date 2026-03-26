@@ -22,13 +22,13 @@ export ancestor, children, branch_length, branch_length!, label, label!
 export data, data!, root
 
 include("methods.jl")
-export lca, node2tree, node2tree!, node_depth, distance, divtime, share_labels, is_ancestor
-export root!
+export lca, node2tree, node2tree!, depth, distance, divtime, share_labels, is_ancestor, ancestors
+export root!, height
 export diameter
 
 include("iterators.jl")
 export nodes, leaves, internals
-export traversal, postorder_traversal
+export traversal, postorder_traversal, preorder_traversal
 export POT, POTleaves # for backward compat
 
 # include("better_iterators.jl")
@@ -52,5 +52,9 @@ export arecompatible, iscompatible
 include("Generate/Generate.jl")
 public Generate
 
+# Deprecations
+@deprecate node_depth depth
+@deprecate node_findroot root
+@deprecate node_ancestor_list ancestors
 
 end

@@ -70,12 +70,7 @@ Multiple confidence values separated by a `/` are also interpreted as such.
 """
 function isbootstrap(label::AbstractString)
     elements = split(label, '/')
-    for e in elements
-        if isnothing(tryparse(Float64, e))
-            return false
-        end
-    end
-    return true
+    return all(e -> !isnothing(tryparse(Float64, e)), elements)
 end
 
 """
@@ -275,11 +270,11 @@ Base.convert(::Type{T}, t::Tree) where {T<:TreeNodeData} = convert(Tree{T}, t)
 #========================#
 
 """
-	node_findroot(node::TreeNode ; maxdepth=1000)
+	root(node::TreeNode; maxdepth=1000)
 
 Return root of the tree to which `node` belongs.
 """
-function node_findroot(node::TreeNode; maxdepth=1000)
+function root(node::TreeNode; maxdepth=1000)
     temp = node
     it = 0
     while !temp.isroot && it <= maxdepth
@@ -294,15 +289,16 @@ function node_findroot(node::TreeNode; maxdepth=1000)
 end
 
 """
-	node_ancestor_list(node::TreeNode)
+	ancestors(node::TreeNode)
 
-Return array of all ancestors of `node` up to the root.
+Return all ancestors of `node` up to and including the root, as a `Vector{TreeNode}`.
+The first element is `node` itself.
 """
-function node_ancestor_list(node::TreeNode)
-    list = [node.label]
+function ancestors(node::TreeNode)
+    list = TreeNode[node]
     a = node
     while !a.isroot
-        push!(list, a.anc.label)
+        push!(list, a.anc)
         a = a.anc
     end
     return list
@@ -337,11 +333,11 @@ end
 #==================================================================#
 
 """
-	node_depth(node::TreeNode)
+	depth(node::TreeNode)
 
-Topologic distance from `node` to root.
+Topological distance from `node` to root (number of edges).
 """
-function node_depth(node::TreeNode)
+function depth(node::TreeNode)
     d = 0
     _node = node
     while !_node.isroot
@@ -367,8 +363,8 @@ function lca(i_node::TreeNode, j_node::TreeNode)
     ii_node = i_node
     jj_node = j_node
 
-    di = node_depth(ii_node)
-    dj = node_depth(jj_node)
+    di = depth(ii_node)
+    dj = depth(jj_node)
     while di != dj
         if di > dj
             ii_node = ii_node.anc
@@ -423,7 +419,7 @@ Return list of nodes just below `lca(nodelist)`. Useful for introducing splits i
 """
 function blca(nodelist::Vararg{<:TreeNode})
     r = lca(nodelist...)
-    out = []
+    out = TreeNode[]
     for n in nodelist
         a = n
         while a.anc != r
@@ -485,11 +481,22 @@ is_ancestor(t::Tree, a::AbstractString, n::AbstractString) = is_ancestor(t[a], t
 Distance from `node` to the deepest leaf in the clade below `node`.
 """
 function distance_to_deepest_leaf(node::TreeNode; topological=false)
-    return maximum(postorder_traversal(node; internals=false)) do leaf
-        distance(node, leaf; topological)
+    return if isleaf(node)
+        return 0.
+    else
+        maximum(children(node)) do c
+            t = topological ? 1.0 : branch_length(c)
+            distance_to_deepest_leaf(c; topological) + t
+        end
     end
 end
-tree_height(tree::Tree; kwargs...) = distance_to_deepest_leaf(root(tree); kwargs...)
+"""
+    height(tree::Tree; topological=false)
+
+Height of `tree`: the maximum distance from root to any leaf.
+If `topological=true`, counts edges instead of summing branch lengths.
+"""
+height(tree::Tree; topological=false) = distance_to_deepest_leaf(root(tree); topological=topological)
 
 """
     diameter(tree::Tree; topological=false)
@@ -498,6 +505,9 @@ Diameter of `tree`: the longest path between any two leaves.
 If `topological=true`, counts edges instead of summing branch lengths.
 """
 diameter(tree::Tree; topological=false) = _subtree_diameter(root(tree); topological)[2]
+
+# Deprecation
+@deprecate tree_height(tree::Tree; kwargs...) height(tree::Tree; kwargs...)
 
 # Recursive helper returning (height, diameter) for the subtree rooted at `node`.
 # The diameter of a node T with children c1, c2, ... is:
@@ -569,9 +579,9 @@ function binarize!(n::TreeNode{T}; mode=:balanced, time=0.0) where {T}
                 nc = TreeNode(T(); label=random_label("BINARIZE"))
                 for c in part
                     prunenode!(c)
-                    graftnode!(nc, c)
+                    graftnode!(nc, c; safe=false) # nc is a fresh node, no loop possible
                 end
-                graftnode!(n, nc; time)
+                graftnode!(n, nc; time, safe=false) # nc was just built from children of n, no loop possible
             end
         end
     end

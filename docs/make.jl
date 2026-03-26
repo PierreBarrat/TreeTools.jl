@@ -15,7 +15,8 @@ makedocs(;
         "Iteration" => "Iteration.md",
         "Useful functions" => "useful_functions.md",
         "Modifying the tree" => "modifying_the_tree.md",
-        "Generating trees" => "generating_trees.md"
+        "Generating trees" => "generating_trees.md",
+        "Reference" => "reference.md",
     ],
 )
 

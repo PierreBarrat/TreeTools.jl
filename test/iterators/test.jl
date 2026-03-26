@@ -31,7 +31,7 @@ using TreeTools
 
     @testset "Core function _postorder" begin
         R = root(tree)
-        @test sort([x.label for x in TreeTools._postorder(R)]) == node_list
+        @test sort([x.label for x in TreeTools._postorder(Returns(true), R)]) == node_list
         @test sort([x.label for x in TreeTools._postorder(isleaf, R)]) == leaves_list
         @test sort([x.label for x in TreeTools._postorder(isinternal, R)]) == internals_list
     end

@@ -12,7 +12,7 @@ tree = parse_newick_string(nwk)
 ## TreeNode
 
 At the basic level, the tree is represented by a set of linked `TreeNode` structures. A node `n` contains the following information: 
-- `ancestor(n)` returns the node above `n`. If `n` is the root, `ancestor(n)` returns `nothing`. 
+- `ancestor(n)` returns the node above `n`. Throws an error if `n` is the root; use `isroot(n)` to check first.
 - `children(n)` returns an array containing all the nodes below `n`. If `n` is a leaf, `children(n)` is empty. 
 - `label(n)` returns the label of `n`, which also serves as an identifier of `n` in many TreeTools functions. See the warning below. 
 - `branch_length(n)` returns the length of the branch above `n` as a `Float64`. If `n` is the root or if it does not have a branch length, it returns `missing`. 

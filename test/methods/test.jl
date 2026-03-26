@@ -132,6 +132,26 @@ nwk = "(A:3,(B:1,C:1):2);"
     @test divtime(t.root, t.lnodes["A"]) == 3
 end
 
+@testset "height" begin
+    t = parse_newick_string("((A:1,B:1)AB:2,(C:3,D:1)CD:1)R;")
+    @test height(t) == 4.0
+    @test height(t; topological=true) == 2
+    
+    # Test with different tree shapes
+    ladder = TreeTools.Generate.ladder_tree(5, 1.0)
+    @test height(ladder) == 1.0  # Total height T=1.0
+    @test height(ladder; topological=true) == 4  # 4 edges from root to deepest leaf
+    
+    star = TreeTools.Generate.star_tree(5, 1.0)
+    @test height(star) == 1.0
+    @test height(star; topological=true) == 1
+    
+    # Test with missing branch lengths
+    t_missing = parse_newick_string("(A,(B,C)BC)R;")
+    @test ismissing(height(t_missing))
+    @test height(t_missing; topological=true) == 2
+end
+
 ## The tests below depend on the way internal nodes are labelled
 ## They may need to be rewritten
 nwk = "(A,(B,C));"
