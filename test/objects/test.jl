@@ -7,11 +7,11 @@ using Test
     nwk = "(A,(B,C));"
     tree = parse_newick_string(nwk)
     label!(tree, tree["A"], "D")
-    @test check_tree(tree)
+    @test TreeTools.check_tree(tree)
     @test !in("A", tree)
     @test in("D", tree)
     @test length(nodes(tree)) == 5
-    labels = map(label, postorder_traversal(tree))
+    labels = map(label, TreeTools.postorder_traversal(tree))
     @test !in("A", labels)
     @test in("D", labels)
     @test sort(labels) == sort(map(label, tree))

@@ -91,36 +91,17 @@ function postorder_traversal(f, tree::Tree; kwargs...)
 end
 postorder_traversal(tree; kwargs...) = postorder_traversal(x -> true, tree; kwargs...)
 
-# For backward compat
-POT(node) = postorder_traversal(x -> true, node)
-POT(tree::Tree) = POT(root(tree))
-POTleaves(node) = postorder_traversal(x -> true, node; internals=false)
-POTleaves(tree::Tree) = POTleaves(root(tree))
+# # For backward compat
+# POT(node) = postorder_traversal(x -> true, node)
+# POT(tree::Tree) = POT(root(tree))
+# POTleaves(node) = postorder_traversal(x -> true, node; internals=false)
+# POTleaves(tree::Tree) = POTleaves(root(tree))
 
-@resumable function _postorder(node::TreeNode{T}) where {T}
-    stack = TreeNode{T}[node]
-    head = stack[end]
-    while !isempty(stack)
-        next = stack[end]
-        # Main.@infiltrate
-        if next.isleaf || _subtrees_visited(next, head)
-            head = next
-            pop!(stack)
-            @yield next
-        else
-            for c in Iterators.reverse(children(next))
-                push!(stack, c)
-            end
-        end
-    end
-    return nothing
-end
 @resumable function _postorder(filter_func, node::TreeNode{T}) where {T}
     stack = TreeNode{T}[node]
     head = stack[end]
     while !isempty(stack)
         next = stack[end]
-        # Main.@infiltrate
         if next.isleaf || _subtrees_visited(next, head)
             head = next
             pop!(stack)
@@ -172,17 +153,6 @@ preorder_traversal(tree; kwargs...) = preorder_traversal(x -> true, tree; kwargs
         if filter_func(next)
             @yield next
         end
-    end
-    return nothing
-end
-@resumable function _preorder(node::TreeNode{T}) where {T}
-    stack = TreeNode{T}[node]
-    while !isempty(stack)
-        next = pop!(stack)
-        for c in Iterators.reverse(children(next))
-            push!(stack, c)
-        end
-        @yield next
     end
     return nothing
 end

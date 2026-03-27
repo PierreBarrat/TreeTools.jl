@@ -14,8 +14,8 @@ root_2 = TreeTools.read_newick(
 end
 
 @testset "node2tree" begin
-    @test typeof(node2tree(root_1)) <: Tree
-    @test typeof(node2tree(root_2)) <: Tree
+    @test typeof(TreeTools.node2tree(root_1)) <: Tree
+    @test typeof(TreeTools.node2tree(root_2)) <: Tree
 end
 
 # Testing ancestors
@@ -39,7 +39,7 @@ end
 end
 
 @testset "Count" begin
-    t1 = node2tree(root_1)
+    t1 = TreeTools.node2tree(root_1)
     @test count(isleaf, t1) == 4
     @test count(n -> n.label[1] == 'A', t1) == 3
     @test count(isleaf, t1.lnodes["AB"]) == 2
@@ -55,12 +55,12 @@ end
 end
 
 @testset "Copy" begin
-    t1 = node2tree(root_1)
+    t1 = TreeTools.node2tree(root_1)
     t2 = copy(t1)
     t3 = copy(t1; force_new_tree_label=true)
     t4 = copy(t1; label="tree_4")
     @test typeof(t1) == typeof(t2)
-    prunesubtree!(t2, ["A"])
+    TreeTools.prunesubtree!(t2, ["A"])
     @test "A" in t1
     @test !in("A", t2)
     @test t1.label == t2.label
@@ -127,9 +127,28 @@ nwk = "(A:3,(B:1,C:1):2);"
         @test distance(t[n.label], t[n.label]; topological=true) == 0
         @test distance(t[n.label], t[n.label]; topological=false) == 0
     end
-    # tests below can be removed when `divtime` is removed
-    @test divtime(t.lnodes["A"], t.lnodes["B"]) == 6
-    @test divtime(t.root, t.lnodes["A"]) == 3
+    @test distance(t.lnodes["A"], t.lnodes["B"]) == 6
+    @test distance(t.root, t.lnodes["A"]) == 3
+end
+
+@testset "height" begin
+    t = parse_newick_string("((A:1,B:1)AB:2,(C:3,D:1)CD:1)R;")
+    @test height(t) == 4.0
+    @test height(t; topological=true) == 2
+    
+    # Test with different tree shapes
+    ladder = TreeTools.Generate.ladder_tree(5, 1.0)
+    @test height(ladder) == 1.0  # Total height T=1.0
+    @test height(ladder; topological=true) == 4  # 4 edges from root to deepest leaf
+    
+    star = TreeTools.Generate.star_tree(5, 1.0)
+    @test height(star) == 1.0
+    @test height(star; topological=true) == 1
+    
+    # Test with missing branch lengths
+    t_missing = parse_newick_string("(A,(B,C)BC)R;")
+    @test ismissing(height(t_missing))
+    @test height(t_missing; topological=true) == 2
 end
 
 ## The tests below depend on the way internal nodes are labelled
@@ -152,11 +171,11 @@ nwk = "((A,B),(D,(E,F,G)));"
 end
 
 @testset "ladderize alphabetically" begin
-    t1 = node2tree(
+    t1 = TreeTools.node2tree(
         TreeTools.parse_newick("((D,A,B),C)"; node_data_type=TreeTools.MiscData); label="t1"
     )
     TreeTools.ladderize!(t1)
-    @test write_newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
+    @test newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
 end
 
 @testset "Binarize" begin
@@ -343,11 +362,11 @@ end
     nwk4 = "(((A,B),D),C);"
     nwk5 = "(A,B,C,D);"
 
-    t1 = node2tree(TreeTools.parse_newick(nwk1); label="a")
-    t2 = node2tree(TreeTools.parse_newick(nwk2); label="b")
-    t3 = node2tree(TreeTools.parse_newick(nwk3); label="c")
-    t4 = node2tree(TreeTools.parse_newick(nwk4); label="d")
-    t5 = node2tree(TreeTools.parse_newick(nwk5); label="e")
+    t1 = TreeTools.node2tree(TreeTools.parse_newick(nwk1); label="a")
+    t2 = TreeTools.node2tree(TreeTools.parse_newick(nwk2); label="b")
+    t3 = TreeTools.node2tree(TreeTools.parse_newick(nwk3); label="c")
+    t4 = TreeTools.node2tree(TreeTools.parse_newick(nwk4); label="d")
+    t5 = TreeTools.node2tree(TreeTools.parse_newick(nwk5); label="e")
 
     @testset "RF distance" begin
         @test TreeTools.RF_distance(t1, t2) == 2
@@ -387,14 +406,14 @@ end
 
     @testset "Singleton internal node" begin
         # ((A:1):2,B:3): path A->internal->root->B = 1+2+3 = 6
-        t = parse_newick_string("((A:1):2,B:3);")
+        t = parse_newick_string("((A:1):2,B:3);"; check=false) # check=false to suppress warning
         @test diameter(t) == 6.0
         @test diameter(t; topological=true) == 3
     end
 
     @testset "Chain of singleton nodes" begin
         # (((A:1):1):1,B:3): path A->n1->n2->root->B = 1+1+1+3 = 6
-        t = parse_newick_string("(((A:1):1):1,B:3);")
+        t = parse_newick_string("(((A:1):1):1,B:3);"; check=false)
         @test diameter(t) == 6.0
         @test diameter(t; topological=true) == 4
     end

@@ -117,7 +117,11 @@ branch_length(n::TreeNode) = n.tau
 
 Set the branch length above `n` to `τ`.
 """
-branch_length!(n::TreeNode, τ::Union{Missing,Real}) = (n.tau = τ)
+function branch_length!(n::TreeNode, τ::Union{Missing,Real}) 
+    @argcheck ismissing(n.tau) || n.tau >= 0 """
+    `TreeNode` must have positive branch length. Instead $(n.tau)"""
+    n.tau = τ
+end
 label(n::TreeNode) = n.label
 isleaf(n) = n.isleaf
 isroot(n) = n.isroot

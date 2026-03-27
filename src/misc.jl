@@ -101,13 +101,13 @@ function print_tree_ascii(io, t::Tree)
     drawing_height = 2 * length(taxa) - 1
 
     function get_col_positions(t::Tree)
-        depths = [divtime(node, root(t)) for node in nodes(t)]
+        depths = [distance(node, root(t)) for node in nodes(t)]
         # If there are no branch lengths, assume unit branch lengths
         if ismissing(maximum(depths))
             println(
                 io, "\n not all branch lengths known, assuming identical branch lengths"
             )
-            depths = [node_depth(node) for node in nodes(t)]
+            depths = [depth(node) for node in nodes(t)]
         end
         # Potential drawing overflow due to rounding -- 1 char per tree layer
         fudge_margin = max(ceil(Int, log2(length(taxa))), 1)

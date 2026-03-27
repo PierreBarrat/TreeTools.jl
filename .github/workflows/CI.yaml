@@ -23,7 +23,13 @@ jobs:
       fail-fast: false
       matrix:
         version:
+          - '1.11'
           - '1.12'
+          - 'nightly'
+        include:
+          - version: 'nightly'
+            experimental: true
+    continue-on-error: ${{ matrix.experimental == true }}
         os:
           - ubuntu-latest
         arch:

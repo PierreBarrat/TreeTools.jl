@@ -38,7 +38,7 @@ function prunenode(node::TreeNode)
         return node_, node_
     end
     node_ = deepcopy(node)
-    r = node_findroot(node_)
+    r = root(node_)
     anc = node_.anc
     for (i, c) in enumerate(anc.child)
         if c == node_
@@ -52,16 +52,30 @@ function prunenode(node::TreeNode)
 end
 
 """
-	graftnode!(r::TreeNode, n::TreeNode ; time=branch_length(n))
+	graftnode!(r::TreeNode, n::TreeNode; time=branch_length(n), safe=true)
 
 Graft `n` on `r`.
+
+If `safe`, check that `n` is not already an ancestor of `r`, which would create a loop.
+Set `safe=false` to skip this check in performance-sensitive applications.
 
 *Note*: this does not modify the `Tree` object. You could have to use `node2tree!` after,
  or call the `graft!` function.
 """
-function graftnode!(r::TreeNode, n::TreeNode; time=branch_length(n))
+function graftnode!(r::TreeNode, n::TreeNode; time=branch_length(n), safe=true)
     if !n.isroot || n.anc != nothing
         throw(ArgumentError("Trying to graft non-root node $(n)."))
+    end
+    if safe
+        a = r
+        while !isroot(a)
+            a = a.anc
+            if a === n
+                throw(ArgumentError(
+                    "Grafting $(label(n)) onto $(label(r)) would create a loop."
+                ))
+            end
+        end
     end
     push!(r.child, n)
     r.isleaf = false
@@ -180,7 +194,7 @@ None of the nodes of the subtree of `n` should belong to `tree`.
 If `r` is a leaf and `graft_on_leaf` is set to `false` (default), will raise an error.
 """
 function graft!(
-    t::Tree{T}, n::TreeNode{T}, r::TreeNode; graft_on_leaf=false, time=branch_length(n)
+    t::Tree{T}, n::TreeNode{T}, r::TreeNode; graft_on_leaf=false, time=branch_length(n), safe=true
 ) where {T}
     # checks
     if !graft_on_leaf && isleaf(r)
@@ -209,7 +223,7 @@ function graft!(
     end
 
     # grafting
-    graftnode!(r, n; time)
+    graftnode!(r, n; time, safe)
 
     return n
 end
@@ -226,43 +240,6 @@ end
 
 graft!(t, n::TreeNode, r::AbstractString; kwargs...) = graft!(t, n, t[r]; kwargs...)
 graft!(t1, t2::Tree, r; kwargs...) = graft!(t1, copy(t2).root, r; kwargs...)
-
-#= NOT TESTED -- TODO =#
-function __subtree_prune_regraft!(
-    t::Tree,
-    p::AbstractString,
-    g::AbstractString;
-    remove_singletons=true,
-    graft_on_leaf=false,
-    create_new_leaf=false,
-)
-    # Checks
-    if !create_new_leaf && length(children(ancestor(t[p]))) == 1
-        throw(
-            ArgumentError("""
-            Cannot prune node $p without creating a new leaf (got `create_new_leaf=false`)
-            """)
-        )
-    elseif !graft_on_leaf && isleaf(t[g])
-        throw(ArgumentError("""
-              Cannot graft: node $g is a leaf (got `graft_on_leaf=false`)
-              """))
-    end
-
-    # prune
-    n, a = prunenode!(t[p])
-    if isleaf(a)
-        t.lleaves[label(a)] = a
-    end
-
-    # graft
-    if isleaf(g)
-        delete!(t.lleaves, g)
-    end
-    graft!(t, n, g)
-
-    return nothing
-end
 
 """
 	insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, time)
@@ -285,8 +262,8 @@ function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Missing
     """
 
     prunenode!(c)
-    graftnode!(a, s)
-    graftnode!(s, c)
+    graftnode!(a, s; safe=false) # s is a fresh node, no loop possible
+    graftnode!(s, c; safe=false) # c was just pruned from a, no loop possible
     return s
 end
 function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number) where {T}
@@ -303,8 +280,8 @@ function insert_node!(c::TreeNode{T}, a::TreeNode{T}, s::TreeNode{T}, t::Number)
 
     prunenode!(c)
     branch_length!(c, t)
-    graftnode!(a, s)
-    graftnode!(s, c)
+    graftnode!(a, s; safe=false) # s is a fresh node, no loop possible
+    graftnode!(s, c; safe=false) # c was just pruned from a, no loop possible
 
     return s
 end
@@ -364,7 +341,7 @@ function delete_node!(node::TreeNode; delete_time=false)
         for c in reverse(node.child)
             nc = prunenode!(c)[1]
             new_time = branch_length(nc) + (delete_time ? 0.0 : base_time)
-            graftnode!(node.anc, nc; time=new_time)
+            graftnode!(node.anc, nc; time=new_time, safe=false) # children were already below node.anc, no loop possible
         end
         prunenode!(node)
     end
@@ -387,15 +364,6 @@ function delete!(t::Tree, label; delete_time=false, remove_internal_singletons=t
     haskey(t.lleaves, label) && delete!(t.lleaves, label)
     remove_internal_singletons!(t; delete_time)
     return nothing
-end
-
-"""
-	delete_null_branches!(tree::Tree; threshold=1e-10)
-
-Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
-"""
-function delete_null_branches!(tree::Tree; threshold=1e-10)
-    return delete_branches!(n -> branch_length(n) < threshold, tree.root)
 end
 
 function delete_branches!(f, n::TreeNode; keep_time=false)
@@ -427,6 +395,15 @@ function delete_branches!(f, tree::Tree; keep_time=false)
     remove_internal_singletons!(tree)
     node2tree!(tree, tree.root)
     return nothing
+end
+
+"""
+	delete_null_branches!(tree::Tree; threshold=1e-10)
+
+Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
+"""
+function delete_null_branches!(tree::Tree; threshold=1e-10)
+    return delete_branches!(n -> branch_length(n) < threshold, tree)
 end
 
 """

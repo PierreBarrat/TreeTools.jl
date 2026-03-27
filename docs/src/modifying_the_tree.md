@@ -1,7 +1,7 @@
 # Modifying the tree
 
 On some occasions, it can be useful to modify a phylogenetic tree, *e.g.* removing some clades or branches. 
-TreeKnit offers a few methods for this: 
+TreeTools offers a few methods for this:
 - `prune!` and `prunesubtree!` for pruning a clade. 
 - `graft!` for grafting a node onto a tree.
 - `insert!` for inserting an internal node on an existing branch of a tree. 
@@ -47,25 +47,177 @@ let
 end
 ```
 
-The `prunesubtree!` method does exactly the same as `prune!`, but returns the root of the pruned clade as a `TreeNode`, without converting it to a `Tree`. 
-Thus the two calls are equivalent: 
-
-```@repl
-using TreeTools # hide
-tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;") # hide
-tx = prune!(tree, "X")[1] # or ... 
-tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;") # hide
-tx = let
-	r, a = prunesubtree!(tree, "X")
-	node2tree(r)
-end
-```
+The `TreeTools.prunesubtree!` method does exactly the same as `prune!`, but returns the root of the pruned clade as a `TreeNode` instead of converting it to a `Tree`.
 
 ## Deleting a node
 
+`delete!(tree, label)` removes a single internal node while keeping the subtree below it: the children of the deleted node are re-grafted directly onto its ancestor.
+This is different from `prune!`, which removes an entire subtree.
+
+```jldoctest delete
+julia> using TreeTools
+
+julia> tree = parse_newick_string("(A:1.,(X1:1.,X2:1.)X:2.)R;");
+
+julia> delete!(tree, "X");
+
+julia> sort(map(label, nodes(tree)))
+4-element Vector{String}:
+ "A"
+ "R"
+ "X1"
+ "X2"
+```
+
+By default, the branch length above the deleted node is absorbed into the children's branches, preserving the total distance from ancestor to leaf:
+
+```jldoctest delete
+julia> branch_length(tree["X1"]) # original 1. + X's branch 2. = 3.
+3.0
+```
+
+Setting `delete_time=true` discards the deleted branch length instead:
+
+```jldoctest delete
+julia> tree2 = parse_newick_string("(A:1.,(X1:1.,X2:1.)X:2.)R;");
+
+julia> delete!(tree2, "X"; delete_time=true);
+
+julia> branch_length(tree2["X1"])
+1.0
+```
+
 ## Grafting
 
+`graft!(tree, n, r)` attaches `n` as a new child of `r` in `tree`.
+`n` can be a `TreeNode` or a `Tree`, and `r` can be a node or a label.
+When `n` is a `Tree`, it is **copied** before being grafted.
+The keyword `time` sets the branch length of the grafted subtree.
+
+```jldoctest graft
+julia> using TreeTools
+
+julia> tree = parse_newick_string("(A:1.,B:2.)R;");
+
+julia> subtree = parse_newick_string("(C:1.,D:1.)CD;");
+
+julia> graft!(tree, subtree, "R"; time=3.)
+Node CD:
+Ancestor: R, branch length = 3.0
+2 children: ["C", "D"]
+
+julia> sort(map(label, nodes(tree)))
+6-element Vector{String}:
+ "A"
+ "B"
+ "C"
+ "CD"
+ "D"
+ "R"
+
+julia> branch_length(tree["CD"])
+3.0
+```
+
+By default, `graft!` errors when `r` is a leaf. Pass `graft_on_leaf=true` to allow it.
+
 ## Inserting a node
+
+`insert!(tree, node; name, time)` inserts a new internal node on the branch above `node`.
+The `time` argument controls how the branch is split: it is the length of the **lower** part, from the new node down to `node`.
+The function returns the newly inserted node.
+
+```jldoctest insert
+julia> using TreeTools
+
+julia> tree = parse_newick_string("(A:3.,(B:1.,C:1.)BC:2.)R;");
+
+julia> n = insert!(tree, "A"; name="N", time=2.);
+
+julia> sort(map(label, nodes(tree)))
+6-element Vector{String}:
+ "A"
+ "B"
+ "BC"
+ "C"
+ "N"
+ "R"
+
+julia> branch_length(tree["A"]) # lower part: from N down to A
+2.0
+
+julia> branch_length(n) # upper part: from R down to N
+1.0
+```
+
+## Rooting
+
+### Rooting at a specific node
+
+Root the tree at an existing node or at a specific height above it:
+
+```jldoctest root
+julia> using TreeTools
+
+julia> tree = parse_newick_string("(A:1,(B:1,C:1)BC:1)R;");
+```
+
+**Root at existing node:**
+```jldoctest root
+julia> root!(tree, "B"; root_on_leaf=true)  # Root at node B - kwarg necessary to allow rooting on leaf
+
+julia> root(tree)
+Node B (root)
+Ancestor : `nothing` (root)
+2 children: ["C", "A"]
+```
+
+**Root at specific height above node:**
+```jldoctest root
+julia> tree = parse_newick_string("(A:3,(B:1,C:1)BC:2)R;");
+
+julia> root!(tree, "A"; time=1.0)  # Create new root 1.0 of time above A
+
+julia> branch_length(tree["A"])
+1.0
+```
+
+Options:
+- `root_on_leaf=true`: Allow rooting on leaf nodes
+- `remove_singletons=false`: Keep singleton nodes (default removes them)
+
+### Method-based rooting
+
+**Midpoint rooting:**
+```jldoctest root
+julia> tree = parse_newick_string("(A:1,(B:1,(C:1,D:1)CD:1)BCD:1)R;");
+
+julia> root!(tree; method=:midpoint)  # Root at midpoint between farthest leaves
+
+julia> d = distance(tree, "A", "D") # this has not changed from previous tree
+4.0
+
+julia> isapprox(depth(tree["A"]), d/2, rtol=1e-10)
+true
+```
+
+Keyword argument `topological=true` allows to use branch count instead of branch lengths for the position of the midpoint.
+
+**Model-based rooting:**
+The idea is to root a given tree by taking another as a model. The trees need to be topologically compatible, but branch length does not matter. 
+```@repl 
+using TreeTools
+
+tree = parse_newick_string("(A:1,(B:1,C:1)BC:1)R;")
+
+model = parse_newick_string("((A:1,B:1)AB:1,C:1)R;")
+
+root!(tree; method=:model, model=model) # try to root like model 
+
+tree
+```
+
+Useful when you need multiple trees to have identical rooting.
 
 ## `TreeNode` level functions
 
@@ -93,3 +245,22 @@ However, if speed is important, it might be better to use them.
 `remove_internal_singletons!`
 
 ### Delete insignificant branches
+
+`delete_null_branches!(tree; threshold=1e-10)` removes internal nodes whose branch length is below `threshold`, absorbing the deleted branch into the children's branches. For leaf nodes, the branch length is set to zero instead of removing the node.
+
+For more control, `delete_branches!(f, tree)` deletes any internal node for which the predicate `f(node)` returns `true`. By default the deleted branch length is absorbed into the children; pass `keep_time=false` to discard it instead.
+
+```jldoctest
+julia> using TreeTools
+
+julia> tree = parse_newick_string("(A:1.,(B:1.,C:1.)BC:0.0)R;");
+
+julia> delete_null_branches!(tree);
+
+julia> sort(map(label, nodes(tree)))
+4-element Vector{String}:
+ "A"
+ "B"
+ "C"
+ "R"
+```

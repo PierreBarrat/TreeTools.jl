@@ -28,3 +28,5 @@ Manifest.toml
 examples/_scrap
 examples/test_iterators
 
+# Local memory/notes (not tracked)
+memory/

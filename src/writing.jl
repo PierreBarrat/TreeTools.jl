@@ -37,11 +37,10 @@ end
 """
 	write_newick(io::IO, tree::Tree; kwargs...)
 	write_newick(filename::AbstractString, tree::Tree, mode="w"; kwargs...)
-	write_newick(tree::Tree; kwargs...)
 
-Write Newick string corresponding to `tree` to `io` or `filename`. If output is not
-provided, return the Newick string. If `internal_labels == false`, do not
-write labels of internal nodes in the string.
+Write Newick string corresponding to `tree` to `io` or `filename`.
+Prefer `write(io, tree)` / `write(filename, tree)` to write to IO or a file,
+and `newick(tree)` to obtain the Newick string directly.
 """
 function write_newick(io::IO, tree::Tree; kwargs...)
     return write(io, newick(tree; kwargs...) * "\n")
@@ -54,6 +53,7 @@ function write_newick(
     end
 end
 
+
 """
 	newick(tree::Tree; internal_labels=true, write_root=true)
 
@@ -61,9 +61,6 @@ Return the Newick string correpsonding to `tree`.
 If `internal_labels == false`, do not write labels of internal nodes in the string.
 If `!write_root`, do not write label and time for the root node (unrooted tree).
 """
-write_newick(tree::Tree; kwargs...) = newick(tree; kwargs...)
-write_newick(node::TreeNode) = newick(node)
-
 newick(tree::Tree; kwargs...) = newick(tree.root; kwargs...)
 function newick(root::TreeNode; internal_labels=true, write_root=true)
     return _newick!("", root, internal_labels, write_root) * ";"

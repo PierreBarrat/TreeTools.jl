@@ -42,9 +42,10 @@ For this reason, the following is done when reading a tree:
    will be appended to it to make it unique. Note that the identifier is created using
    `randstring(8)`, unicity is technically not guaranteed.
 - if `force_new_labels` is used, a unique identifier is appended to node labels
-- if node labels in the Newick file are identified as confidence/bootstrap values, a random
-   identifier is appended to them, even if they're unique in the tree. See
-   `?TreeTools.isbootstrap` to see which labels are identified as confidence values.
+- if an internal node label is identified as a confidence/bootstrap value, a unique
+   identifier is appended to it so it can serve as a plain node label. Bootstrap values
+   are not parsed. Leaf labels are never treated as bootstrap values. See
+   `?TreeTools.isbootstrap` for which labels are identified as confidence values.
 """
 function read_tree(io::IO; kwargs...)
     trees = map(Iterators.filter(!isempty, eachline(io))) do line
