@@ -101,7 +101,7 @@ function print_tree_ascii(io, t::Tree)
     drawing_height = 2 * length(taxa) - 1
 
     function get_col_positions(t::Tree)
-        depths = [divtime(node, root(t)) for node in nodes(t)]
+        depths = [distance(node, root(t)) for node in nodes(t)]
         # If there are no branch lengths, assume unit branch lengths
         if ismissing(maximum(depths))
             println(

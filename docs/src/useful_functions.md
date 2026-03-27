@@ -87,7 +87,7 @@ julia> diameter(tree; topological=true)  # Count edges instead of branch lengths
 `distance_matrix` returns the matrix of pairwise distances between all leaves, arranged in post-order.
 
 ```jldoctest metrics
-julia> D = distance_matrix(tree);
+julia> D = TreeTools.distance_matrix(tree);
 
 julia> size(D)
 (4, 4)

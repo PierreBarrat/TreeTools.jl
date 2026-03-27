@@ -4,7 +4,7 @@ using TreeTools
 # println("##### splits #####")
 
 nwk1 = "(((A1,A2),(B1,B2),(C1,C2)),D,E)"
-t = node2tree(TreeTools.parse_newick(nwk1)) #
+t = TreeTools.node2tree(TreeTools.parse_newick(nwk1)) #
 S = SplitList(t)
 
 @testset "1" begin
@@ -45,12 +45,12 @@ end
 
 @testset "4" begin
     @testset for s in S, t in S
-        @test arecompatible(s, t)
-        @test arecompatible(s, t, S.mask)
-        @test arecompatible(s, t, rand(Bool, 8))
+        @test TreeTools.arecompatible(s, t)
+        @test TreeTools.arecompatible(s, t, S.mask)
+        @test TreeTools.arecompatible(s, t, rand(Bool, 8))
     end
-    @test arecompatible(s4, s45)
-    @test arecompatible(s5, s45)
+    @test TreeTools.arecompatible(s4, s45)
+    @test TreeTools.arecompatible(s5, s45)
 end
 
 @testset "5" begin
@@ -58,10 +58,10 @@ end
     t2 = Split([1, 2, 3])
     t3 = Split([1, 3, 7, 8])
     u = Split([7, 8])
-    @test !iscompatible(t1, S)
-    @test !iscompatible(t2, S)
-    @test !iscompatible(t3, S)
-    @test iscompatible(u, S)
+    @test !TreeTools.iscompatible(t1, S)
+    @test !TreeTools.iscompatible(t2, S)
+    @test !TreeTools.iscompatible(t3, S)
+    @test TreeTools.iscompatible(u, S)
 end
 
 # Unions

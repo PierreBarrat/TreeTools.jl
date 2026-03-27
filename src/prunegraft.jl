@@ -241,43 +241,6 @@ end
 graft!(t, n::TreeNode, r::AbstractString; kwargs...) = graft!(t, n, t[r]; kwargs...)
 graft!(t1, t2::Tree, r; kwargs...) = graft!(t1, copy(t2).root, r; kwargs...)
 
-#= NOT TESTED -- TODO =#
-function __subtree_prune_regraft!(
-    t::Tree,
-    p::AbstractString,
-    g::AbstractString;
-    remove_singletons=true,
-    graft_on_leaf=false,
-    create_new_leaf=false,
-)
-    # Checks
-    if !create_new_leaf && length(children(ancestor(t[p]))) == 1
-        throw(
-            ArgumentError("""
-            Cannot prune node $p without creating a new leaf (got `create_new_leaf=false`)
-            """)
-        )
-    elseif !graft_on_leaf && isleaf(t[g])
-        throw(ArgumentError("""
-              Cannot graft: node $g is a leaf (got `graft_on_leaf=false`)
-              """))
-    end
-
-    # prune
-    n, a = prunenode!(t[p])
-    if isleaf(a)
-        t.lleaves[label(a)] = a
-    end
-
-    # graft
-    if isleaf(g)
-        delete!(t.lleaves, g)
-    end
-    graft!(t, n, g)
-
-    return nothing
-end
-
 """
 	insert_node!(c::TreeNode, a::TreeNode, s::TreeNode, time)
 

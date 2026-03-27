@@ -444,8 +444,6 @@ function distance(t::Tree, n1::AbstractString, n2::AbstractString; topological=f
     return distance(t.lnodes[n1], t.lnodes[n2]; topological)
 end
 
-# for convenience with old functions -- should be removed eventually
-divtime(i_node, j_node) = distance(i_node, j_node)
 
 """
 	is_ancestor(t::Tree, a::AbstractString, n::AbstractString)

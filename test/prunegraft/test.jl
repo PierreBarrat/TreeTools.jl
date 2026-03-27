@@ -70,12 +70,12 @@ end
     end
 
     @testset "3" begin
-        E = node2tree(TreeNode(; label="E", tau=5.0))
+        E = TreeTools.node2tree(TreeNode(; label="E", tau=5.0))
         tc = copy(t)
         graft!(tc, E, "A"; graft_on_leaf=true) # will copy E
         @test sort(map(label, children(tc["A"]))) == ["E"]
         @test isroot(E.root)
-        @test check_tree(E)
+        @test TreeTools.check_tree(E)
         @test in("E", tc)
         @test_throws ArgumentError graft!(tc, E, "CD")
     end
@@ -97,23 +97,23 @@ end
 
     # 1
     tc = copy(t)
-    r, a = prunesubtree!(tc, "AB"; remove_singletons=true)
+    r, a = TreeTools.prunesubtree!(tc, "AB"; remove_singletons=true)
     @test !in("AB", tc)
     @test !in("A", tc)
     @test isroot(a)
     @test isroot(r)
-    @test check_tree(tc)
+    @test TreeTools.check_tree(tc)
     @test tc.root.label == "CD"
     @test label(a) == "R"
     @test sort(map(label, children(r))) == ["A", "B"]
 
     # 2
     tc = copy(t)
-    @test_throws ArgumentError prunesubtree!(tc, "R")
-    @test_throws KeyError prunesubtree!(tc, "X")
+    @test_throws ArgumentError TreeTools.prunesubtree!(tc, "R")
+    @test_throws KeyError TreeTools.prunesubtree!(tc, "X")
     @test_throws ArgumentError prune!(tc, ["A", "C"])
-    prunesubtree!(tc, ["A", "B"])
-    @test_throws KeyError prunesubtree!(tc, "A")
+    TreeTools.prunesubtree!(tc, ["A", "B"])
+    @test_throws KeyError TreeTools.prunesubtree!(tc, "A")
 
     # 3
     tc = copy(t)
@@ -122,7 +122,7 @@ end
     @test !in("A", tc)
     @test in("AB", tp)
     @test in("A", tp)
-    @test check_tree(tp) # tc has singletons so check_tree will fail
+    @test TreeTools.check_tree(tp) # tc has singletons so TreeTools.check_tree will fail
     @test sort(map(label, children(tc.root))) == ["CD"]
 
     # 4

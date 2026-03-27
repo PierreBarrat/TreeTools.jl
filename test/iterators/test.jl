@@ -36,24 +36,24 @@ using TreeTools
         @test sort([x.label for x in TreeTools._postorder(isinternal, R)]) == internals_list
     end
 
-    @testset "postorder_traversal: basics" begin
-        @test sort([x.label for x in postorder_traversal(root(tree))]) == node_list
-        @test sort([x.label for x in postorder_traversal(tree; leaves=false)]) == internals_list
+    @testset "TreeTools.postorder_traversal: basics" begin
+        @test sort([x.label for x in TreeTools.postorder_traversal(root(tree))]) == node_list
+        @test sort([x.label for x in TreeTools.postorder_traversal(tree; leaves=false)]) == internals_list
         @test sort([
-            x.label for x in postorder_traversal(tree; root=false, leaves=false)
+            x.label for x in TreeTools.postorder_traversal(tree; root=false, leaves=false)
         ]) == internals_noroot_list
         @test isempty(
             sort([
-                x.label for x in postorder_traversal(tree; leaves=false, internals=false)
+                x.label for x in TreeTools.postorder_traversal(tree; leaves=false, internals=false)
             ]),
         )
-        iter = postorder_traversal(tree; internals=false) do node
+        iter = TreeTools.postorder_traversal(tree; internals=false) do node
             label(node) != "A1"
         end
         @test sort([x.label for x in iter]) == leaves_list[2:end]
 
-        X = [x.label for x in postorder_traversal(isinternal, tree)]
-        Y = [x.label for x in postorder_traversal(tree; leaves=false)]
+        X = [x.label for x in TreeTools.postorder_traversal(isinternal, tree)]
+        Y = [x.label for x in TreeTools.postorder_traversal(tree; leaves=false)]
         @test X == Y
     end
 
@@ -63,9 +63,9 @@ using TreeTools
         end
         return push!(holder, label(node))
     end
-    @testset "postorder_traversal: node order" begin
-        @test [x.label for x in postorder_traversal(tree)] == postorder_labels(root(tree))
-        @test map(label, postorder_traversal(tree["i_2"])) == postorder_labels(tree["i_2"])
+    @testset "TreeTools.postorder_traversal: node order" begin
+        @test [x.label for x in TreeTools.postorder_traversal(tree)] == postorder_labels(root(tree))
+        @test map(label, TreeTools.postorder_traversal(tree["i_2"])) == postorder_labels(tree["i_2"])
     end
 
     @testset "map - based on postorder" begin

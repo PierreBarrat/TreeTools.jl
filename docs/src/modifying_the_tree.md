@@ -47,19 +47,7 @@ let
 end
 ```
 
-The `prunesubtree!` method does exactly the same as `prune!`, but returns the root of the pruned clade as a `TreeNode`, without converting it to a `Tree`. 
-Thus the two calls are equivalent: 
-
-```@repl
-using TreeTools # hide
-tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;") # hide
-tx = prune!(tree, "X")[1] # or ... 
-tree = parse_newick_string("(A:1.,(B:1.,(X1:0.,X2:0.)X:5.)BX:1.)R;") # hide
-tx = let
-	r, a = prunesubtree!(tree, "X")
-	node2tree(r)
-end
-```
+The `TreeTools.prunesubtree!` method does exactly the same as `prune!`, but returns the root of the pruned clade as a `TreeNode` instead of converting it to a `Tree`.
 
 ## Deleting a node
 

@@ -130,7 +130,7 @@ To construct a tree from a `Tree` from a `TreeNode`, use the `node2tree` functio
 using TreeTools # hide
 tree = parse_newick_string("((A:1,B:1)AB:2,C:3)R;") # hide
 R = tree["R"]
-tree2 = node2tree(R)
+tree2 = TreeTools.node2tree(R)
 ```
 
 !!! warning "Copying a tree"
