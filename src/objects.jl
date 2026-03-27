@@ -119,7 +119,7 @@ Set the branch length above `n` to `τ`.
 """
 function branch_length!(n::TreeNode, τ::Union{Missing,Real}) 
     @argcheck ismissing(n.tau) || n.tau >= 0 """
-    `TreeNode` must have positive branch length. Instead $(tau)"""
+    `TreeNode` must have positive branch length. Instead $(n.tau)"""
     n.tau = τ
 end
 label(n::TreeNode) = n.label

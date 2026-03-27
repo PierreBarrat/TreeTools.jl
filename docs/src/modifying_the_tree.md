@@ -1,7 +1,7 @@
 # Modifying the tree
 
 On some occasions, it can be useful to modify a phylogenetic tree, *e.g.* removing some clades or branches. 
-TreeKnit offers a few methods for this: 
+TreeTools offers a few methods for this:
 - `prune!` and `prunesubtree!` for pruning a clade. 
 - `graft!` for grafting a node onto a tree.
 - `insert!` for inserting an internal node on an existing branch of a tree. 
@@ -257,3 +257,22 @@ However, if speed is important, it might be better to use them.
 `remove_internal_singletons!`
 
 ### Delete insignificant branches
+
+`delete_null_branches!(tree; threshold=1e-10)` removes internal nodes whose branch length is below `threshold`, absorbing the deleted branch into the children's branches. For leaf nodes, the branch length is set to zero instead of removing the node.
+
+For more control, `delete_branches!(f, tree)` deletes any internal node for which the predicate `f(node)` returns `true`. By default the deleted branch length is absorbed into the children; pass `keep_time=false` to discard it instead.
+
+```jldoctest
+julia> using TreeTools
+
+julia> tree = parse_newick_string("(A:1.,(B:1.,C:1.)BC:0.0)R;");
+
+julia> delete_null_branches!(tree);
+
+julia> sort(map(label, nodes(tree)))
+4-element Vector{String}:
+ "A"
+ "B"
+ "C"
+ "R"
+```

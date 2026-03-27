@@ -65,10 +65,36 @@ julia> height(tree)
 4.0
 
 julia> height(tree; topological=true)  # Count edges instead of branch lengths
-2
+2.0
 ```
 
 The `height` function calculates the maximum distance from the root to any leaf. Use `topological=true` to count the number of edges instead of summing branch lengths.
+
+### Tree diameter
+
+`diameter` returns the longest path between any two leaves.
+
+```jldoctest metrics
+julia> diameter(tree)
+7.0
+
+julia> diameter(tree; topological=true)  # Count edges instead of branch lengths
+4.0
+```
+
+### Pairwise distance matrix
+
+`distance_matrix` returns the matrix of pairwise distances between all leaves, arranged in post-order.
+
+```jldoctest metrics
+julia> D = distance_matrix(tree);
+
+julia> size(D)
+(4, 4)
+
+julia> D[1,1]
+0.0
+```
 
 ### Distance between trees
 

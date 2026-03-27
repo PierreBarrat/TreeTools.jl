@@ -91,18 +91,17 @@ function postorder_traversal(f, tree::Tree; kwargs...)
 end
 postorder_traversal(tree; kwargs...) = postorder_traversal(x -> true, tree; kwargs...)
 
-# For backward compat
-POT(node) = postorder_traversal(x -> true, node)
-POT(tree::Tree) = POT(root(tree))
-POTleaves(node) = postorder_traversal(x -> true, node; internals=false)
-POTleaves(tree::Tree) = POTleaves(root(tree))
+# # For backward compat
+# POT(node) = postorder_traversal(x -> true, node)
+# POT(tree::Tree) = POT(root(tree))
+# POTleaves(node) = postorder_traversal(x -> true, node; internals=false)
+# POTleaves(tree::Tree) = POTleaves(root(tree))
 
 @resumable function _postorder(filter_func, node::TreeNode{T}) where {T}
     stack = TreeNode{T}[node]
     head = stack[end]
     while !isempty(stack)
         next = stack[end]
-        # Main.@infiltrate
         if next.isleaf || _subtrees_visited(next, head)
             head = next
             pop!(stack)

@@ -27,13 +27,13 @@ end
     tmp_file_name, tmp_file_io = mktemp()
     t1 = parse_newick_string("((D,A,B),C);")
     @test try
-        write_newick(tmp_file_name, t1, "w")
+        TreeTools.write_newick(tmp_file_name, t1, "w")
         true
     catch err
         false
     end
     @test try
-        write_newick(tmp_file_io, t1)
+        TreeTools.write_newick(tmp_file_io, t1)
         true
     catch err
         false

@@ -227,3 +227,24 @@ end
         @test length(@chain leaves(tc) map(n -> distance(n, tc.root), _) unique) == 1
     end
 end
+
+@testset "delete_null_branches!" begin
+    # Basic removal: BC has a zero branch and should be deleted.
+    # Checks that lnodes is consistent with the node structure (regression for a bug
+    # where deleted nodes remained in lnodes).
+    tree = parse_newick_string("(A:1.,(B:1.,C:1.)BC:0.0)R;")
+    delete_null_branches!(tree)
+    @test !haskey(tree.lnodes, "BC")
+    @test sort(map(label, nodes(tree))) == ["A", "B", "C", "R"]
+
+    # Leaf branches are zeroed, not removed
+    tree2 = parse_newick_string("(A:0.0,(B:1.,C:1.)BC:1.)R;")
+    delete_null_branches!(tree2)
+    @test sort(map(label, nodes(tree2))) == ["A", "B", "BC", "C", "R"]
+    @test all(map(n -> branch_length(tree2[n]), ["A", "B", "BC", "C"]) .≈ [0., 1., 1., 1.])
+
+    # Nothing removed when all branches are above threshold
+    tree3 = parse_newick_string("(A:1.,(B:1.,C:1.)BC:1.)R;")
+    delete_null_branches!(tree3)
+    @test length(collect(nodes(tree3))) == 5
+end

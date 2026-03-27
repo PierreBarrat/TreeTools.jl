@@ -403,15 +403,6 @@ function delete!(t::Tree, label; delete_time=false, remove_internal_singletons=t
     return nothing
 end
 
-"""
-	delete_null_branches!(tree::Tree; threshold=1e-10)
-
-Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
-"""
-function delete_null_branches!(tree::Tree; threshold=1e-10)
-    return delete_branches!(n -> branch_length(n) < threshold, tree.root)
-end
-
 function delete_branches!(f, n::TreeNode; keep_time=false)
     for c in copy(children(n)) # copy needed since `children(n)` is about to change
         delete_branches!(f, c; keep_time)
@@ -441,6 +432,15 @@ function delete_branches!(f, tree::Tree; keep_time=false)
     remove_internal_singletons!(tree)
     node2tree!(tree, tree.root)
     return nothing
+end
+
+"""
+	delete_null_branches!(tree::Tree; threshold=1e-10)
+
+Delete internal node with branch length smaller than `threshold`. Propagates recursively down the tree. For leaf nodes, set branch length to 0 if smaller than `threshold`.
+"""
+function delete_null_branches!(tree::Tree; threshold=1e-10)
+    return delete_branches!(n -> branch_length(n) < threshold, tree)
 end
 
 """

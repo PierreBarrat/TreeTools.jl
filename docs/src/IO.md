@@ -47,7 +47,8 @@ There are about $2\cdot 10^{14}$ strings of length 8 (alphabetic + numeric chara
 
 ## Writing
 
-To write `t::Tree` to a Newick file, simply call `write(filename, t)`. 
-If you want to append to a file, call `write(filename, t, "a")`. 
-Note that `write(filename, t)` adds a newline `'\n'` character at the end of the Newick string. 
-This is done in case other trees have to be added to the file. 
+To get the Newick string of `t::Tree` as a Julia string, call `newick(t)`.
+To write it to a file, call `write(filename, t)`.
+If you want to append to a file, call `write(filename, t, "a")`.
+Note that `write(filename, t)` adds a newline `'\n'` character at the end of the Newick string.
+This is done in case other trees have to be added to the file.

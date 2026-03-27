@@ -176,7 +176,7 @@ end
         TreeTools.parse_newick("((D,A,B),C)"; node_data_type=TreeTools.MiscData); label="t1"
     )
     TreeTools.ladderize!(t1)
-    @test write_newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
+    @test newick(t1) == "(C,(A,B,D)NODE_2)NODE_1:0;"
 end
 
 @testset "Binarize" begin
@@ -407,7 +407,7 @@ end
 
     @testset "Singleton internal node" begin
         # ((A:1):2,B:3): path A->internal->root->B = 1+2+3 = 6
-        t = parse_newick_string("((A:1):2,B:3);")
+        t = parse_newick_string("((A:1):2,B:3);"; check=false) # check=false to suppress warning
         @test diameter(t) == 6.0
         @test diameter(t; topological=true) == 3
     end

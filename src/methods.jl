@@ -61,33 +61,20 @@ end
 """
 	isbootstrap(label::AbstractString)
 
-`label` is interpreted as a confidence value if `label` can be parsed as a
-decimal number (*e.g.* `"87"`, `"100"`, `"76.8"`, `"0.87"`" or `"1.0"`)
+Return `true` if `label` looks like a bootstrap/confidence value, i.e. if it can be parsed
+as a decimal number (*e.g.* `"87"`, `"100"`, `"76.8"`, `"0.87"`, `"1.0"`).
 
-Multiple confidence values separated by a `/` are also interpreted as such.
-- `"87.7/32"` will be interpreted as a confidence value
-- `"87.7/cool_node"` will not
+Multiple confidence values separated by a `/` are also recognised:
+- `"87.7/32"` → `true`
+- `"87.7/cool_node"` → `false`
+
+Note: bootstrap values are **never parsed** — when an internal node's label is detected as a
+bootstrap value, a unique id is appended to it so it can serve as a plain node label.
+Leaf labels are never treated as bootstrap values.
 """
 function isbootstrap(label::AbstractString)
     elements = split(label, '/')
     return all(e -> !isnothing(tryparse(Float64, e)), elements)
-end
-
-"""
-	parse_bootstrap(label::AbstractString)
-
-**NOT IMPLEMENTED YET**
-
-Parse and return confidence value for `label`. Return `missing` if nothing could be parsed.
-`label` is interpreted as a bootstrap value if
-- `label` can be parsed as a <= 100 integer (*e.g.* `"87"` or `"100"`)
-- `label can be parsed as a <= 1 decimal number (*e.g.* `"0.87"`" or `"1.0"`)
-If label is of one of these forms and followed by a string of the form `__NAME`, it is also
-parsed.
-"""
-function parse_bootstrap(label::AbstractString)
-    @warn "`parse_bootstrap` is not implemented yet, doing nothing and return `missing`."
-    return missing
 end
 
 """
@@ -506,8 +493,6 @@ If `topological=true`, counts edges instead of summing branch lengths.
 """
 diameter(tree::Tree; topological=false) = _subtree_diameter(root(tree); topological)[2]
 
-# Deprecation
-@deprecate tree_height(tree::Tree; kwargs...) height(tree::Tree; kwargs...)
 
 # Recursive helper returning (height, diameter) for the subtree rooted at `node`.
 # The diameter of a node T with children c1, c2, ... is:
