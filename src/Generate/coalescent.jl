@@ -117,9 +117,9 @@ function genealogy(C::Coalescent; coalescence_times = false)
     reset_id()
     r, T = genealogy!(nodes, deepcopy(C))
     if coalescence_times
-        return node2tree(r), T
+        return TreeTools.node2tree(r), T
     else
-        return node2tree(r)
+        return TreeTools.node2tree(r)
     end
 end
 
