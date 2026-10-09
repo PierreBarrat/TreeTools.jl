@@ -138,7 +138,7 @@ data!(n::TreeNode{T}, dat::T) where {T} = (n.data = dat)
 	mutable struct Tree{T <: TreeNodeData}
 """
 mutable struct Tree{T<:TreeNodeData}
-    root::Union{Nothing,TreeNode{T}}
+    root::TreeNode{T}
     lnodes::Dict{String,TreeNode{T}}
     lleaves::Dict{fieldtype(TreeNode{T}, :label),TreeNode{T}}
     label::String
