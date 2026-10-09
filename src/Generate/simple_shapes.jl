@@ -44,14 +44,14 @@ function ladder_tree(n::Integer, T::Union{Missing,Real}=missing)
 end
 
 function _ladder_tree!(tree, node, n, T, τ)
-    # graft the next leaf on node
-    if n > 1
+    # iterative (not recursive) to avoid stack overflow for large `n`
+    while n > 1
         graft!(tree, TreeNode(; label="$n", tau=T), node; graft_on_leaf=true)
         node = graft!(tree, TreeNode(; tau=τ), node)
-        _ladder_tree!(tree, node, n - 1, T - τ, τ)
-    else
-        label!(tree, node, "$n")
+        n -= 1
+        T -= τ
     end
+    label!(tree, node, "$n")
     return nothing
 end
 

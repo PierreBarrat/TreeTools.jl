@@ -194,10 +194,12 @@ None of the nodes of the subtree of `n` should belong to `tree`.
 If `r` is a leaf and `graft_on_leaf` is set to `false` (default), will raise an error.
 """
 function graft!(
-    t::Tree{T}, n::TreeNode{T}, r::TreeNode; graft_on_leaf=false, time=branch_length(n), safe=true
+    t::Tree{T}, n::TreeNode{T}, r::TreeNode; graft_on_leaf=false, time=branch_length(n)
 ) where {T}
     # checks
-    if !graft_on_leaf && isleaf(r)
+    if get(t.lnodes, label(r), nothing) !== r
+        throw(ArgumentError("Cannot graft: node $(label(r)) does not belong to tree $(label(t))"))
+    elseif !graft_on_leaf && isleaf(r)
         throw(ArgumentError("Cannot graft: node $r is a leaf (got `graft_on_leaf=false`"))
     elseif !isroot(n) && !isnothing(ancestor(n))
         throw(ArgumentError("Cannot graft non-root node $(label(n))"))
@@ -222,8 +224,8 @@ function graft!(
         end
     end
 
-    # grafting
-    graftnode!(r, n; time, safe)
+    # grafting. No loop possible: `r` is in `t`, and no node of `n` is.
+    graftnode!(r, n; time, safe=false)
 
     return n
 end

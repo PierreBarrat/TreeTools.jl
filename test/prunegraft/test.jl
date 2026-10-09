@@ -248,3 +248,9 @@ end
     delete_null_branches!(tree3)
     @test length(collect(nodes(tree3))) == 5
 end
+
+@testset "graft! on a node outside of the tree" begin
+    t = Tree(TreeNode(; label="root"))
+    foreign = TreeNode(; label="foreign")
+    @test_throws ArgumentError graft!(t, TreeNode(; label="a"), foreign; graft_on_leaf=true)
+end
